@@ -1,0 +1,27 @@
+TODO List
+1. Add genomic coordinates
+2. Change to GRanges Mutaframe
+3. Marker name, chromosome, marker possition,spistats. test effects..
+4. Subset chromosome
+5. Interactive coloring a subset 
+
+
+
+James
+
+How are the chromosomes ordered?  Is it by chromosome size?
+   Chromosome 28 was out of place in the graphs I had.  The group
+   recommended keeping the chromosomes in order from 1 -> 29 +x.
+Can you make an option to change the text for chromosome 30 to be chromosome X.
+Is it possible to make the width of the chromosome block thinner?  It seems to be a little bit too thick.
+We were thinking about ways to show both the significance of
+   interactions by coloring the lines and how to show the type of
+   dominance (AA, AD/DA, DD) at the same time.  Would it be possible
+   to color the chromosome block so that different slices of the
+   chromosome were different colors based on the type of interaction-
+   i.e.- the chromosomes would range from green to blue to red in
+   color based on the type of epistasis across the same chromosome.
+Would it be possible to put the genome coordinates on the inside of the chromosome ring with the coordinantes inbetween the chromosome block and the coordinate lines?
+For the future... With interactive graphs- is it possible to make each chromosome blow up to a larger size when you put your cursor on it, kind of like the tool bar on a mac?  This way, a user could look at where lines originate from on a finer, more detailed scale.  
+
+## Fix the direction part.
