@@ -14,9 +14,9 @@ Collate: visnab.R
          painter-utils.R
 	 GraphicPars-class.R
          CircularView-class.R
-	 LinearView-class.R
-	 ShortReadView-class.R
-	 GenomeRefView-class.R
+	 IntervalView-class.R
+	 AlignmentView-class.R
+	 SeqView-class.R
 	 GrandLinearView-class.R
 	 StackedView-class.R
 	 PileupView-class.R

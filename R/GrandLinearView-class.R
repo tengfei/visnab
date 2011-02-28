@@ -1,5 +1,5 @@
 ##----------------------------------------------------------------------------##
-##             For class "GrandLinearView"
+##             For class "GrandIntervalView"
 ##----------------------------------------------------------------------------##
 
 setClass("GrandLinearView",contains=c("GraphicPars"),
@@ -30,14 +30,14 @@ setMethod("visplot","GrandLinearView",function(obj,
   lapply(1:length(obj@track),function(i){
     objo <- obj@track[[i]]
     cls <- class(objo)
-    if(extends(cls,"LinearView"))
+    if(extends(cls,"IntervalView"))
       linearViewLayer(objo,chr=seqname,env=new.env(),
                       lroot=lroot,view=view,
                       row=i-1,start=start,
                       end=end)
-    if(extends(cls,"GenomeRefView"))
+    if(extends(cls,"SeqView"))
       genomeRefViewLayer(objo,lroot,view,seqname,start,end,width,row=i-1)
-    if(extends(cls,"ShortReadView"))
+    if(extends(cls,"AlignmentView"))
       shortReadViewLayer(objo,lroot=lroot,view=view,seqname=NULL,
                          cutbin=cutbin,start=start,end=end,row=i-1)
   })
@@ -89,14 +89,14 @@ setMethod("visplotDock","GrandLinearView",function(obj,
                        Qt$Qt$RightDockWidgetArea)
     dw$setWidget(track)
     win$addDockWidget(Qt$Qt$RightDockWidgetArea,dw,Qt$Qt$Vertical)
-    if(extends(cls,"LinearView"))
+    if(extends(cls,"IntervalView"))
       linearViewLayer(objo,chr=seqname,env=new.env(),
                       lroot=lroot,view=track,
                       row=i-1,start=start,
                       end=end)
-    if(extends(cls,"GenomeRefView"))
+    if(extends(cls,"SeqView"))
       genomeRefViewLayer(objo,lroot,view=track,seqname,start,end,width,row=i-1)
-    if(extends(cls,"ShortReadView"))
+    if(extends(cls,"AlignmentView"))
       shortReadViewLayer(objo,lroot=lroot,view=track,seqname=seqname,
                          cutbin=cutbin,start=start,end=end,row=i-1)
   })

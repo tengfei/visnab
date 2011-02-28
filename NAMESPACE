@@ -17,9 +17,9 @@ exportClasses("numericOrNULL",
               "vectorOrNULL",
               "GraphicPars",
               "CircularView",
-              "LinearView",
-              "ShortReadView",
-              "GenomeRefView",
+              "IntervalView",
+              "AlignmentView",
+              "SeqView",
               "GrandLinearView",
               "StackedView")
 

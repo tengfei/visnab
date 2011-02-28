@@ -11,7 +11,7 @@ setwd('~/Datas/Data/rna-seq')
 load('gr.rda')
 ## bam <- scanBam("data/bowtie.output.more.bam", param=ScanBamParam(which = gr))
 fls <- "./rna95.sorted.bam"
-newbam <- ShortReadView(file=fls,which=gr)
+newbam <- AlignmentView(file=fls,which=gr)
 visplot(newbam,lower=10,cutbin=30)
 bam <- scanBam("./rna95.sorted.bam", param=ScanBamParam(which = gr))
 bam.c <- countBam("./rna95.sorted.bam", param=ScanBamParam(which = gr))
