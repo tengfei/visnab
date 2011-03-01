@@ -25,7 +25,7 @@ visTheme <- function(theme.name,...){
   newlst$alpha <- 0.2
   newlst$highlight.col <- "red"
   newlst$text.col <- "gray70"
-  newlst$bg.col <- "black"
+  newlst$bg.col <- "white"
   newlst$bg.alpha <- 1
   return(newlst)
 }

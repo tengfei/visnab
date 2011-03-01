@@ -13,13 +13,15 @@ GrandLinearView <- function(track,...){
   new("GrandLinearView",pars=pars,track=track)
 }
 
-setMethod("visplot","GrandLinearView",function(obj,
-                                               seqname=NULL,
-                                               cutbin=NULL,
-                                               start=NULL,
-                                               end=NULL,
-                                               width=NA,
-                                               stretchFactor=NULL){
+setMethod("print","GrandLinearView",function(x
+                                               ## seqname=NULL,
+                                               ## cutbin=NULL,
+                                               ## start=NULL,
+                                               ## end=NULL,
+                                               ## width=NA,
+                                               ## stretchFactor=NULL
+                                             ){
+  obj <- x
   bgcol <- getAttr("bg.col")
   bgalpha <- getAttr("bg.alpha")
   qcol <- col2qcol(bgcol,bgalpha)
@@ -49,8 +51,8 @@ setMethod("visplot","GrandLinearView",function(obj,
   view$show()
 })
 
-setGeneric("visplotDock",function(obj,...) standardGeneric("visplotDock"))
-setMethod("visplotDock","GrandLinearView",function(obj,
+setGeneric("printDock",function(obj,...) standardGeneric("visplotDock"))
+setMethod("printDock","GrandLinearView",function(obj,
                                                seqname=NULL,
                                                cutbin=NULL,
                                                start=NULL,
@@ -112,7 +114,7 @@ setMethod("visplotDock","GrandLinearView",function(obj,
 })
 
 
-visplotDock <- function(...,size=c(1400,600),verticalTitleBar=TRUE){
+printDock <- function(...,size=c(1400,600),verticalTitleBar=TRUE){
   lst <- list(...)
   win <- Qt$QMainWindow()
   win$resize(size[1],size[2])

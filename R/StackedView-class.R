@@ -38,7 +38,8 @@ StackedView <- function(species=NULL,cytoband=FALSE,subchr=NULL,...){
   obj
 }
 
-setMethod('visplot','StackedView',function(obj,..){
+setMethod('print','StackedView',function(x,..){
+  obj <- x
   scene <- qscene()
   gr <- obj@track
   mx <- max(end(gr))

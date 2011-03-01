@@ -7,19 +7,6 @@ setClass('CircularView',contains='GraphicPars',
                         tracks='list'),
          prototype(elementType='GenomicRanges'))
 
-##----------------------------------------------------------------------------##
-##                     Generic  Methods
-##----------------------------------------------------------------------------##
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
-setGeneric('visplot',function(obj,...) standardGeneric('visplot'))
 
 ##----------------------------------------------------------------------------##
 ##               Constructor for CircularView
@@ -140,7 +127,8 @@ CircularView <- function(grl,
 ##' @return 
 ##' @author tengfei
 ##' @export
-setMethod('visplot','CircularView',function(obj,...){
+setMethod('print','CircularView',function(x,...){
+  obj <- x
   env <- new.env()
   grandEOSScene <- qscene()
   bgcol <- getAttr("bg.col")

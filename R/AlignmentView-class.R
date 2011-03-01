@@ -3,59 +3,39 @@
 ##----------------------------------------------------------------------------##
 setClass("AlignmentView",contains="GraphicPars",
          representation(track="list",
-                        species="characterOrNULL",
-                        which="GRanges",
-                        what="vectorOrNULL",
-                        file="characterOrNULL",
                         lower="numeric",
                         cutbin="numeric"))
 
-##----------------------------------------------------------------------------##
-##             "IntervalView" constructor
-##----------------------------------------------------------------------------##
+##----------------------------------------------------------------------##
+##             "AlignmentView" constructor
+##----------------------------------------------------------------------##
 
-AlignmentView <- function(species=NULL,which=NULL,what=NULL,file=NULL,lower=10L,
-                          cutbin=30L,...){
-  if(is.null(what))
-    what <- c("rname", "strand", "pos", "qwidth", "seq")
-  if(is.null(which))
-    stop('Please specify which parameter for viewing the shortread')
-  if(is.null(file))
-    stop('Please specify file path for bam file')
-  pars <- GraphicPars(...)@pars
-  if(!is.null(what))
-    param <- ScanBamParam(which=which, what=what)
-  else
-    param <- ScanBamParam(which=which)
-  bam <- scanBam(file, param=param)
-  new("AlignmentView",track=bam,species=species,
-      pars=pars, which=which, what=what, file=file,lower=10,cutbin=30)
+AlignmentView <- function(bam=NULL,
+                          seqnames=NULL,
+                          start=NULL,
+                          end=NULL,
+                          lower=10L,
+                          cutbin=30L,
+                          show=TRUE,
+                          scene=qscene(),
+                          view=qplotView(scene,rescale="none"),
+                          rootLayer=qlayer(scene,geometry=qrect(0,0,800,600)),
+                          row=0L,
+                          col=0L,
+                          ...){
+  
+  pars <- GraphicPars(...)@pars 
+  new("AlignmentView",track=bam,seqnames=seqnames,
+      pars=pars, lower=lower,cutbin=cutbin)
 }
 
 
-##----------------------------------------------------------------------------##
-##             visplot method
-##----------------------------------------------------------------------------##
+##---------------------------------------------------------##
+##             print method
+##---------------------------------------------------------##
 
-setMethod("visplot","AlignmentView",function(obj,
-                                             seqname=NULL,
-                                             show=TRUE,
-                                             cutbin=20,
-                                             start=NULL,
-                                             end=NULL,
-                                             width=NULL,
-                                             lower=20,
-                                             scene=NULL,
-                                             view=NULL,
-                                             rootLayer=NULL,
-                                             row=0L,
-                                             col=0L){
-
-  if(is.null(scene)){
-    scene <- qscene()
-    view <- qplotView(scene,rescale="none")
-    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
+setMethod("print","AlignmentView",function(x,...){
+  obj <- x
   lower <- obj@lower
   cutbin <- obj@cutbin
   bgcol <- getAttr("bg.col")

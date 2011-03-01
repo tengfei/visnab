@@ -8,14 +8,13 @@ exportMethods("addLevels",
               "orderChr",
               "replaceChr",
               "setPar",
-              "getPar",
-              "visplot",
-              "visplotDock")
+              "getPar")
 
 exportClasses("numericOrNULL",
               "characterOrNULL",
               "vectorOrNULL",
               "GraphicPars",
+              "VnView",
               "CircularView",
               "IntervalView",
               "AlignmentView",

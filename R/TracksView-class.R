@@ -1,3 +1,5 @@
+setGeneric("print")
+
 setClass("TracksView",contains="GraphicPars",
          representation(track="list"))
 TracksView <- function(...){
@@ -5,7 +7,8 @@ TracksView <- function(...){
     new('TracksView',track=list(...),pars=pars)
 }
 
-setMethod("visplot","TracksView",function(obj,...){
+setMethod("print","TracksView",function(x,...){
+  obj <- x
   ## grand scene
   scene <- qscene()
   ## grand layer
@@ -22,7 +25,7 @@ setMethod("visplot","TracksView",function(obj,...){
     ## grand view
   view <- qplotView(scene,rescale="none")
   sapply(1:length(obj@track),function(i){
-    visplot(obj@track[[i]],scene=scene,view=view,
+    print(obj@track[[i]],scene=scene,view=view,
             rootLayer=rootLayer,show=FALSE,
             row=i)
   })

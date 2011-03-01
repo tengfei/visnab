@@ -1,84 +1,69 @@
-##----------------------------------------------------------------------------##
+##----------------------------------------------------------##
 ##             For class "IntervalView"
-##----------------------------------------------------------------------------##
+##----------------------------------------------------------##
+## FIXME: 
+setClass("IntervalView",contains="VnView",
+         representation(track="GenomicRanges"))
 
-setClass("IntervalView",contains="GraphicPars",
-         representation(track="GenomicRanges",
-                        type="characterOrNULL",
-                        idname="characterOrNULL"))
-
-##----------------------------------------------------------------------------##
+##----------------------------------------------------------##
 ##             "IntervalView" constructor
-##----------------------------------------------------------------------------##
+##----------------------------------------------------------##
 
-IntervalView <- function(gr,type=NULL,idname=NULL,...){
-  pars <- GraphicPars(...)@pars
-  new("IntervalView",track=gr,species=species,
-      pars=pars,type=type,idname=idname)
-}
-
-setMethod("visplot","GenomicRanges",function(obj,seqname="chr1",idname=NULL,
-                                             show=TRUE,start=NULL,end=NULL,
-                                             scene=NULL,view=NULL,rootLayer=NULL,
-                                             row=0L,col=0L){
-  if(is.null(scene)){
-    scene <- qscene()
-    view <- qplotView(scene,rescale="none")
-    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
-
-  ## rootLayer <- qlayer(scene)
-  bgcol <- getAttr("bg.col")
-  bgalpha <- getAttr("bg.alpha")
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-  view <- qplotView(scene,rescale="none")
-  env <- new.env()
-  layer <- linearViewLayer(obj,seqname,env,rootLayer,view,
-                           start=start,
-                           end=end,
-                           row=row,col=col,
-                              rowSpan=1L,colSpan=1L,idname=idname)
-  if(show) view$show()
-  return(list(scene=scene,view=view,layer=layer,env=env))
-})
-
-setMethod("visplot","IntervalView",function(obj,chr="chr1",show=TRUE,
-                                          start=NULL,
-                                          end=NULL){
-  scene <- qscene()
-  lroot <- qlayer(scene)
-  bgcol <- getAttr("bg.col")
-  bgalpha <- getAttr("bg.alpha")
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-
-  env <- new.env()
-  layer <- linearViewLayer(obj@track,seqname,env,lroot,view,
-                           start=start,
-                           end=end,
-                           row=0L,col=0L,
-                              rowSpan=1L,colSpan=1L,idname=idname)
-  if(show) view$show()
-  return(list(scene=scene,view=view,layer=layer,env=env))
-})
-
-linearViewLayer <- function(obj,chr,env,
-                            lroot=lroot,view=NULL,start=NULL,
-                            end=NULL,
-                            color="blue",
-                            row=0L,col=0L,
-                            rowSpan=1L,colSpan=1L,idname=idname){
-  gr <- obj
-  gr <- gr[seqnames(gr)==chr]
+IntervalView <- function(gr,idname=NULL,
+                         seqnames=NULL,
+                         scene=NULL,
+                         view = NULL,
+                         rootLayer = NULL,
+                         start=NULL,
+                         end=NULL,
+                         show=TRUE,
+                         row=0L,
+                         col=0L,
+                         stroke="black",
+                         fill="black",
+                         ...){
+  if(is.null(seqnames))
+    seqnames <- as.character(unique(seqnames(gr))[1])
+  if(is.null(idname))
+    idname <- colnames(values(gr))[1]
   if(is.null(start))
     start <- 0
   if(is.null(end))
-    end <- max(end(gr))
+    end <- max(end(ranges(gr)))
+  if(is.null(scene)){
+    scene=qscene()
+    view = qplotView(scene,rescale="none")
+    rootLayer = qlayer(scene,geometry=qrect(0,0,800,600))
+  }
+  pars <- GraphicPars(...,scene=scene,view=view,
+                      rootLayer=rootLayer,idname=idname,
+                      seqnames=seqnames,start=start,
+                      end=end,show=show,row=row,col=col,
+                      stroke=stroke,fill=fill)@pars
+  new("IntervalView",track=gr,pars=pars,show=TRUE)
+}
+
+
+setMethod("print","IntervalView",function(x,..){
+  obj <- x
+  scene <- obj@pars$scene
+  lroot <- obj@pars$rootLayer
+  view <- obj@pars$view
+  seqnames <- obj@pars$seqnames
+  bgcol <- getAttr("bg.col")
+  bgalpha <- getAttr("bg.alpha")
+  qcol <- col2qcol(bgcol,bgalpha)
+  scene$setBackgroundBrush(qbrush(qcol))
+  env <- new.env()
+  gr <- obj@track
+  gr <- gr[seqnames(gr)==seqnames]
+  start <- obj@pars$start
+  end <- obj@pars$end
   if(!is.null(start)&!is.null(end)){
-     idx <- findOverlaps(IRanges(start=start,end=end),ranges(gr))@matchMatrix[,2]
-     gr <- gr[idx]
-   }
+    idx <- findOverlaps(IRanges(start=start,end=end),
+                        ranges(gr))@matchMatrix[,2]
+    gr <- gr[idx]
+  }
   irexon <- IRanges(start(gr),end(gr))
   binsexon <- disjointBins(irexon)
   binmx <- max(binsexon*10+5)
@@ -90,73 +75,48 @@ linearViewLayer <- function(obj,chr,env,
     env$xlimZoom <<- xlimZoom
     env$ylimZoom <<- ylimZoom
     qdrawRect(painter,start(gr),(binsexon*10)/binmx*5,end(gr),
-              (binsexon*10+5)/binmx*5,stroke=color,fill=color)
+              (binsexon*10+5)/binmx*5,
+              stroke=obj@pars$stroke,fill=obj@pars$fill)
   }
-  if(is.null(idname))
-    idname <- colnames(values(obj))[1]
-  else
-    idname <- idname
-##  if(!is.null(start)&!is.null(end)){
-  qlayer(lroot,paintFun=lvpainter,
+
+  layer <- qlayer(lroot,paintFun=lvpainter,
                   limits=qrect(min(start(gr)),-2,
                     max(end(gr)),max((binsexon*10+5)/binmx*5)),
-                  wheelFun=visWheelFun(view),
-                  hoverMoveFun=visHoverLinear(gr,idname,view),
+                  wheelFun=  function(layer, event) {
+                    zoom_factor <- 2
+                    if (event$delta() < 0)
+                      zoom_factor <- 1/2
+                    view$scale(zoom_factor,1)
+                  },
+                  hoverMoveFun=  function(layer,event){
+                    rect <- qrect(0,0,5,5)
+                    mat <- layer$deviceTransform(event)$inverted()
+                    rect <- mat$mapRect(rect)
+                    pos <- event$pos()
+                    rect$moveCenter(pos)
+                    hits <- layer$locate(rect)+1
+                    if(length(hits)>=1){
+                      posS <- event$screenPos()
+                      hits <- hits[1]
+                      text <- values(gr)[,colnames(values(gr))==obj@pars$idname][hits]
+                      Qt$QToolTip$showText(posS,text)
+                    }else{
+                      Qt$QToolTip$hideText()
+                    }
+                  },
                   keyPressFun=function(layer,event){
                     key <- event$key()
                     if(key==Qt$Qt$Key_U)
-                      viewUCSC(chr,env$xlimZoom[1],env$xlimZoom[2])
+                      viewUCSC(seqnames,env$xlimZoom[1],env$xlimZoom[2])
                     if(key==Qt$Qt$Key_Space)
                       view$resetTransform()
                   },
-                  row=row,col=col,
-                              rowSpan=rowSpan,colSpan=colSpan
-                   )
-## }else{
-##     qlayer(lroot,paintFun=lvpainter,
-##                   limits=qrect(start,-10,
-##                     end,max((binsexon*10+5)/binmx*5)),
-##                   wheelFun=visWheelFun(view),
-##                   hoverMoveFun=visHoverLinear(gr,idname,view),
-##                   keyPressFun=function(layer,event){
-##                     key <- event$key()
-##                     if(key==Qt$Qt$Key_U)
-##                       viewUCSC(chr,env$xlimZoom[1],env$xlimZoom[2])
-##                     if(key==Qt$Qt$Key_Space)
-##                       view$resetTransform()
-##                   },
-##                   row=row,col=col,
-##                               rowSpan=rowSpan,colSpan=colSpan,
-##                     clip=TRUE
-##                   )
-## }
-}
+                  row=obj@pars$row,col=obj@pars$col
+                  ## rowSpan=rowSpan,colSpan=colSpan
+                  )
 
-visWheelFun <- function(view){
-  function(layer, event) {
-    zoom_factor <- 2
-    if (event$delta() < 0)
-      zoom_factor <- 1/2
-    view$scale(zoom_factor,1)
-  }
-}
+  if(obj@show) view$show()
+  return(list(scene=scene,view=view,layer=layer,env=env))
+})
 
-visHoverLinear <- function(obj,name,view){
-  function(layer,event){
-    ##      event$widnameget()$setMouseTracking(TRUE)
-    rect <- qrect(0,0,5,5)
-    mat <- layer$deviceTransform(event)$inverted()
-    rect <- mat$mapRect(rect)
-    pos <- event$pos()
-    rect$moveCenter(pos)
-    hits <- layer$locate(rect)+1
-    if(length(hits)>=1){
-      posS <- event$screenPos()
-      hits <- hits[1]
-      text <- values(obj)[,colnames(values(obj))==name][hits]
-      Qt$QToolTip$showText(posS,text)
-    }else{
-      Qt$QToolTip$hideText()
-    }
-  }
-}
+

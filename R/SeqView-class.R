@@ -19,13 +19,16 @@ SeqView <- function(obj,...){
 
 
 ##----------------------------------------------------------------------------##
-##             visplot method
+##             print method
 ##----------------------------------------------------------------------------##
 
-setMethod("visplot","SeqView",function(obj,seqname,start=NULL,
-                                             end=NULL,width=NULL,show=TRUE,
-                                             scene=NULL,view=NULL,rootLayer=NULL,
-                                             row=0L,col=0L){
+setMethod("print","SeqView",function(x
+                                     ## seqname,start=NULL,
+                                     ##         end=NULL,width=NULL,show=TRUE,
+                                     ##         scene=NULL,view=NULL,rootLayer=NULL,
+                                     ##         row=0L,col=0L
+                                     ){
+  obj <- x
   seqname <- "chr1"
   if(is.null(scene)){
     scene <- qscene()
