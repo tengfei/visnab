@@ -3,6 +3,8 @@ library(rtracklayer)
 library(IRanges)
 library(visnab)
 visenv$themes[["default"]][["bg.col"]] <- "white"
+param <- ScanBamParam(which=which, what=what)
+bam <- scanBam(file, param=param)
 
 ## ucscGenomes()                           #
 gr <- GRangesForUCSCGenome("hg19",'chr1')

@@ -37,10 +37,9 @@ IntervalView <- function(gr,idname=NULL,
   }
   pars <- GraphicPars(...,scene=scene,view=view,
                       rootLayer=rootLayer,idname=idname,
-                      seqnames=seqnames,start=start,
-                      end=end,show=show,row=row,col=col,
+                      start=start, end=end,show=show,row=row,col=col,
                       stroke=stroke,fill=fill)@pars
-  new("IntervalView",track=gr,pars=pars,show=TRUE)
+  new("IntervalView",track=gr,pars=pars,seqnames=seqnames,show=TRUE)
 }
 
 
@@ -49,7 +48,7 @@ setMethod("print","IntervalView",function(x,..){
   scene <- obj@pars$scene
   lroot <- obj@pars$rootLayer
   view <- obj@pars$view
-  seqnames <- obj@pars$seqnames
+  seqnames <- obj@seqnames
   bgcol <- getAttr("bg.col")
   bgalpha <- getAttr("bg.alpha")
   qcol <- col2qcol(bgcol,bgalpha)
@@ -116,7 +115,7 @@ setMethod("print","IntervalView",function(x,..){
                   )
 
   if(obj@show) view$show()
-  return(list(scene=scene,view=view,layer=layer,env=env))
+  invisible(list(scene=scene,view=view,layer=layer,env=env))
 })
 
 
