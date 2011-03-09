@@ -4,13 +4,6 @@ library(GenomicRanges)
 library(rtracklayer)
 library(Rsamtools)
 library(ShortRead)
-gr <- GRangesForUCSCGenome("hg19",'chr1')
-setwd('~/Datas/Data/rna-seq')
-## save(gr,file='gr.rda')
-load('gr.rda')
-## bam <- scanBam("data/bowtie.output.more.bam", param=ScanBamParam(which = gr))
-
-fls <- "./rna95.sorted.bam"
 
 pileup <- function(reads, bases = DNA_BASES) {
   seqs <- sread(reads)
