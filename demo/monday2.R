@@ -36,9 +36,9 @@ sum(!is.na(bam$mpos))
 
 bam$pos[!is.na(bam$mpos)]
 bamrd <- RangedData(IRanges(bam$pos, width=45), strand = bam$strand,
-#                    mseqname = bam$mrnm,
-                     mranges = IRanges(bam$mpos,width=45),
-#                    isize = bam$isize,
+                                        #                    mseqname = bam$mrnm,
+                    mranges = IRanges(bam$mpos,width=45),
+                                        #                    isize = bam$isize,
                     space = bam$rname)
 traceback()
 
@@ -55,7 +55,11 @@ bamrd <- subset(bamrd, isize > 170)
 library(rtracklayer)
 session <- browserSession()
 sort(trackNames(session))
-kg <- track(session, "knownGene", "hg19")
+kg <- track(session, "knownGene", "hg19",asRangedData=FALSE)
+save(kg,file='~/Desktop/kg.rda')
+library(visnab)
+obj <- IntervalView(kg)
+print(obj)
 save(kg, file="kg.rda")
 ## query <- ucscTableQuery(session, "knownGene", "hg19")
 ## tableName(query) <- "knownToLocusLink"
@@ -120,7 +124,7 @@ plotReadsOnGene <- function(gene, reads, exons) {
   rds <- subsetByOverlaps(reads, as(any_ex, "RangesList"), type = "within")
   rds <- rds[!is.na(findOverlaps(rds$mranges,
                                  ranges(any_ex), type = "within",
-                                select = "arbitrary")),]
+                                 select = "arbitrary")),]
 
   pe1 <- shrinkageCorrection(as(ranges(rds), "GRanges"))
   pe2 <- shrinkageCorrection(GRanges(rds$mseqname, rds$mranges))
@@ -146,7 +150,7 @@ plotReadsOnGene <- function(gene, reads, exons) {
                          ymax = y + 0.4, fill = feature))
   p <- p + geom_segment(aes(x = ranges.start, xend = ranges.end, y = y,
                             yend = yend, colour = feature_gaps),
-                   data = as.data.frame(gps))
+                        data = as.data.frame(gps))
   p + xlab("position") + ylab("y (artificial)")
 }
 

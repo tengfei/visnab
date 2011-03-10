@@ -2,7 +2,7 @@
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
 ## FIXME: 
-setClass("IntervalView",contains="VnView",
+setClass("IntervalView",contains="VisnabView",
          representation(track="GenomicRanges"))
 
 ##----------------------------------------------------------##

@@ -13,7 +13,7 @@ Collate: visnab.R
 	 utils.R			
          painter-utils.R
 	 GraphicPars-class.R
-	 VnView-class.R
+	 VisnabView-class.R
          CircularView-class.R
 	 IntervalView-class.R
 	 AlignmentView-class.R

@@ -2,7 +2,7 @@
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
 ## FIXME: perhaps scene,layer,view needed here.
-setClass('VnView',contains="GraphicPars",
+setClass('VisnabView',contains="GraphicPars",
          representation("VIRTUAL",
                         show="logical",
                         seqnames="characterOrNULL"))
@@ -10,7 +10,7 @@ setClass('VnView',contains="GraphicPars",
 ## Accessor
 setGeneric("seqnames<-",
            function(x,...,value) standardGeneric("seqnames<-"))
-setReplaceMethod("seqnames","VnView",
+setReplaceMethod("seqnames","VisnabView",
                  function(x,value){
                    ## FIXME: validation here
                    x@seqnames <- value
