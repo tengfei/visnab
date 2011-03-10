@@ -1,4 +1,3 @@
-##just for now
 
 exportMethods("addLevels",
               "removePrefix",
@@ -10,17 +9,17 @@ exportMethods("addLevels",
               "setPar",
               "getPar")
 
-exportClasses("numericOrNULL",
-              "characterOrNULL",
-              "vectorOrNULL",
-              "GraphicPars",
-              "VnView",
-              "CircularView",
-              "IntervalView",
-              "AlignmentView",
-              "SeqView",
-              "GrandLinearView",
-              "StackedView")
+## exportClasses("numericOrNULL",
+##               "characterOrNULL",
+##               "vectorOrNULL",
+##               "GraphicPars",
+##               "VnView",
+##               "CircularView",
+##               "IntervalView",
+##               "AlignmentView",
+##               "SeqView",
+##               "GrandLinearView",
+##               "StackedView")
 
 
 ## for scales
@@ -54,7 +53,7 @@ importClassesFrom(GenomicRanges, GRanges, GRangesList)
 
 importFrom(GenomicRanges, GRanges, GRangesList)
 
-importFrom(GenomicFeatures, getChromInfoFromUCSC)
+## importFrom(GenomicFeatures, getChromInfoFromUCSC)
 
 importMethodsFrom(GenomicRanges, seqnames, seqlengths, strand, "strand<-",
                   elementMetadata)

@@ -2,11 +2,11 @@ Package: visnab
 Version: 0.0.1
 Title: Visualization method for genome-wide analysis and *-seq data
 Description: The package provides interactive graphics for exploring genomic data, with different views, such as circular view, linear view, zoomable view, an provide convenient connection with other useful I/O and tools in bioconductor project.
-Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook
+Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
-Depends: methods, utils, qtbase, qtpaint, plumbr, scales, RColorBrewer,plyr
-Imports: rtracklayer, GenomicFeatures, BSgenome, IRanges, GenomicRanges
-Suggests: BSgenome, RGtk2, gWidgets
+Depends: methods, utils, qtbase, qtpaint, plumbr, scales
+Imports: rtracklayer, BSgenome, IRanges, Rsamtools
+Suggests: BSgenome, RGtk2, gWidgets, GenomicFeautures 
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
