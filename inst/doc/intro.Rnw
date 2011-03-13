@@ -1,0 +1,77 @@
+\documentclass[11pt,a4paper]{article}
+\setlength{\parindent}{0in}
+\setlength{\parskip}{0.5\baselineskip}
+
+% \author{Mahbubul Majumder \\
+% 		Marie Vendettuoli \\
+% 		Tengfei Yin }
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{extramarks} 
+\usepackage{graphicx,float}
+
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.0in       %
+\headsep=0.25in         %
+
+\title{Introduction to VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data}
+\author{Tengfei Yin}
+\date{\today}
+
+% Setup the header and footer
+\pagestyle{fancy}                                                       %
+\lhead{Tengfei Yin}                                                 %
+% \chead{\hmwkClass\:\hmwkTitle}  %
+\rhead{Introduction to VisNAB}
+% \rhead{\firstxmark}                                                     %
+% \lfoot{\lastxmark}                                                      %
+\cfoot{}                                                                %
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}}                          %
+% \renewcommand\headrulewidth{0.4pt}                                      %
+% \renewcommand\footrulewidth{0.4pt}                                      %
+
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+% \setkeys{Gin}{width=0.7\textwidth}
+
+\section{Introduction}
+  VisNAB(VisNAB is Not A Browser) is a package developed in R, which
+  is designed for visualization of genomic data, especially for next
+  generation sequencing data. Besides traditional track-based
+  views,VisNAB also aims to offer alternative views, including
+  Bird-Eye overview, circular view, etc. At the same time, it also
+  provides statistical cues and analytical tools for guiding
+  scientists to find the information of interests. With support of QT
+  library and related API in R, it's possible to make interactive
+  graphics for visualizing and exploring huge amount of data with high
+  performance. This toolkit with other packages in Bioconductor could
+  form a powerful analytical pipeline for exploring the genomic data.
+\section{Individule View}
+\subsection{Circular View}
+\subsection{Interval View}
+\subsection{Alignment View}
+\subsection{Stacked View}
+\section{Linking for Multiple Views}
+\section{Case Study}
+
+\newpage
+\section*{Appendix}
+@ 
+<<session>>=
+sessionInfo()
+@ %def 
+
+
+\end{document}
