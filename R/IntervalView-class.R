@@ -7,7 +7,7 @@
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
-setClass("IntervalView",contains="VisnabView",
+setClass("IntervalView",contains="QtVisnabView",
          representation(track="MutableGRanges"))
 
 ##----------------------------------------------------------##

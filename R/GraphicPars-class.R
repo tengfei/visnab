@@ -30,12 +30,14 @@ setMethod('getPar','GraphicPars',
           })
 
 setMethod('show','GraphicPars',function(object){
+  cat("Parameters stored in pars\n")
   sapply(ls(object@pars), function(x) {
     y <- getPar(object, x)
     if (length(y) > 10)
       y <- y[1:10]
     cat(x, " = ", toString(y), "\n")
   })
+  cat(names(object@pars)[11:length(object@pars)])
 })
 
 pushCon <- function(gp1, gp2) {

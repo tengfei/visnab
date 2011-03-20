@@ -8,7 +8,7 @@
 ##                     Classes
 ##----------------------------------------------------------------------------##
 
-setClass('CircularView',contains='VisnabView',
+setClass('CircularView',contains='QtVisnabView',
          representation(tracks='list'))
 
 ##----------------------------------------------------------------------------##
