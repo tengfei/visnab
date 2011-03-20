@@ -21,7 +21,6 @@ print(obj)
 rm(kgrm)
 kgrm <- as(kg.chr1.sub,"MutableGRanges")
 obj <- IntervalView(kgrm,idname='name')
-
 print(obj)
 ## try show different stuff
 obj <- IntervalView(kg.chr1.sub,idname='blockCount',stroke=NA,fill="red")

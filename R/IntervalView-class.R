@@ -42,15 +42,16 @@ IntervalView <- function(mr,idname=NULL,
   }
   if(inherits(class(mr),"GenomicRanges"))
     mr <- as(mr,"MutableGRanges")
-  ## add default attributes
 
   ## connect signal
   mr$elementMetadataChanged$connect(function() {qupdate(scene)})
-  pars <- GraphicPars(...,scene=scene,view=view,
-                      rootLayer=rootLayer,idname=idname,
-                      start=start, end=end,show=show,row=row,col=col,
+  pars <- GraphicPars(...,
+                      idname=idname,
+                      start=start, end=end,row=row,col=col,
                       stroke=stroke,fill=fill)@pars
-  obj <- new("IntervalView",track=mr,pars=pars,seqnames=seqnames,show=TRUE)
+  obj <- new("IntervalView",track=mr,pars=pars,seqnames=seqnames,
+             scene=scene,view=view,rootLayer=rootLayer,show=TRUE)
+  ## add default attributes
   addDefAttr(obj)
   obj
 }
@@ -58,9 +59,9 @@ IntervalView <- function(mr,idname=NULL,
 
 setMethod("print","IntervalView",function(x,..){
   obj <- x
-  scene <- obj@pars$scene
-  lroot <- obj@pars$rootLayer
-  view <- obj@pars$view
+  scene <- obj@scene
+  lroot <- obj@rootLayer
+  view <- obj@view
   seqnames <- obj@seqnames
   bgcol <- getAttr("bg.col")
   bgalpha <- getAttr("bg.alpha")
@@ -129,7 +130,6 @@ setMethod("print","IntervalView",function(x,..){
                   ## rowSpan=rowSpan,colSpan=colSpan
                   )
   if(obj@show) view$show()
-  invisible(list(scene=scene,view=view,layer=layer,env=env))
 })
 
 

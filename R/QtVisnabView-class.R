@@ -4,14 +4,17 @@
 setOldClass("QGraphicsScene")
 setOldClass("QGraphicsView")
 setOldClass("Qanviz::RLayer")
-setClassUnion("QGraphicsSceneOrNULL",c("QGraphicsScene",NULL))
-setClassUnion("QGraphicsViewOrNULL",c("QGraphicsView",NULL))
-setClassUnion("Qanviz::RLayerOrNULL",c("Qanviz::RLayer",NULL))
+setOldClass("Qanviz::PlotView")
+
+setClassUnion("QGraphicsSceneORNULL",c("QGraphicsScene","NULL"))
+setClassUnion("QGraphicsViewORNULL",c("QGraphicsView","NULL"))
+setClassUnion("Qanviz::RLayerORNULL",c("Qanviz::RLayer","NULL"))
+setClassUnion("Qanviz::PlotViewORNULL",c("Qanviz::PlotView","NULL"))
 
 setClass("QtVisnabView",
          representation("VIRTUAL",
-                        scene="QGraphicsSceneOrNULL",
-                        view="QGraphicsViewOrNULL",
-                        rootLayer="Qanviz::RLayerOrNULL"),
+                        scene="QGraphicsSceneORNULL",
+                        view="Qanviz::PlotViewORNULL",
+                        rootLayer="Qanviz::RLayerORNULL"),
          contains="VisnabView")
 
