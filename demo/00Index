@@ -1,5 +1,7 @@
-circularView        A single circular for SNP data of cow with zoom in/out function.
-linearView          A single linear view for transcripts.
-reference	    A single view for chromosome 1 of human reference genome.
-bamview 	    A single short read view.
-brain               An old demo
+circularview        A single circular for SNP data of cow with zoom in/out function
+stackedview         Stacked chromosomes for specific genome
+intervalview        A single linear view for transcripts
+
+
+
+

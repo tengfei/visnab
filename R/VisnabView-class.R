@@ -2,6 +2,9 @@
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
 ## FIXME: perhaps scene,layer,view needed here.
+setGeneric("print")
+
+
 setClass('VisnabView',contains="GraphicPars",
          representation("VIRTUAL",
                         show="logical",
@@ -16,3 +19,8 @@ setReplaceMethod("seqnames","VisnabView",
                    x@seqnames <- value
                    x
                  })
+
+
+## setMethod("show","VisnabView",function(object){
+##   callNextMethod()
+## })

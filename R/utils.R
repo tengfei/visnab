@@ -1,46 +1,13 @@
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
 setGeneric('removePrefix',function(gr,...) standardGeneric('removePrefix'))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param rm.prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
   seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
   gr
 })
 
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric('addPrefix',function(gr,...) standardGeneric('addPrefix'))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param add.prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod('addPrefix','GenomicRanges',function(gr,add.prefix){
   seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
   vl <- values(gr)
@@ -50,27 +17,9 @@ setMethod('addPrefix','GenomicRanges',function(gr,add.prefix){
   gr
 })
 
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param model 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric('validateChr',function(gr,...) standardGeneric('validateChr'))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param model 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod('validateChr',c('GenomicRanges'),
           function(gr,model,...){
             if(inherits(class(model),'GenomicRanges'))
@@ -81,25 +30,9 @@ setMethod('validateChr',c('GenomicRanges'),
             gr <- gr[chr %in% chrset]
             return(gr)
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric('addLevels',function(gr,...) standardGeneric('addLevels'))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param gr 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod('addLevels','GenomicRanges',function(gr,...){
   gr.lst <- split(gr,as.character(seqnames(gr)))
   lv <- unname(lapply(gr.lst,function(x){
@@ -109,15 +42,7 @@ setMethod('addLevels','GenomicRanges',function(gr,...){
   gr <- do.call("c",lv)
   gr
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param grl 
-##' @param model 
-##' @return 
-##' @author tengfei
-##' @export
+
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
   chrset <- unique(as.character(seqnames(model)))
@@ -137,15 +62,8 @@ isValidatedChr <- function(grl,model){
    return(all(idx))
   }
 }
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param only 
-##' @return 
-##' @author tengfei
-##' @export
+
+
 containLetters <- function(obj,only=FALSE){
   obj <- as.character(obj)
   obj <- tolower(obj)
@@ -158,53 +76,19 @@ containLetters <- function(obj,only=FALSE){
     return(res)
   }
 }
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric("sortChr",function(obj,...) standardGeneric("sortChr"))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param model 
-##' @param prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("sortChr","GenomicRanges",function(obj,model=NULL,prefix="chr"){
   idx <- orderChr(as.character(seqnames(obj)),model,prefix)
   obj[idx]
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param model 
-##' @param prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
+
 setMethod("sortChr","factor",function(obj,model=NULL,prefix="chr"){
   sortChr(as.character(obj),model,prefix)
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param model 
-##' @param prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("sortChr","character",function(obj,model=NULL,prefix="chr"){
   chr <- as.character(obj)
   chrtemp <- gsub(prefix,'',chr)
@@ -224,40 +108,14 @@ setMethod("sortChr","character",function(obj,model=NULL,prefix="chr"){
   }
 })
 
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric("orderChr",function(obj,...) standardGeneric("orderChr"))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param model 
-##' @param prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("orderChr","GenomicRanges",function(obj,model=NULL,prefix="chr"){
   idx <- orderChr(as.character(seqnames(obj)),model,prefix)
   idx
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param model 
-##' @param prefix 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("orderChr","character",function(obj,model=NULL,prefix='chr'){
   chr <- as.character(obj)
   chrtemp <- gsub(prefix,'',chr)
@@ -276,26 +134,9 @@ setMethod("orderChr","character",function(obj,model=NULL,prefix='chr'){
   }
 })
 
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
 setGeneric("replaceChr",function(obj,...) standardGeneric("replaceChr"))
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param from 
-##' @param to 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("replaceChr","GenomicRanges",function(obj,from,to){
   new.chr <- replaceChr(as.character(seqnames(obj)),from,to)
   seqnames(obj) <- new.chr
@@ -306,16 +147,7 @@ setMethod("replaceChr","GenomicRanges",function(obj,from,to){
   }
   obj
 })
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param from 
-##' @param to 
-##' @return 
-##' @author tengfei
-##' @export
+
 setMethod("replaceChr","character",function(obj,from,to){
   idx <- from == obj
   obj[idx] <- to
@@ -371,7 +203,7 @@ scaleColors <- function(obj,low="red",mid="white",high="yellow",alpha=1){
 
 getColor <- function(trackColorTheme,n,types){
   if(is(trackColorTheme,'mutaframe'))
-    trackColorTheme <- as.character(trackColorTheme[,,drop=TRUE])    
+    trackColorTheme <- as.character(trackColorTheme[,,drop=TRUE])
   if(length(trackColorTheme)>1){
     cols <- trackColorTheme
     return(cols)
@@ -385,7 +217,7 @@ getColor <- function(trackColorTheme,n,types){
                      text='black',
                      sector='gray90')
     }
-  cols <- rep(trackColorTheme,n)
+  cols <- rep(cols,n)
 }
  
   return(cols)
@@ -517,3 +349,60 @@ reduceChr <- function(obj){
   ngr <- do.call('c',lst)
   sortChr(ngr)
 }
+
+
+## Add extra attributes to an MutableRanges object
+## This is going to be naming routines in visnab.
+## Specific signal should be bound to MR object.
+setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
+
+setMethod("addAttr","MutableGRanges",function(obj,...){
+  lst <- list(...)
+    
+  ## Check if column exists
+  nms <- names(lst)
+  df <- elementMetadata(obj)
+  nms.exist <- colnames(df)
+  idx <- rep(FALSE,length(nms))
+  lst <- lapply(lst,function(x) rep(x,nrow(df)))
+  sapply(seq_along(nms),function(i){
+    if((nms[i] %in% nms.exist)&&(identical(as.character(lst[[nms[i]]]),as.character(df[,nms[i]]))))
+      idx[i] <<- TRUE
+  })
+  lst <- lst[!idx]
+  dfex <- as.data.frame(do.call(cbind,lst),stringsAsFactors=FALSE)
+  ## New attributes, haven't check selection in plumbr yet
+  elementMetadata(obj) <- c(df,dfex)
+  ## should record attached attr
+  obj
+})
+
+
+## create attriutes rountines
+## constructor for default attr
+addDefAttr <- function(obj){
+  addAttr(obj,.color="red",.hover=FALSE,.brushed=FALSE)
+}
+
+
+setMethod("addAttr","VisnabView",function(obj,...){
+  addAttr(obj@track,...)
+  lst <- list(...)
+  setPar(obj,".attr",lst)
+})
+
+setGeneric("setDefAttr",function(obj,...) standardGeneric("setDefAttr"))
+## set back to default
+
+setMethod("setDefAttr","IntervalView",function(obj,...){
+  ## suppose when create default attibute list
+  ## we have a copy of that in pars.
+  lst <- obj@pars$.attr
+  nms <- names(lst)
+  for(nm in nms){
+    values(obj@track)[nm] <- lst[[nm]]
+  }
+  obj@track
+})
+
+

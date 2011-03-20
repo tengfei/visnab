@@ -1,16 +1,15 @@
 Package: visnab
 Version: 0.0.1
-Title: Visualization method for genome-wide analysis and *-seq data
-Description: The package provides interactive graphics for exploring genomic data, with different views, such as circular view, linear view, zoomable view, an provide convenient connection with other useful I/O and tools in bioconductor project.
+Title: VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data.
+Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which is designed for visualization of genomic data, especially for next generation sequencing data. Besides traditional track-based views,VisNAB also aims to offer alternative views, including Bird-Eye overview, circular view, etc. At the same time, it also provides statistical cues and analytical tools for guiding scientists to find the information of interests. With support of QT library and related API in R, it's possible to make interactive graphics for visualizing and exploring huge amount of data with high performance. This toolkit with other packages in Bioconductor could form a powerful analytical pipeline for exploring the genomic data. 
 Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
-Depends: methods, utils, qtbase, qtpaint, plumbr, scales
-Imports: rtracklayer, BSgenome, IRanges, Rsamtools
-Suggests: BSgenome, RGtk2, gWidgets, GenomicFeautures 
+Depends: methods, utils, qtbase, qtpaint, plumbr, scales, MutableRanges
+Imports: rtracklayer, BSgenome, Rsamtools, IRanges, GenomicRanges
+Suggests: BSgenome, RGtk2
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
-	 utils.R			
          painter-utils.R
 	 GraphicPars-class.R
 	 VisnabView-class.R
@@ -22,6 +21,7 @@ Collate: visnab.R
 	 StackedView-class.R
 	 PileupView-class.R
 	 TracksView-class.R
+	 utils.R			
 	 GUI.R
          ideogram.R
 	 theme.R

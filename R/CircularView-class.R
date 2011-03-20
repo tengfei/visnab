@@ -1,32 +1,20 @@
+## TODO:
+## 1.RubberBand
+## 2.GUI to control parameters
+## 3.Validation
+## 4.Fix speed issues when brushing sectors.
+
 ##----------------------------------------------------------------------------##
 ##                     Classes
 ##----------------------------------------------------------------------------##
 
-setClass('CircularView',contains='GraphicPars',
-         representation(grandShape='characterOrNULL',
-                        tracks='list'),
-         prototype(elementType='GenomicRanges'))
-
+setClass('CircularView',contains='VisnabView',
+         representation(tracks='list'))
 
 ##----------------------------------------------------------------------------##
 ##               Constructor for CircularView
 ##----------------------------------------------------------------------------##
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param grl 
-##' @param model 
-##' @param chrOrder 
-##' @param tracksType 
-##' @param tracksOrder 
-##' @param isPlotted 
-##' @param tracksColorTheme 
-##' @param tracksWidth 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+## grl should be a list of GenomicRanges or MutableRanges
 CircularView <- function(grl,
                          model,
                          chrOrder=NULL,
@@ -36,6 +24,10 @@ CircularView <- function(grl,
                          tracksColorTheme=NULL,
                          tracksWidth=NULL,
                          ...){
+  ## check if list element is MutableRanges
+  if(any(unlist(lapply(grl,function(gr) extends(class(gr),"GenomicRanges"))))){
+    grl <- lapply(grl,function(gr) as(gr,"MutableGRanges"))
+  }
   N <- length(grl)
   if(is.null(tracksType)){
     tracksType <- rep(NA,N)
@@ -51,7 +43,7 @@ CircularView <- function(grl,
   if(is.null(tracksColorTheme)){
     tracksColorTheme <- as.list(rep('default',N))
   }
-  ## add levels to all the list
+    ## add levels to all the list
   grl <- lapply(grl,function(gr){
     addLevels(gr)
   })
@@ -118,19 +110,13 @@ CircularView <- function(grl,
   gp <- pushCon(gp1,gp2)
   new('CircularView',tracks=grl,pars=gp@pars)
 }
-##' <description>
-##'
-##' <details>
-##' @title 
-##' @param obj 
-##' @param ... 
-##' @return 
-##' @author tengfei
-##' @export
+
+
 setMethod('print','CircularView',function(x,...){
   obj <- x
   env <- new.env()
   grandEOSScene <- qscene()
+  ## not sure it's a good way to get global attributes
   bgcol <- getAttr("bg.col")
   bgalpha <- getAttr("bg.alpha")
   qcol <- col2qcol(bgcol,bgalpha)
@@ -191,6 +177,10 @@ setMethod('print','CircularView',function(x,...){
                        scale=eval(pfunScale)
                        )
     ## main layer
+    if(tp %in% c('sector','link'))
+      cache.logic <- FALSE
+    else
+      cache.logic <- TRUE
     l <- qlayer(grandEOSScene,paintFun=paintFun,
                 limits=qrect(c(-len,len),c(-len,len)),
                 geometry=qrect(0,0,600,600),
@@ -204,9 +194,11 @@ setMethod('print','CircularView',function(x,...){
   view$show()
   invisible(list(scene=grandEOSScene,view=view,layer=layer))
 })
+
 ##----------------------------------------------------------------------------##
 ##   put all the painter function into closure below
 ##----------------------------------------------------------------------------##
+## Not a good practice, works anyway
 
 ## painter function for link
 pfunLink <- quote({
@@ -397,13 +389,13 @@ pfunSector <- quote({
     lv <- max(lv)+1-lv
   }
   wsub <- obj@pars$widthunit[n]
-  xy <- polar2xy(radius=l+wsub/2,mp)
+  skipsub <- wsub*0.2
+  xy <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
   chr <- as.character(seqnames(gr))
   chr <- gsub('chr','',chr)
   paths <- lapply(1:length(gr),function(i){
     sa <- ms[i]
     sl <- mw[i]
-    skipsub <- wsub*0.2
     paths <- qglyphSector(0,0,
                           length=l+wsub*(lv[i]-1)+skipsub*(lv[i]-1),
                           width=wsub,
@@ -507,7 +499,7 @@ visCirHoverEvent <- function(obj,gr,type,n,scene){
 
 visHoverSector <- quote({
   function(layer,event){
-    rect <- qrect(0,0,5,5)
+    rect <- qrect(0,0,1,1)
     mat <- layer$deviceTransform(event)$inverted()
     rect <- mat$mapRect(rect)
     pos <- event$pos()
@@ -530,7 +522,6 @@ visHoverSector <- quote({
       }
       if(prehits!=hits){
         qupdate(scene)
-        qupdate(scene)
         prehits <<-hits
       }
     }else{
@@ -538,7 +529,6 @@ visHoverSector <- quote({
         cols <- obj@pars$tracksColorThemeBackup[[n]]
         obj@pars$tracksColorTheme[[n]] <- cols
         obj@pars$tracksHighlight <- obj@pars$tracksHighlightBackup
-        qupdate(scene)
         qupdate(scene)
       }
       isIn <<-FALSE

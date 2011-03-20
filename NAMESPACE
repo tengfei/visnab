@@ -1,4 +1,3 @@
-
 exportMethods("addLevels",
               "removePrefix",
               "validateChr",
@@ -9,7 +8,7 @@ exportMethods("addLevels",
               "setPar",
               "getPar")
 
- exportClasses("numericOrNULL",
+exportClasses("numericOrNULL",
               "characterOrNULL",
               "vectorOrNULL",
               "GraphicPars",
@@ -27,8 +26,9 @@ exportMethods("addLevels",
 ## importFrom(RColorBrewer, brewer.pal)
 importClassesFrom(BSgenome,BSgenome)
 
-importClassesFrom(IRanges, RangedData, RangedDataList, DataTable,
-                  Sequence, DataTableORNULL, characterORNULL,
+importClassesFrom(IRanges,
+                  RangedData, RangedDataList, DataTable,
+                  DataTableORNULL, characterORNULL,
                   RangedSelection, SimpleList)
 
 importFrom(IRanges, DataFrame, IRanges, RangedDataList, RangedData,

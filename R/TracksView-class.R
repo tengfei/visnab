@@ -1,5 +1,3 @@
-setGeneric("print")
-
 setClass("TracksView",contains="GraphicPars",
          representation(track="list"))
 TracksView <- function(...){
