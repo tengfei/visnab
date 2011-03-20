@@ -53,7 +53,6 @@ pushCon <- function(gp1, gp2) {
   return(gp2)
 }
 
-
 ##----------------------------------------------------------------##
 ##                Constructor for GraphicsPars
 ##----------------------------------------------------------------##
@@ -68,6 +67,13 @@ GraphicPars <- function(...){
     })
   }
   gp
+}
+
+VisnabGraphicPars <- function(){
+  GrahpicPars(.bgColor="white",
+              .ftColor="black",
+              .stroke="black",
+              .fill="back")
 }
 
 

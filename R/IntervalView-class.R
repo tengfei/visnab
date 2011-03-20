@@ -24,6 +24,8 @@ IntervalView <- function(mr,idname=NULL,
                          show=TRUE,
                          row=0L,
                          col=0L,
+                         rowSpan=1L,
+                         colSpan=1L,
                          stroke="black",
                          fill="black",
                          ...){
@@ -47,9 +49,10 @@ IntervalView <- function(mr,idname=NULL,
   mr$elementMetadataChanged$connect(function() {qupdate(scene)})
   pars <- GraphicPars(...,
                       idname=idname,
-                      start=start, end=end,row=row,col=col,
+                      start=start, end=end,
                       stroke=stroke,fill=fill)@pars
   obj <- new("IntervalView",track=mr,pars=pars,seqnames=seqnames,
+             row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
              scene=scene,view=view,rootLayer=rootLayer,show=TRUE)
   ## add default attributes
   addDefAttr(obj)
@@ -126,8 +129,8 @@ setMethod("print","IntervalView",function(x,..){
                     if(key==Qt$Qt$Key_Space)
                       view$resetTransform()
                   },
-                  row=obj@pars$row,col=obj@pars$col
-                  ## rowSpan=rowSpan,colSpan=colSpan
+                  row=obj@row,col=obj@col,
+                  rowSpan=obj@rowSpan,colSpan=obj@colSpan
                   )
   if(obj@show) view$show()
 })
