@@ -7,7 +7,7 @@
 ##-----------------------------------------------------------------##
 setClass("StackedView",contains="GraphicPars",
          representation(track="GenomicRanges",
-                        species="characterOrNULL"))
+                        species="characterORNULL"))
 ## This one is used for bird-eye overview
 ## Cytobands is not quite useful and also reduce the mapping speed.
 

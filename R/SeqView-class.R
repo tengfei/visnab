@@ -4,7 +4,7 @@
 
 setClass("SeqView",contains="GraphicPars",
          representation(track="BSgenome",
-                        strand="characterOrNULL"))
+                        strand="characterORNULL"))
 
 
 

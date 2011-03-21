@@ -406,3 +406,23 @@ setMethod("setDefAttr","IntervalView",function(obj,...){
 })
 
 
+##----------------------------------------------------------------##
+##                         ideogram
+##----------------------------------------------------------------##
+getIdeogram <- function(species=NULL,subchr=NULL){
+  require(rtracklayer)
+  if(is.null(species)){
+    choices <- ucscGenomes()[,1]
+    res <- menu(choices,title="Please specify genome")
+    message("Loading...")
+    gr <- GRangesForUCSCGenome(as.character(choices[res]))
+    message("Done")
+  }else{
+    gr <- GRangesForUCSCGenome(species)
+  }
+  ## validate chr, keep less chromosomes, more useful for visualization.
+  if(!is.null(subchr))
+    gr <- validateChr(gr,subchr)
+  ## better order them too.
+  gr <- sortChr(gr)
+}

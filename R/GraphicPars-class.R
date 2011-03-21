@@ -2,13 +2,12 @@
 ##                Class Union Used
 ##-----------------------------------------------------------------##
 
+setClassUnion('numericORNULL',c('numeric','NULL'))
+setClassUnion('characterORNULL',c('character','NULL'))
+setClassUnion('vectorORNULL',c('vector','NULL'))
 
-setClassUnion('numericOrNULL',c('numeric','NULL'))
-setClassUnion('characterOrNULL',c('character','NULL'))
-setClassUnion('vectorOrNULL',c('vector','NULL'))
 
-
-setClass('GraphicPars',representation(pars='environment'),
+setClass('GraphicPars',representation(pars="environment"),
          prototype(pars=new.env()))
 
 ##----------------------------------------------------------------##

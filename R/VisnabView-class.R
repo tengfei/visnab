@@ -6,7 +6,7 @@ setGeneric("print")
 setClass('VisnabView',contains="GraphicPars",
          representation("VIRTUAL",
                         show="logical",
-                        seqnames="characterOrNULL"))
+                        seqnames="characterORNULL"))
 
 
 ## Accessor

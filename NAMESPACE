@@ -8,9 +8,9 @@ exportMethods("addLevels",
               "setPar",
               "getPar")
 
-exportClasses("numericOrNULL",
-              "characterOrNULL",
-              "vectorOrNULL",
+exportClasses("numericORNULL",
+              "characterORNULL",
+              "vectorORNULL",
               "GraphicPars",
               "VisnabView",
               "CircularView",
