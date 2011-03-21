@@ -58,6 +58,48 @@
   graphics for visualizing and exploring huge amount of data with high
   performance. This toolkit with other packages in Bioconductor could
   form a powerful analytical pipeline for exploring the genomic data.
+
+\section{Infrastructure}
+We have two types of graphic parameters, one is individual graphic
+attributes, A \textit{GraphicPars} class is defined to keep those
+attributes, such as background color, foreground color, fill color,
+stroke color, etc. So far, the \textit{GraphicPars} is an environment
+with a set of accessors.
+
+The other type of attributes is designed to specify observation
+oriented behavious.  Each observation has some extra attributes that
+indicate some specific status, such as selected or not, brushed or
+not, highlighted or not. To achieve tihs goal, mutable data structure
+is preferred, so any signal could be attached to it conveniently. For
+genomic data, we use \textit{MutableRanges} package to handle this
+basic structure, which is a \textit{MutableGRanges} object, this
+object has common accessors for \textit{GRanges} object, and what's
+more, it's mutable. So signal could be attached to this data structure.
+For common data structure, we use \textit{mutalist} and \textit{mutaframe}
+in \textit{plumbr} package. For more details about these mutable data 
+structure and signal handling method, please refer to the documentation of 
+package \textit{MutableRanges} and \textit{plumbr}.
+
+\textit{visnab} is a pacakge which provides sets of views for
+visualization of genomic data, especially the next generation
+data. For fast and interactive graphics in R, we use QT API, please
+refer to documentation of package \textit{qtbase} and \textit{qtpaint}
+for more details. 
+
+\textit{VisnabView} is a virtual class which define a top level view
+object in \textit{visnab}, it contains basic information like graphic
+parameters, show status, etc. \textit{QtVisnabView} is a virtual class
+which contains \textit{VisnabView} and has extra information about Qt
+device, this object will store scene, view and rootLayer object. This
+feature may have potential use for integration of multiple views
+later.
+
+Then for other individual views, we define specific view class, such
+as \textit{IntervalView, CircularView, StackedView},etc, which will be
+described in details in following sections.
+
+
+
 \section{Individule View}
 \subsection{Circular View}
 \subsection{Interval View}
