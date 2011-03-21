@@ -8,16 +8,17 @@ exportMethods("addLevels",
               "setPar",
               "getPar")
 
-exportClasses("numericORNULL",
-              "characterORNULL",
-              "vectorORNULL",
-              "GraphicPars",
+
+exportClasses("GraphicPars",
               "VisnabView",
+              "QtVisnabView",
               "CircularView",
               "IntervalView",
               "AlignmentView",
               "SeqView",
               "StackedView")
+
+export("getIdeogram")
 
 
 ## for scales
@@ -61,7 +62,8 @@ importClassesFrom(rtracklayer, BrowserView)
 
 importFrom(rtracklayer, browserSession, genome, "genome<-",
            ucscTableQuery, tableNames, getTable, GenomicData,
-           "track<-", GRangesForUCSCGenome, browserView)
+           "track<-", GRangesForUCSCGenome, browserView,
+           ucscGenomes)
 
 ## importFrom(plyr, is.discrete)
 ## importFrom(RColorBrewer, brewer.pal)
@@ -88,4 +90,4 @@ export(ScanBamParam, scanBam, IRanges, RangesList,
        "[", show,
        GRanges,seqnames)
 
-exportPattern("^[^\\.]")
+## exportPattern("^[^\\.]")

@@ -1,3 +1,7 @@
+## ------------------------------------------------------------
+## Utils for GenomicaRanges
+## ------------------------------------------------------------
+
 setGeneric('removePrefix',function(gr,...) standardGeneric('removePrefix'))
 
 setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
@@ -193,13 +197,13 @@ map2global4link <- function(obj,gr){
   return(data.frame(start=st,width=wd,other.start=st2,other.width=wd2))
 }
 
-
-scaleColors <- function(obj,low="red",mid="white",high="yellow",alpha=1){
-  cols <- cscale(obj,gradient_2_pal(low="red",high="yellow"))
-  cols <- alpha(cols,alpha)
-  cols <- mutaframe(.color=cols)
-  cols
-}
+## ## need to drop this stuff and 
+## scaleColors <- function(obj,low="red",mid="white",high="yellow",alpha=1){
+##   cols <- cscale(obj,gradient_2_pal(low="red",high="yellow"))
+##   cols <- alpha(cols,alpha)
+##   cols <- mutaframe(.color=cols)
+##   cols
+## }
 
 getColor <- function(trackColorTheme,n,types){
   if(is(trackColorTheme,'mutaframe'))
@@ -224,51 +228,25 @@ getColor <- function(trackColorTheme,n,types){
 }
 
 
-map2granges.fast <- function(gct){
-  chr <- foreach(i=icount(nrow(gct)),.combine=rbind) %dopar% {
-    probe <- gct[i,1]
-    chr <- hgu133aCHR[[as.character(probe)]]
-    chrstart <- hgu133aCHRLOC[[as.character(probe)]]
-    chrend <- hgu133aCHRLOCEND[[as.character(probe)]]
-    if((as.numeric(chrstart)*as.numeric(chrend))!=0){
-      if(chrstart>=0&chrend>=0) {
-        chrstrand <- '+'
-      }else{
-        chrstrand <- '-'
-      }}else{
-        if(chrstart+chrend>0){
-          chrstrand <- '+'
-        }else{
-          chrstrand <- '-'            
-        }
-      }
-    data.frame(id=i,chr,chrstart,chrend,chrstrand)
-  }
-  gr <- GRanges(seqnames=chr$chr,ranges=IRanges(start=abs(chr$chrstart),end=abs(chr$chrend)),strand=chr$chrstrand)
-  elementMetadata(gr) <- gct[chr$id,]
-  gr
-}
-
-
-map2granges <- function(gct){
-  idx <- seq_len(nrow(gct))
-  chrlist <- lapply(idx,function(i){
-    probe <- gct[i,1]
-    chr <- hgu133aCHR[[as.character(probe)]]
-    chrstart <- hgu133aCHRLOC[[as.character(probe)]]
-    chrend <- hgu133aCHRLOCEND[[as.character(probe)]]
-    chrstrand <- ifelse(sign(chrstart)<0,'-','+')
-    data.frame(id=i,chr,chrstart,chrend,chrstrand)
-  })
-  chr <- do.call('rbind',chrlist)
-  gr <- GRanges(seqnames=chr$chr,ranges=IRanges(start=abs(chr$chrstart),end=abs(chr$chrend)),strand=chr$chrstrand)
-  elementMetadata(gr) <- gct[chr$id,]
-  gr
-}
+## map2granges <- function(gct){
+##   idx <- seq_len(nrow(gct))
+##   chrlist <- lapply(idx,function(i){
+##     probe <- gct[i,1]
+##     chr <- hgu133aCHR[[as.character(probe)]]
+##     chrstart <- hgu133aCHRLOC[[as.character(probe)]]
+##     chrend <- hgu133aCHRLOCEND[[as.character(probe)]]
+##     chrstrand <- ifelse(sign(chrstart)<0,'-','+')
+##     data.frame(id=i,chr,chrstart,chrend,chrstrand)
+##   })
+##   chr <- do.call('rbind',chrlist)
+##   gr <- GRanges(seqnames=chr$chr,ranges=IRanges(start=abs(chr$chrstart),end=abs(chr$chrend)),strand=chr$chrstrand)
+##   elementMetadata(gr) <- gct[chr$id,]
+##   gr
+## }
 
 
 visZoom <- function(obj,scale.factor=c(4,4)){
-  ## this obj must contain list of scene, view, layer
+  ## this obj must contain list of scene, viewU, layer
   visenv$new.view <- qplotView(obj$scene)
   visenv$new.view$show()
   visenv$new.view$scale(scale.factor[1],scale.factor[2])
@@ -324,7 +302,7 @@ splitDNA <- function(dna){
   return(dnas.split)
 }
 
-viewUCSC <- function(chr,start,end,genome="hg19"){
+viewUCSC <- function(chr,start,end,genome="hg19",session){
     ir <- IRanges(start=start,end=end)
     targets <- GRangesForUCSCGenome(genome,chr,ir)
     browserView(session,targets)
@@ -341,7 +319,6 @@ baseColor <- function(base,pal=brewer_pal(pal="Set1")){
 }
 
 reduceChr <- function(obj){
-  obj <- gr
   grl <- split(obj,seqnames(obj))
   lst <- lapply(names(grl),function(nms){
     GRanges(seqnames=nms,IRanges(0,max(end(grl[[nms]]))))
@@ -350,7 +327,9 @@ reduceChr <- function(obj){
   sortChr(ngr)
 }
 
-
+## ------------------------------------------------------------
+## Utils for MutableGRanges
+## ------------------------------------------------------------
 ## Add extra attributes to an MutableRanges object
 ## This is going to be naming routines in visnab.
 ## Specific signal should be bound to MR object.
@@ -405,12 +384,10 @@ setMethod("setDefAttr","IntervalView",function(obj,...){
   obj@track
 })
 
-
 ##----------------------------------------------------------------##
 ##                         ideogram
 ##----------------------------------------------------------------##
 getIdeogram <- function(species=NULL,subchr=NULL){
-  require(rtracklayer)
   if(is.null(species)){
     choices <- ucscGenomes()[,1]
     res <- menu(choices,title="Please specify genome")

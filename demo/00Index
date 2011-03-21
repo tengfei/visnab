@@ -1,6 +1,6 @@
-circularview        A single circular for SNP data of cow with zoom in/out function
-stackedview         Stacked chromosomes for specific genome
-intervalview        A single linear view for transcripts
+circularView        A single circular for SNP data of cow with zoom in/out function
+stackedView         Stacked chromosomes for specific genome
+intervalView        A single linear view for transcripts
 
 
 

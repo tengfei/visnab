@@ -23,6 +23,5 @@ Collate: visnab.R
 	 PileupView-class.R
 	 TracksView-class.R
 	 utils.R			
-	 GUI.R
 	 theme.R
 	 zzz.R

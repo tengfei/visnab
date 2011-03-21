@@ -1,10 +1,12 @@
 \name{getIdeogram}
 \alias{getIdeogram}
 \title{Get ideogram for model organism from UCSC genome browser}
+
 \description{
   Engined by rtracklayer, get ideogram information for specific genome,
-  and return a GenomicRanges object, contains chromosome information.
+  and return a \link{GenomicRanges} object, contains chromosome information.
 }
+
 \usage{
 getIdeogram(species=NULL, subchr=NULL)
 }
@@ -38,9 +40,11 @@ getIdeogram(species=NULL, subchr=NULL)
 \examples{
 ## With no specific name, a menu containing all the current genomes
 ## in UCSCGenome browsers will be prompted.
+\dontrun{
 obj <- getIdeogram()
 ## give the number which indicate the genome you want to get
 obj
+}
 ## Specify an "official" name if you know it
 obj <- getIdeogram(species="mm9")
 obj

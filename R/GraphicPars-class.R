@@ -41,7 +41,7 @@ setMethod('show','GraphicPars',function(object){
 
 pushCon <- function(gp1, gp2) {
   if (is.null(gp1) && is.null(gp2))
-    return(DisplayPars())
+    return(GraphicPars())
   if (is.null(gp1)) 
     return(gp2)
   if (is.null(gp2))
@@ -68,12 +68,12 @@ GraphicPars <- function(...){
   gp
 }
 
-VisnabGraphicPars <- function(){
-  GrahpicPars(.bgColor="white",
-              .ftColor="black",
-              .stroke="black",
-              .fill="back")
-}
+## VisnabGraphicPars <- function(){
+##  GrahpicPars(.bgColor="white",
+##              .ftColor="black",
+##              .stroke="black",
+##              .fill="back")
+## }
 
 
 

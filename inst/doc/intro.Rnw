@@ -1,3 +1,8 @@
+% \VignetteIndexEntry{An Introduction to VisNAB}
+% \VignetteDepends{}
+% \VignetteKeywords{visnab}
+% \VignettePackage{visnab}
+
 \documentclass[11pt,a4paper]{article}
 \setlength{\parindent}{0in}
 \setlength{\parskip}{0.5\baselineskip}
