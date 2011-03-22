@@ -30,7 +30,7 @@ IntervalView <- function(mr,idname=NULL,
                          fill="black",
                          ...){
   if(is.null(seqnames))
-    seqnames <- as.character(unique(seqnames(mr))[1])
+    seqnames <- as.character(unique(as.character(seqnames(mr)))[1])
   if(is.null(idname))
     idname <- colnames(values(mr))[1]
   if(is.null(start))
@@ -42,9 +42,8 @@ IntervalView <- function(mr,idname=NULL,
     view = qplotView(scene,rescale="none")
     rootLayer = qlayer(scene,geometry=qrect(0,0,800,600))
   }
-  if(inherits(class(mr),"GenomicRanges"))
+  if(extends(class(mr),"GRanges"))
     mr <- as(mr,"MutableGRanges")
-
   ## connect signal
   mr$elementMetadataChanged$connect(function() {qupdate(scene)})
   pars <- GraphicPars(...,
@@ -53,10 +52,10 @@ IntervalView <- function(mr,idname=NULL,
                       stroke=stroke,fill=fill)@pars
   obj <- new("IntervalView",track=mr,pars=pars,seqnames=seqnames,
              row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-             scene=scene,view=view,rootLayer=rootLayer,show=TRUE)
+             scene=scene,view=view,rootLayer=rootLayer,show=show)
   ## add default attributes
   addDefAttr(obj)
-  obj
+  return(obj)
 }
 
 
