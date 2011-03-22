@@ -1,16 +1,24 @@
 \name{IntervalView-class}
-\Rdversion{1.1}
 \docType{class}
+% class
 \alias{IntervalView-class}
+\alias{class:IntervalView}
+
+% Constructor
+\alias{IntervalView}
+
+% print
 \alias{print,IntervalView-method}
+% Accessors
 \alias{setDefAttr,IntervalView-method}
 
 \title{Class \code{"IntervalView"}}
 \description{
   %%  ~~ A concise (1-5 lines) description of what the class is. ~~
-  IntervalView
+  The IntervalView class is a implementation of the QtVisnabView, which
+  is used to define a view object for GenomicRanges or MutableRanges. 
 }
-\section{Objects from the Class}{
+\section{Constructor}{
 Objects can be created by calls of the form \code{new("IntervalView", ...)}.
 %%  ~~ describe objects here ~~ 
 }
@@ -44,7 +52,6 @@ Class \code{"\linkS4class{GraphicPars}"}, by class "QtVisnabView", distance 3.
 \author{
   Tengfei Yin
 }
-
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

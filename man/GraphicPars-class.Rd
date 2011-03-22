@@ -1,5 +1,4 @@
 \name{GraphicPars-class}
-\Rdversion{1.1}
 \docType{class}
 \alias{GraphicPars-class}
 \alias{getPar,GraphicPars-method}
