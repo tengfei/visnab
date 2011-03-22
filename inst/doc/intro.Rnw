@@ -3,7 +3,7 @@
 % \VignetteKeywords{visnab}
 % \VignettePackage{visnab}
 
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \setlength{\parindent}{0in}
 \setlength{\parskip}{0.5\baselineskip}
 
@@ -11,14 +11,19 @@
 % 		Marie Vendettuoli \\
 % 		Tengfei Yin }
 \usepackage{rotating}
-\usepackage{multirow}
 \usepackage{hyperref}
-\usepackage{longtable}
-\usepackage{amsmath,amsfonts,amsthm,amssymb}
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{extramarks} 
 \usepackage{graphicx,float}
+
+% Follow routines in IRanges docsnP
+% \textwidth=6.5in                                                            
+% \textheight=8.5in                                                           
+% %\parskip=.3cm                                                              
+% \oddsidemargin=-.1in                                                        
+% \evensidemargin=-.1in                                                       
+% \headheight=-.3in       
 
 % In case you need to adjust margins:
 \topmargin=-0.45in      %
@@ -28,6 +33,19 @@
 \textheight=9.0in       %
 \headsep=0.25in         %
 
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+
+\newcommand{\software}[1]{\textsf{#1}}
+\newcommand{\R}{\software{R}}
+\newcommand{\visnab}{\Rpackage{visnab}}
+
+
 \title{Introduction to VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data}
 \author{Tengfei Yin}
 \date{\today}
@@ -35,14 +53,10 @@
 % Setup the header and footer
 \pagestyle{fancy}                                                       %
 \lhead{Tengfei Yin}                                                 %
-% \chead{\hmwkClass\:\hmwkTitle}  %
 \rhead{Introduction to VisNAB}
-% \rhead{\firstxmark}                                                     %
-% \lfoot{\lastxmark}                                                      %
 \cfoot{}                                                                %
 \rfoot{Page\ \thepage\ of\ \pageref{LastPage}}                          %
-% \renewcommand\headrulewidth{0.4pt}                                      %
-% \renewcommand\footrulewidth{0.4pt}                                      %
+
 
 \begin{document}
 \maketitle
@@ -52,23 +66,25 @@
 % \setkeys{Gin}{width=0.7\textwidth}
 
 \section{Introduction}
-  VisNAB(VisNAB is Not A Browser) is a package developed in R, which
-  is designed for visualization of genomic data, especially for next
-  generation sequencing data. Besides traditional track-based
-  views,VisNAB also aims to offer alternative views, including
-  Bird-Eye overview, circular view, etc. At the same time, it also
-  provides statistical cues and analytical tools for guiding
-  scientists to find the information of interests. With support of QT
-  library and related API in R, it's possible to make interactive
-  graphics for visualizing and exploring huge amount of data with high
-  performance. This toolkit with other packages in Bioconductor could
-  form a powerful analytical pipeline for exploring the genomic data.
+
+VisNAB(VisNAB is Not A Browser) is a package(called ``visnab'')
+developed in R, which is designed for visualization of genomic data,
+especially for next generation sequencing data. Besides traditional
+track-based views,VisNAB also aims to offer alternative views,
+including Bird-Eye overview, circular view, etc. At the same time, it
+also provides statistical cues and analytical tools for guiding
+scientists to find the information of interests. With support of QT
+library and related API in R, it's possible to make interactive
+graphics for visualizing and exploring huge amount of data with high
+performance. This toolkit with other packages in Bioconductor could
+form a powerful analytical pipeline for exploring the genomic data.
 
 \section{Infrastructure}
+
 We have two types of graphic parameters, one is individual graphic
-attributes, A \textit{GraphicPars} class is defined to keep those
+attributes, A \Rclass{GraphicPars} class is defined to keep those
 attributes, such as background color, foreground color, fill color,
-stroke color, etc. So far, the \textit{GraphicPars} is an environment
+stroke color, etc. So far, the \Rclass{GraphicPars} is an environment
 with a set of accessors.
 
 The other type of attributes is designed to specify observation
@@ -76,40 +92,146 @@ oriented behavious.  Each observation has some extra attributes that
 indicate some specific status, such as selected or not, brushed or
 not, highlighted or not. To achieve tihs goal, mutable data structure
 is preferred, so any signal could be attached to it conveniently. For
-genomic data, we use \textit{MutableRanges} package to handle this
-basic structure, which is a \textit{MutableGRanges} object, this
-object has common accessors for \textit{GRanges} object, and what's
-more, it's mutable. So signal could be attached to this data structure.
-For common data structure, we use \textit{mutalist} and \textit{mutaframe}
-in \textit{plumbr} package. For more details about these mutable data 
-structure and signal handling method, please refer to the documentation of 
-package \textit{MutableRanges} and \textit{plumbr}.
+genomic data, we use \Rpackage{MutableRanges} package to handle this
+basic structure, which is a \Robject{MutableGRanges} object, this
+object has common accessors for \Robject{GRanges} object, and what's
+more, it's mutable. So signal could be attached to this data
+structure.  For common data structure, we use \Rfunction{mutalist} and
+\Rfunction{mutaframe} in \Rpackage{plumbr} package. For more details
+about these mutable data structure and signal handling method, please
+refer to the documentation of package \Rpackage{MutableRanges} and
+\Rpackage{plumbr}.
 
-\textit{visnab} is a pacakge which provides sets of views for
-visualization of genomic data, especially the next generation
-data. For fast and interactive graphics in R, we use QT API, please
-refer to documentation of package \textit{qtbase} and \textit{qtpaint}
-for more details. 
+\visnab{} is a pacakge which provides sets of views for visualization
+of genomic data, especially the next generation data. For fast and
+interactive graphics in R, we use QT API, please refer to
+documentation of package \Rpackage{qtbase} and \Rpackage{qtpaint} for
+more details.
 
-\textit{VisnabView} is a virtual class which define a top level view
-object in \textit{visnab}, it contains basic information like graphic
-parameters, show status, etc. \textit{QtVisnabView} is a virtual class
-which contains \textit{VisnabView} and has extra information about Qt
-device, this object will store scene, view and rootLayer object. This
+\Rclass{VisnabView} is a virtual class which define a top level view
+object in \visnab{}, it contains basic information like graphic
+parameters, show status, etc. \Rclass{QtVisnabView} is a virtual class
+which contains \Rclass{VisnabView} and has extra information about Qt
+device, this object will store scene, view and rootLayer object and
+also some slots to control \Robject{row, col, rowSpan, colSpan} This
 feature may have potential use for integration of multiple views
 later.
 
 Then for other individual views, we define specific view class, such
-as \textit{IntervalView, CircularView, StackedView},etc, which will be
+as \Rclass{IntervalView, CircularView, StackedView},etc, which will be
 described in details in following sections.
 
-
-
 \section{Individule View}
-\subsection{Circular View}
+All the individual views inherits from \Rclass{QtVisnabView}, which
+contains common slots for storing Qt device, like scene, view,
+rootLayer object, and a set of graphic parameters controling the
+layout of the view and a \Robject{MutableGRanges} object called
+viewrange to control the viewed object. This design aims to update
+associated scene automatically and handle \Rfunction{Signal} in an
+easy way.
+
+Constructor which is consistency with class name, usually return a
+view object, then a generic function \Rmethod{print} could draw
+nessessary elements and show the view. It's possible to pass specific
+scene to view object and implement them in a user defined layout.
+
+The design and infrastructure of \visnab{} make writing a generic GUI
+function to each view object possible and easy. GUI development may
+not be part of \visnab{} package. A new package called
+\Rpackage{visnabGUI} may need to be developed on seperate repos,
+\software{Qt} based GUI is preferred since this will make installation
+easy and make the whole package reply only on \Rpackage{qtbase}.
+
+
+\subsection{Circular View} 
+
+Circular view aims to visualize list of \Robject{MutableGRanges} in a
+cicular layout, each \Robject{MutableGRanges} object occupy one circle
+in a specific graphic types, such as bar chart, rectangle, points. And
+inside the circle, a linking curve could be added if you have any
+kinds for translocation information. This idea is inspired by
+\software{circos} project.  A zoomable view is build too.
+
+A \Robject{CircularView} object could be constructed by related
+constructors easily.
+
+Some common features is provided for this view:
+\begin{itemize}
+\item{Associated zoom-in window}
+\item{Order change of chromosomes}
+\item{Types change of trakcs}
+\item{Linking lines highlight}
+\end{itemize}
+
+
+examples goes here.
+
 \subsection{Interval View}
-\subsection{Alignment View}
+
+Interval view aims to visualize single \Robject{MutableGRanges}
+object, we could consider it as a single track which is used for
+showing featues or components along the genomic coordinates, such CDS,
+exons, transcripts. 
+
+A \Robject{MutableGRanges} object may contains features about the
+whole genomes, which may have multiple chromosomes, the
+\Robject{viewrange} aim to control which range is going to be
+visualized.
+
+Some common features is provided for this view:
+  
+\begin{itemize}
+\item{Mouse wheel controled zoom-in/out}
+\item{Tooltip popup when mouse move over one component} 
+\item{idname could control which information you want to show in tooltips}
+\end{itemize}
+
+Examples goes here.
 \subsection{Stacked View}
+
+Stacked view aims to visualize the whole genome, and stack all the
+chromosomes. When interaction happenedd along other views or filter, 
+regions of interests will be highlighted. 
+
+When equiped with \Rpackage{rtracklayer}, it's possible to visualize
+over 80 genomes very easily.
+
+Some common features is provided for this view:
+\begin{itemize}
+\item{Mouse hover single chromosome showing coordinates}
+\item{Order change of chromosomes}
+\item{Region selection}
+\item{Segement highlight on the chromosomes}
+\end{itemize}
+
+Examples go here.
+
+\subsection{Alignment View}
+Alignment view aims to provide shortread alignment with semantic zoom.
+
+\subsection{Seq View}
+
+Seq view aims to provide reference genome and coordinates, could be
+implemented in the tracks view, please see the Section
+\ref{sec:tracks_view}.
+
+\subsection{Pileup View}
+
+Pileup view aims to show information about NGS data such as coverage,
+SNP statistics.
+
+\subsection{Tracks View}\label{sec:tracks_view}
+
+Tracks view aims to visualize multiple tracks at the same time, it's
+usually an integration of the following views:
+  
+\begin{itemize}
+\item{Interval View}
+\item{Seq View}
+\item{Alignment View}
+\item{Pile-up View}
+\end{itemize}
+
 \section{Linking for Multiple Views}
 \section{Case Study}
 
