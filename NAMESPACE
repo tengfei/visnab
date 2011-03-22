@@ -1,3 +1,4 @@
+## Export from visnab
 exportMethods("addLevels",
               "removePrefix",
               "validateChr",
@@ -6,7 +7,8 @@ exportMethods("addLevels",
               "orderChr",
               "replaceChr",
               "setPar",
-              "getPar")
+              "getPar",
+              "print")
 
 
 exportClasses("GraphicPars",
@@ -18,45 +20,18 @@ exportClasses("GraphicPars",
               "SeqView",
               "StackedView")
 
+export("GraphicPars",
+       "IntervalView",
+       "CircularView",
+       "AlignmentView",
+       "SeqView",
+       "StackedView")
+
 export("getIdeogram")
 
 
-## for scales
-##importFrom("scales", alpha, cscale, dscale)
-## importFrom(plyr, is.discrete)
-## importFrom(RColorBrewer, brewer.pal)
-importClassesFrom(BSgenome,BSgenome)
-
-importClassesFrom(IRanges,
-                  RangedData, RangedDataList, DataTable,
-                  DataTableORNULL, characterORNULL,
-                  RangedSelection, SimpleList)
-
-importFrom(IRanges, DataFrame, IRanges, RangedDataList, RangedData,
-           RangesList, Rle, RangedSelection)
-
-importMethodsFrom(IRanges, elementLengths, window,"[",
-                  start, end, width, range,
-                  "start<-", "end<-", "width<-",
-                  split, lapply, unlist, unique,
-                  as.vector, as.list, as.data.frame,
-                  rbind, cbind, colnames,  rownames,
-                  "colnames<-","rownames<-",
-                  ranges, values, score,
-                  "ranges<-", "values<-", "score<-",
-                  space, universe, metadata,
-                  "universe<-", "metadata<-",
-                  isDisjoint, queryHits, findOverlaps, reduce,
-                  disjointBins, elementMetadata, show)
-
-importClassesFrom(GenomicRanges, GRanges, GRangesList)
-
-importFrom(GenomicRanges, GRanges, GRangesList)
-
-## importFrom(GenomicFeatures, getChromInfoFromUCSC)
-
-importMethodsFrom(GenomicRanges, seqnames, seqlengths, strand, "strand<-",
-                  elementMetadata)
+## Import
+import(qtbase, qtpaint, plumbr, scales)
 
 importClassesFrom(rtracklayer, BrowserView)
 
@@ -65,29 +40,5 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
            "track<-", GRangesForUCSCGenome, browserView,
            ucscGenomes)
 
-## importFrom(plyr, is.discrete)
-## importFrom(RColorBrewer, brewer.pal)
-
-## Rsamtools
 importFrom(Rsamtools, ScanBamParam, scanBam)
 
-export(ScanBamParam, scanBam, IRanges, RangesList,
-       DataFrame, IRanges, RangedDataList, RangedData,
-       RangesList, Rle, RangedSelection,
-       elementLengths, window,
-       start, end, width, range,
-       "start<-", "end<-", "width<-",
-       split, lapply, unlist, unique,
-       as.vector, as.list, as.data.frame,
-       rbind, cbind, colnames,  rownames,
-       "colnames<-","rownames<-",
-       ranges, values, score,
-       "ranges<-", "values<-", "score<-",
-       space, universe, metadata,
-       "universe<-", "metadata<-",
-       isDisjoint, queryHits, findOverlaps, reduce,
-       disjointBins, elementMetadata,
-       "[", show,
-       GRanges,seqnames)
-
-## exportPattern("^[^\\.]")

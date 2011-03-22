@@ -1,12 +1,12 @@
 Package: visnab
 Version: 0.0.1
-Title: VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data.
-Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which is designed for visualization of genomic data, especially for next generation sequencing data. Besides traditional track-based views,VisNAB also aims to offer alternative views, including Bird-Eye overview, circular view, etc. At the same time, it also provides statistical cues and analytical tools for guiding scientists to find the information of interests. With support of QT library and related API in R, it's possible to make interactive graphics for visualizing and exploring huge amount of data with high performance. This toolkit with other packages in Bioconductor could form a powerful analytical pipeline for exploring the genomic data. 
+Title: VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data.  
+Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which is designed for visualization of genomic data, especially for next generation sequencing data. Besides traditional track-based views,VisNAB also aims to offer alternative views, including Bird-Eye overview, circular view, etc. At the same time, it also provides statistical cues and analytical tools for guiding scientists to find he information of interests. With support of QT library and related API in R, it's possible to make interactive graphics for visualizing and exploring huge amount of data with high performance. This toolkit with other packages in Bioconductor could form a powerful analytical pipeline for exploring the genomic data.
 Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
-Depends: methods, utils, qtbase, qtpaint, plumbr, scales, MutableRanges
-Imports: rtracklayer, BSgenome, Rsamtools, IRanges, GenomicRanges
-Suggests: BSgenome, RGtk2
+Depends: methods, MutableRanges
+Imports: rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales
+Suggests: BSgenome
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
