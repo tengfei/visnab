@@ -26,17 +26,19 @@ IntervalView <- function(mr,idname=NULL,
                          col=0L,
                          rowSpan=1L,
                          colSpan=1L,
-                         stroke="black",
-                         fill="black",
-                         ...){
+                         stroke=NA,
+                         fill="black"){
+
+  ## if null, set first chromosome as viewed chromosome
   if(is.null(seqnames))
     seqnames <- as.character(unique(as.character(seqnames(mr)))[1])
-  if(is.null(idname))
-    idname <- colnames(values(mr))[1]
   if(is.null(start))
     start <- 0
   if(is.null(end))
     end <- max(end(ranges(mr)))
+  viewmr <- MutableGRanges(seqnames=seqnames,ranges=IRanges(start=start,end=end))
+  if(is.null(idname))
+    idname <- colnames(values(mr))[1]
   if(is.null(scene)){
     scene=qscene()
     view = qplotView(scene,rescale="none")
@@ -46,13 +48,22 @@ IntervalView <- function(mr,idname=NULL,
     mr <- as(mr,"MutableGRanges")
   ## connect signal
   mr$elementMetadataChanged$connect(function() {qupdate(scene)})
-  pars <- GraphicPars(...,
-                      idname=idname,
-                      start=start, end=end,
-                      stroke=stroke,fill=fill)@pars
-  obj <- new("IntervalView",track=mr,pars=pars,seqnames=seqnames,
+
+  pars <- GraphicPars(stroke=stroke,fill=fill)
+  obj <- new("IntervalView",track=mr,pars=pars,viewmr=viewmr,idname=idname,
              row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
              scene=scene,view=view,rootLayer=rootLayer,show=show)
+    ## event
+  obj@pars$strokeChanged$connect(function(){qupdate(scene)})
+  obj@pars$fillChanged$connect(function(){
+    values(obj@track)$.color <- obj@pars$fill
+  })
+  obj@pars$bgColorChanged$connect(function(){
+    bgcol <- obj@pars$bgColor
+    bgalpha <- obj@pars$alpha
+    qcol <- col2qcol(bgcol,bgalpha)
+    scene$setBackgroundBrush(qbrush(qcol))
+  })
   ## add default attributes
   addDefAttr(obj)
   return(obj)
@@ -64,16 +75,16 @@ setMethod("print","IntervalView",function(x,..){
   scene <- obj@scene
   lroot <- obj@rootLayer
   view <- obj@view
-  seqnames <- obj@seqnames
-  bgcol <- getAttr("bg.col")
-  bgalpha <- getAttr("bg.alpha")
+  seqnames <- as.character(seqnames(obj@viewmr))
+  bgcol <- obj@pars$bgColor
+  bgalpha <- obj@pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
   env <- new.env()
   mr <- obj@track
   mr <- mr[seqnames(mr)==seqnames]
-  start <- obj@pars$start
-  end <- obj@pars$end
+  start <- start(obj@viewmr)
+  end <- end(obj@viewmr)
   if(!is.null(start)&!is.null(end)){
     idx <- findOverlaps(IRanges(start=start,end=end),
                         ranges(mr))@matchMatrix[,2]
@@ -91,9 +102,8 @@ setMethod("print","IntervalView",function(x,..){
     env$ylimZoom <<- ylimZoom
     qdrawRect(painter,start(mr),(binsexon*10)/binmx*5,end(mr),
               (binsexon*10+5)/binmx*5,
-              stroke=NA,fill=values(obj@track)$.color)
+              stroke=obj@pars$stroke,fill=values(obj@track)$.color)
   }
-
   layer <- qlayer(lroot,paintFun=lvpainter,
                   limits=qrect(min(start(mr)),-2,
                     max(end(mr)),max((binsexon*10+5)/binmx*5)),
@@ -113,8 +123,8 @@ setMethod("print","IntervalView",function(x,..){
                     if(length(hits)>=1){
                       posS <- event$screenPos()
                       hits <- hits[1]
-                      values(obj@track)$.color[hits] <- "pink"
-                      text <- values(mr)[,colnames(values(mr))==obj@pars$idname][hits]
+                      values(obj@track)$.color[hits] <- obj@pars$hoverColor
+                      text <- values(mr)[,colnames(values(mr))==obj@idname][hits]
                       Qt$QToolTip$showText(posS,text)
                     }else{
                       setDefAttr(obj)
@@ -135,6 +145,15 @@ setMethod("print","IntervalView",function(x,..){
 })
 
 
-## Define handler
 
-
+setGeneric("setDefAttr",function(obj,...) standardGeneric("setDefAttr"))
+setMethod("setDefAttr","IntervalView",function(obj,...){
+  ## suppose when create default attibute list
+  ## we have a copy of that in pars.
+  lst <- obj@pars$attrs
+  nms <- names(lst)
+  for(nm in nms){
+    values(obj@track)[nm] <- lst[[nm]]
+  }
+  obj@track
+})

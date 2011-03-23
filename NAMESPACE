@@ -1,14 +1,13 @@
 ## Export from visnab
-exportMethods("addLevels",
-              "removePrefix",
+exportMethods("removePrefix",
               "validateChr",
               "addPrefix",
               "sortChr",
               "orderChr",
               "replaceChr",
-              "setPar",
-              "getPar",
-              "print")
+              "print",
+              "addAttr",
+              "setDefAttr")
 
 
 exportClasses("GraphicPars",
@@ -19,7 +18,7 @@ exportClasses("GraphicPars",
               "AlignmentView",
               "SeqView",
               "StackedView")
-
+## Constructor
 export("GraphicPars",
        "IntervalView",
        "CircularView",

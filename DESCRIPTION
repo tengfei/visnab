@@ -11,6 +11,7 @@ License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
          painter-utils.R
+	 utils.R			
 	 GraphicPars-class.R
 	 VisnabView-class.R
 	 QtVisnabView-class.R
@@ -22,6 +23,5 @@ Collate: visnab.R
 	 StackedView-class.R
 	 PileupView-class.R
 	 TracksView-class.R
-	 utils.R			
 	 theme.R
 	 zzz.R

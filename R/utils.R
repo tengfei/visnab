@@ -337,8 +337,7 @@ setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
 
 setMethod("addAttr","MutableGRanges",function(obj,...){
   lst <- list(...)
-    
-  ## Check if column exists
+   ## Check if column exists
   nms <- names(lst)
   df <- elementMetadata(obj)
   nms.exist <- colnames(df)
@@ -356,33 +355,12 @@ setMethod("addAttr","MutableGRanges",function(obj,...){
   obj
 })
 
-
-## create attriutes rountines
-## constructor for default attr
-addDefAttr <- function(obj){
-  addAttr(obj,.color="red",.hover=FALSE,.brushed=FALSE)
-}
+s
 
 
-setMethod("addAttr","VisnabView",function(obj,...){
-  addAttr(obj@track,...)
-  lst <- list(...)
-  setPar(obj,".attr",lst)
-})
+#
 
-setGeneric("setDefAttr",function(obj,...) standardGeneric("setDefAttr"))
-## set back to default
 
-setMethod("setDefAttr","IntervalView",function(obj,...){
-  ## suppose when create default attibute list
-  ## we have a copy of that in pars.
-  lst <- obj@pars$.attr
-  nms <- names(lst)
-  for(nm in nms){
-    values(obj@track)[nm] <- lst[[nm]]
-  }
-  obj@track
-})
 
 ##----------------------------------------------------------------##
 ##                         ideogram
