@@ -5,19 +5,18 @@
 ##-----------------------------------------------------------------##
 ##                  FOR class 'StackedView'
 ##-----------------------------------------------------------------##
-setClass("StackedView",contains="GraphicPars",
-         representation(track="GenomicRanges",
-                        species="characterORNULL"))
+setClass("StackedView",contains="QtVisnabView",
+         representation(track="MutableGRanges"))
+
 ## This one is used for bird-eye overview
 ## Cytobands is not quite useful and also reduce the mapping speed.
 
 ## not support cytoband temoprarily.
-StackedView <- function(species=NULL,cytoband=FALSE,subchr=NULL,...){
+StackedView <- function(mr,species=NULL,cytoband=FALSE,subchr=NULL,...){
+  if(extends(class(mr),"GRanges"))
+    mr <- as(mr,"MutableGRanges")
   pars <- GraphicPars(...)@pars
-  gr <- getIdeogram(species,subchr=subchr)
-  ## if(!cytoband)
-  ##   gr <- reduceChr(gr)
-  mx <- max(end(gr))
+  mx <- max(end(mr))
   pars$mx <- mx
   pars$width <- wids <- 12
   pars$scale <- scs <- 400
@@ -26,15 +25,15 @@ StackedView <- function(species=NULL,cytoband=FALSE,subchr=NULL,...){
   pars$bg.col <- 'white'
   pars$chrText.width <- chw <- 40
   pars$bg.alpha <- 1
-  refMap <- lapply(1:length(gr),function(i){
+  refMap <- lapply(1:length(mr),function(i){
     x0 <- chw+mars[2]
-    x1 <- end(gr[i])/mx*scs+mars[2]+chw
+    x1 <- end(mr[i])/mx*scs+mars[2]+chw
     y0 <- mars[3]+spf*i
     y1 <- mars[3]+spf*i+wids
     data.frame(x0=x0,x1=x1,y0=y0,y1=y1)
   })
   pars$refMap <- do.call('rbind',refMap)
-  obj <- new('StackedView',track=gr,species=as.character(species),pars=pars)
+  obj <- new('StackedView',track=mr,species=as.character(species),pars=pars)
   obj
 }
 
