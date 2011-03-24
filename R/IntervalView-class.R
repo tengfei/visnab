@@ -1,8 +1,6 @@
 ## TODO:
 ## 1. Fix tooltips, it looks like it map to the wrong place.
 ##    maybe locate to the wrong place.
-## 2. Or find a work-around
-## 3. MutableGRanges test
 
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
@@ -53,7 +51,7 @@ IntervalView <- function(mr,idname=NULL,
   obj <- new("IntervalView",track=mr,pars=pars,viewmr=viewmr,idname=idname,
              row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
              scene=scene,view=view,rootLayer=rootLayer,show=show)
-    ## event
+  ## event
   obj@pars$strokeChanged$connect(function(){qupdate(scene)})
   obj@pars$fillChanged$connect(function(){
     values(obj@track)$.color <- obj@pars$fill
@@ -125,7 +123,7 @@ setMethod("print","IntervalView",function(x,..){
                       hits <- hits[1]
                       values(obj@track)$.color[hits] <- obj@pars$hoverColor
                       text <- values(mr)[,colnames(values(mr))==obj@idname][hits]
-                      Qt$QToolTip$showText(posS,text)
+                      Qt$QToolTip$showText(posS,getTooltipInfo(mr,hits))
                     }else{
                       setDefAttr(obj)
                       Qt$QToolTip$hideText()

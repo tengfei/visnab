@@ -355,10 +355,22 @@ setMethod("addAttr","MutableGRanges",function(obj,...){
   obj
 })
 
-s
-
-
-#
+## ------------------------------------------------------------
+## Utils for GenomicRanges
+## ------------------------------------------------------------
+## Should output to a nice tooltip format
+setGeneric("getTooltipInfo",function(obj,...) standardGeneric("getTooltipInfo"))
+## Suppose any hiden name is not for shown
+setMethod("getTooltipInfo","GenomicRanges",function(obj,i,...){
+  df <- values(obj)[i,,drop=FALSE]
+  nms <- colnames(df)
+  nms <- grep("^[^\\.]",nms,value=TRUE)
+  tips <- "\n"
+  for(nm in nms){
+    tips <- paste(tips,paste(nm," : ",df[,nm],"\n",sep=""),sep="")
+  }
+  tips
+})
 
 
 
