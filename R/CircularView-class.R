@@ -9,7 +9,7 @@
 ##----------------------------------------------------------------------------##
 
 setClass('CircularView',contains='QtVisnabView',
-         representation(tracks='list'))
+         representation(tracks='GRangesList'))
 
 ##----------------------------------------------------------------------------##
 ##               Constructor for CircularView
@@ -22,8 +22,8 @@ CircularView <- function(grl,
                          tracksOrder=NULL,
                          isPlotted=NULL,
                          tracksColorTheme=NULL,
-                         tracksWidth=NULL,
-                         ...){
+                         tracksWidth=NULL){
+  
   ## check if list element is MutableRanges
   if(any(unlist(lapply(grl,function(gr) extends(class(gr),"GenomicRanges"))))){
     grl <- lapply(grl,function(gr) as(gr,"MutableGRanges"))
@@ -108,7 +108,7 @@ CircularView <- function(grl,
   values(model)$startAngle=sa
   gp2@pars$model <- model
   gp <- pushCon(gp1,gp2)
-  new('CircularView',tracks=grl,pars=gp@pars)
+  new('CircularView',tracks=grl,pars=gp@pars,scene=NULL,view=NULL,rootLayer=NULL)
 }
 
 
@@ -191,8 +191,11 @@ setMethod('print','CircularView',function(x,...){
   assign("root",lroot,env)
   layer <- as.list(env)
   view <- qplotView(grandEOSScene)
-  view$show()
-  invisible(list(scene=grandEOSScene,view=view,layer=layer))
+  if(obj@show) view$show()
+  obj@scene <- grandEOSScene
+  obj@view <- view
+  obj@rootLayerr <- layer
+  invisible(obj)
 })
 
 ##----------------------------------------------------------------------------##

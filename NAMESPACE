@@ -6,9 +6,9 @@ exportMethods("removePrefix",
               "orderChr",
               "replaceChr",
               "print",
-              "addAttr",
-              "setDefAttr")
-
+              ## "addAttr",
+              ## "setDefAttr",
+              "viewInUCSC")
 
 exportClasses("GraphicPars",
               "VisnabView",
@@ -17,14 +17,17 @@ exportClasses("GraphicPars",
               "IntervalView",
               "AlignmentView",
               "SeqView",
-              "StackedView")
+              "StackedView",
+              "TracksView")
 ## Constructor
 export("GraphicPars",
        "IntervalView",
        "CircularView",
        "AlignmentView",
        "SeqView",
-       "StackedView")
+       "StackedView",
+       "TracksView")
+
 
 export("getIdeogram")
 
@@ -32,12 +35,16 @@ export("getIdeogram")
 ## Import
 import(qtbase, qtpaint, plumbr, scales)
 
+
 importClassesFrom(rtracklayer, BrowserView)
+
+importClassesFrom(BSgenome, BSgenome)
 
 importFrom(rtracklayer, browserSession, genome, "genome<-",
            ucscTableQuery, tableNames, getTable, GenomicData,
            "track<-", GRangesForUCSCGenome, browserView,
-           ucscGenomes)
+           ucscGenomes, "tableName<-")
 
 importFrom(Rsamtools, ScanBamParam, scanBam)
-
+## for temporary
+exportPattern("^[^\\.]")

@@ -5,8 +5,6 @@
 setClassUnion('numericORNULL',c('numeric','NULL'))
 setClassUnion('characterORNULL',c('character','NULL'))
 setClassUnion('vectorORNULL',c('vector','NULL'))
-## need to be fixed later
-setClassUnion('characterORlogical',c('character','logical'))
 
 
 
@@ -14,10 +12,14 @@ GPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
                            signalingField("fgColor","character"),
                            signalingField("fill","character"),
-                           signalingField("stroke","characterORlogical"),
+                           signalingField("stroke","character"),
                            signalingField("alpha","numeric"),
                            signalingField("attrs","list"),
                            signalingField("hoverColor","character"),
+                           signalingField("textColor","character"),
+                           signalingField("xlimZoom","numericORNULL"),
+                           signalingField("ylimZoom","numericORNULL"),
+                           signalingField("seqname","characterORNULL"),
                            signalingField("default","list")
                            ))
 
@@ -25,15 +27,20 @@ GPars.gen <- setRefClass("GraphicPars",
 ##                Constructor for GraphicsPars
 ##----------------------------------------------------------------##
 
-GraphicPars <- function(bgColor="white",
+GraphicPars <- function(bgColor="gray80",
                         fgColor="black",
+                        textColor="black",
                         fill="black",
                         stroke="black",
                         alpha=1,
-                        hoverColor="blue"){
+                        hoverColor="blue",
+                        xlimZoom=NULL,
+                        ylimZoom=NULL,
+                        seqname=NULL){
 
   dfs <- list(bgColor=bgColor,
               fgColor=fgColor,
+              textColor=textColor,
               fill=fill,
               stroke=stroke,
               alpha=alpha,
@@ -43,11 +50,15 @@ GraphicPars <- function(bgColor="white",
   
   gp <- GPars.gen$new(bgColor=bgColor,
                       fgColor=fgColor,
+                      textColor=textColor,
                       fill=fill,
                       stroke=stroke,
                       alpha=alpha,
                       attrs=list(),
                       hoverColor=hoverColor,
+                      xlimZoom=xlimZoom,
+                      ylimZoom=ylimZoom,
+                      seqname=seqname,
                       default=dfs)
   return(gp)
 }

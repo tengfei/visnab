@@ -3,37 +3,38 @@
 ##------------------------------------------------------------##
 setGeneric("print")
 
-setClass('VisnabView',representation("VIRTUAL",
-                        show="logical",
-                        viewmr="MutableGRanges",
-                        idname="characterORNULL",
-                        pars="GraphicPars"
-                        ))
-
-
+VisnabView.gen <- setRefClass("VisnabView",contains="VIRTUAL",
+                              fields=list(
+                                title="characterORNULL",
+                                pars="GraphicPars"
+                                ))
 ## Accessor
-setGeneric("seqnames<-",
-           function(x,...,value) standardGeneric("seqnames<-"))
+## setGeneric("seqnames<-",
+##            function(x,...,value) standardGeneric("seqnames<-"))
+
 setReplaceMethod("seqnames","VisnabView",
                  function(x,value){
-                   seqnames(x@viewrange) <- value
+                   x$seqname <- value
                    x
                  })
 
+
 setMethod("show","VisnabView",function(object){
-  show(object@pars)
+  show(object$pars)
 })
 
 
-setMethod("addAttr","VisnabView",function(obj,...){
-  addAttr(obj@track,...)
-  lst <- list(...)
-  obj@pars$attrs <- lst
+setGeneric("viewInUCSC",function(obj,...) standardGeneric("viewInUCSC"))
+
+setMethod("viewInUCSC","VisnabView",function(obj,...){
+  if(!(exists("session")&&extends(class(session),"BrowserSession")))
+    session <- browserSession()
+  genome(session) <- "hg19"
+  chr <- as.character(seqnames(obj@viewrange))
+  ## ir <- IRanges(start=start(obj@viewrange),end=end(obj@viewrange))
+  ir <- ranges(obj@viewrange)
+  targets <- GRangesForUCSCGenome("hg19",chr,ir)
+  browserView(session,targets)
 })
 
-setGeneric("addDefAttr",function(obj,...) standardGeneric("addDefAttr"))
-
-setMethod("addDefAttr", "VisnabView",function(obj,...){
-  addAttr(obj,.color=obj@pars$fill,.hover=FALSE,.brushed=FALSE)  
-})
 

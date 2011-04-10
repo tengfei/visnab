@@ -1,88 +1,90 @@
-## TODO:
-## 1. Fix tooltips, it looks like it map to the wrong place.
-##    maybe locate to the wrong place.
-
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
-setClass("IntervalView",contains="QtVisnabView",
-         representation(track="MutableGRanges"))
+IntervalView.gen <- setRefClass("IntervalView",contains="QtVisnabView",
+                                fields=list(track="MutableGRanges",
+                                  flag="logical"))
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------##
 
-IntervalView <- function(mr,idname=NULL,
-                         seqnames=NULL,
+IntervalView <- function(mr,
+                         seqname=NULL,
                          scene=NULL,
                          view = NULL,
                          rootLayer = NULL,
-                         start=NULL,
-                         end=NULL,
-                         show=TRUE,
                          row=0L,
                          col=0L,
                          rowSpan=1L,
                          colSpan=1L,
-                         stroke=NA,
-                         fill="black"){
+                         fill="black",
+                         title=NULL){
 
   ## if null, set first chromosome as viewed chromosome
-  if(is.null(seqnames))
-    seqnames <- as.character(unique(as.character(seqnames(mr)))[1])
-  if(is.null(start))
-    start <- 0
-  if(is.null(end))
-    end <- max(end(ranges(mr)))
-  viewmr <- MutableGRanges(seqnames=seqnames,ranges=IRanges(start=start,end=end))
-  if(is.null(idname))
-    idname <- colnames(values(mr))[1]
+  if(is.null(title))
+    title <- deparse(substitute(mr))
+  if(is.null(seqname))
+    seqname <- as.character(unique(as.character(seqnames(mr)))[1])
+  start <- 0
+  end <- max(end(ranges(mr[seqnames(mr)==seqname])))
+  xlimZoom <- c(start,end)
   if(is.null(scene)){
-    scene=qscene()
-    view = qplotView(scene,rescale="none")
-    rootLayer = qlayer(scene,geometry=qrect(0,0,800,600))
+    scene <- qscene()
+    view <- qplotView(scene,rescale="none")
+    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
   }
   if(extends(class(mr),"GRanges"))
     mr <- as(mr,"MutableGRanges")
   ## connect signal
-  mr$elementMetadataChanged$connect(function() {qupdate(scene)})
-
-  pars <- GraphicPars(stroke=stroke,fill=fill)
-  obj <- new("IntervalView",track=mr,pars=pars,viewmr=viewmr,idname=idname,
-             row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-             scene=scene,view=view,rootLayer=rootLayer,show=show)
-  ## event
-  obj@pars$strokeChanged$connect(function(){qupdate(scene)})
-  obj@pars$fillChanged$connect(function(){
+  mr$elementMetadataChanged$connect(function() {
+    qupdate(scene)
+  })
+  pars <- GraphicPars(fill=fill,xlimZoom = xlimZoom, seqname=seqname)
+  obj <- IntervalView.gen$new(track=mr,pars=pars,
+                              row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
+                              scene=scene,view=view,rootLayer=rootLayer,title=title)
+  obj$pars$strokeChanged$connect(function(){qupdate(scene)})
+  obj$pars$fillChanged$connect(function(){
     values(obj@track)$.color <- obj@pars$fill
   })
-  obj@pars$bgColorChanged$connect(function(){
+  obj$pars$seqnameChanged$connect(function(){
+    start <- 0
+    end <- max(end(ranges(obj$track[seqnames(obj$track)==seqname])))
+    obj$pars$xlimZoom <- c(start,end)
+    obj$scene <- qscene()
+    obj$rootLayer$close()
+    obj$rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
+    obj$view$resetTransform()
+    obj$createView()
+  })
+  obj$pars$bgColorChanged$connect(function(){
     bgcol <- obj@pars$bgColor
     bgalpha <- obj@pars$alpha
     qcol <- col2qcol(bgcol,bgalpha)
     scene$setBackgroundBrush(qbrush(qcol))
   })
   ## add default attributes
-  addDefAttr(obj)
+  addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
+  obj$createView()
   return(obj)
 }
 
-
-setMethod("print","IntervalView",function(x,..){
-  obj <- x
-  scene <- obj@scene
-  lroot <- obj@rootLayer
-  view <- obj@view
-  seqnames <- as.character(seqnames(obj@viewmr))
-  bgcol <- obj@pars$bgColor
-  bgalpha <- obj@pars$alpha
+############################################################
+## createview method
+############################################################
+IntervalView.gen$methods(createView = function(seqname=NULL){
+  if(!is.null(seqname))
+    pars$seqname <<- seqname
+  seqname <- pars$seqname
+  bgcol <- pars$bgColor
+  bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
-  env <- new.env()
-  mr <- obj@track
-  mr <- mr[seqnames(mr)==seqnames]
-  start <- start(obj@viewmr)
-  end <- end(obj@viewmr)
+  mr <- track
+  mr <- mr[seqnames(mr)==seqname]
+  start <- pars$xlimZoom[1]
+  end <- pars$xlimZoom[2]
   if(!is.null(start)&!is.null(end)){
     idx <- findOverlaps(IRanges(start=start,end=end),
                         ranges(mr))@matchMatrix[,2]
@@ -91,27 +93,31 @@ setMethod("print","IntervalView",function(x,..){
   irexon <- IRanges(start(mr),end(mr))
   binsexon <- disjointBins(irexon)
   binmx <- max(binsexon*10+5)
-  pos.center <- NULL
   lvpainter <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     ylimZoom <- as.matrix(exposed)[,2]
-    pos.enter <<- c(mean(xlimZoom),mean(ylimZoom))
-    env$xlimZoom <<- xlimZoom
-    env$ylimZoom <<- ylimZoom
+    pars$xlimZoom <<- xlimZoom
+    pars$ylimZoom <<- ylimZoom
+    ## Draw rectangle
     qdrawRect(painter,start(mr),(binsexon*10)/binmx*5,end(mr),
               (binsexon*10+5)/binmx*5,
-              stroke=obj@pars$stroke,fill=values(obj@track)$.color)
+              stroke=NA,fill=values(track)$.color)
+
+    ## Draw title
+    qdrawText(painter,title,sum(xlimZoom)/2,
+              max((binsexon*10+5)/binmx*5),"center","top",color=pars$textColor)
   }
-  layer <- qlayer(lroot,paintFun=lvpainter,
-                  limits=qrect(min(start(mr)),-2,
-                    max(end(mr)),max((binsexon*10+5)/binmx*5)),
+  ## used for hover
+  flag <<- FALSE
+  ## construct layer
+  layer <- qlayer(rootLayer,paintFun=lvpainter,
                   wheelFun=  function(layer, event) {
                     zoom_factor <- 2
                     if (event$delta() < 0)
                       zoom_factor <- 1/2
                     view$scale(zoom_factor,1)
                   },
-                  hoverMoveFun=  function(layer,event){
+                  hoverMoveFun=function(layer,event){
                     rect <- qrect(0,0,1,1)
                     mat <- layer$deviceTransform(event)$inverted()
                     rect <- mat$mapRect(rect)
@@ -121,37 +127,36 @@ setMethod("print","IntervalView",function(x,..){
                     if(length(hits)>=1){
                       posS <- event$screenPos()
                       hits <- hits[1]
-                      values(obj@track)$.color[hits] <- obj@pars$hoverColor
-                      text <- values(mr)[,colnames(values(mr))==obj@idname][hits]
-                      Qt$QToolTip$showText(posS,getTooltipInfo(mr,hits))
+                      values(track)$.color[hits] <<- pars$hoverColor
+                      ## Qt$QToolTip$showText(posS,getTooltipInfo(mr,hits))
+                      flag <<- TRUE
                     }else{
-                      setDefAttr(obj)
-                      Qt$QToolTip$hideText()
+                      if(flag){
+                        values(track)$.color <<- pars$fill
+                        flag <<- FALSE
+                      }
                     }
                   },
                   keyPressFun=function(layer,event){
                     key <- event$key()
                     if(key==Qt$Qt$Key_U)
-                      viewUCSC(seqnames,env$xlimZoom[1],env$xlimZoom[2])
+                      viewInUCSC(obj)
                     if(key==Qt$Qt$Key_Space)
                       view$resetTransform()
                   },
-                  row=obj@row,col=obj@col,
-                  rowSpan=obj@rowSpan,colSpan=obj@colSpan
-                  )
-  if(obj@show) view$show()
+                  row=row,col=col,
+                  rowSpan=rowSpan,colSpan=colSpan)
+  layer$setLimits(qrect(min(start(mr)),-2,max(end(mr)),7))                      
+  layer$setGeometry(0,0,600,150)
 })
 
 
-
-setGeneric("setDefAttr",function(obj,...) standardGeneric("setDefAttr"))
-setMethod("setDefAttr","IntervalView",function(obj,...){
-  ## suppose when create default attibute list
-  ## we have a copy of that in pars.
-  lst <- obj@pars$attrs
-  nms <- names(lst)
-  for(nm in nms){
-    values(obj@track)[nm] <- lst[[nm]]
-  }
-  obj@track
+IntervalView.gen$methods(show = function(){
+  view$show()
 })
+
+setMethod("print","IntervalView",function(x,..){
+  x$show()
+})
+
+

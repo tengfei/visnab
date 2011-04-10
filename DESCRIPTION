@@ -5,8 +5,7 @@ Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which 
 Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
 Depends: methods, MutableRanges
-Imports: rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales
-Suggests: BSgenome
+Imports: rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales, BSgenome
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
@@ -21,7 +20,6 @@ Collate: visnab.R
 	 SeqView-class.R
 	 GrandLinearView-class.R
 	 StackedView-class.R
-	 PileupView-class.R
 	 TracksView-class.R
 	 theme.R
 	 zzz.R

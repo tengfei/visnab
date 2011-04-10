@@ -33,7 +33,7 @@ setMethod('validateChr',c('GenomicRanges'),
             chr <- as.character(seqnames(gr))
             gr <- gr[chr %in% chrset]
             return(gr)
-})
+          })
 
 setGeneric('addLevels',function(gr,...) standardGeneric('addLevels'))
 
@@ -49,21 +49,21 @@ setMethod('addLevels','GenomicRanges',function(gr,...){
 
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
-  chrset <- unique(as.character(seqnames(model)))
-  allLst <- lapply(seq_len(length(grl)),function(i) {
-    idx <- unique(as.character(seqnames(grl[[i]]))) %in% chrset
-    if(all(idx)==FALSE){
-      message(paste("Chromosome names of",names(grl)[i],"is invalid"))
-      message(paste(unique(as.character(seqnames(grl[[i]])))[!idx],' '),'is invalid')
-    }
-    all(idx)
-  })
-  return(all(unlist(allLst)))
-}
+    chrset <- unique(as.character(seqnames(model)))
+    allLst <- lapply(seq_len(length(grl)),function(i) {
+      idx <- unique(as.character(seqnames(grl[[i]]))) %in% chrset
+      if(all(idx)==FALSE){
+        message(paste("Chromosome names of",names(grl)[i],"is invalid"))
+        message(paste(unique(as.character(seqnames(grl[[i]])))[!idx],' '),'is invalid')
+      }
+      all(idx)
+    })
+    return(all(unlist(allLst)))
+  }
   if(is(grl,'GenomicRanges')){
-   chrset <- unique(as.character(seqnames(model)))
-   idx <- unique(as.character(seqnames(grl))) %in% chrset
-   return(all(idx))
+    chrset <- unique(as.character(seqnames(model)))
+    idx <- unique(as.character(seqnames(grl))) %in% chrset
+    return(all(idx))
   }
 }
 
@@ -126,16 +126,16 @@ setMethod("orderChr","character",function(obj,model=NULL,prefix='chr'){
   df <- data.frame(chr=chrtemp,id=seq_len(length(chrtemp)))
   idx <- apply(df,1,function(x) !containLetters((x['chr'])))
   if(is.null(model)){
-  idxs <- c(df[idx,'id'][order(as.numeric(as.character(df$chr[idx])))],
-            df[!idx,'id'][order(as.character(df$chr[!idx]))])
-  idxs <- as.numeric(idxs)
-  return(idxs)}else{
-     chrmodel <- as.character(model)
-     chrmodel <- gsub(prefix,'',chrmodel)
-     idx <- match(chrtemp,chrmodel)
-     idx <- order(idx)
-     return(idx)
-  }
+    idxs <- c(df[idx,'id'][order(as.numeric(as.character(df$chr[idx])))],
+              df[!idx,'id'][order(as.character(df$chr[!idx]))])
+    idxs <- as.numeric(idxs)
+    return(idxs)}else{
+      chrmodel <- as.character(model)
+      chrmodel <- gsub(prefix,'',chrmodel)
+      idx <- match(chrtemp,chrmodel)
+      idx <- order(idx)
+      return(idx)
+    }
 })
 
 
@@ -213,7 +213,7 @@ getColor <- function(trackColorTheme,n,types){
     return(cols)
   }
   if(length(trackColorTheme)==1){
-  if(trackColorTheme=='default'){
+    if(trackColorTheme=='default'){
       cols <- switch(types,
                      segment='blue',
                      line='purple',
@@ -221,9 +221,9 @@ getColor <- function(trackColorTheme,n,types){
                      text='black',
                      sector='gray90')
     }
-  cols <- rep(cols,n)
-}
- 
+    cols <- rep(cols,n)
+  }
+  
   return(cols)
 }
 
@@ -293,7 +293,7 @@ col2qcol <- function(color,alpha=1){
          unname(cols[3,1]),
          unname(cols[4,1]))
 }
- 
+
 
 
 splitDNA <- function(dna){
@@ -302,11 +302,7 @@ splitDNA <- function(dna){
   return(dnas.split)
 }
 
-viewUCSC <- function(chr,start,end,genome="hg19",session){
-    ir <- IRanges(start=start,end=end)
-    targets <- GRangesForUCSCGenome(genome,chr,ir)
-    browserView(session,targets)
-}
+
 
 
 baseColor <- function(base,pal=brewer_pal(pal="Set1")){
@@ -337,7 +333,7 @@ setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
 
 setMethod("addAttr","MutableGRanges",function(obj,...){
   lst <- list(...)
-   ## Check if column exists
+  ## Check if column exists
   nms <- names(lst)
   df <- elementMetadata(obj)
   nms.exist <- colnames(df)
@@ -354,6 +350,9 @@ setMethod("addAttr","MutableGRanges",function(obj,...){
   ## should record attached attr
   obj
 })
+
+## setGeneric("addDefAttr",function(obj,...) standardGeneric("addDefAttr"))
+
 
 ## ------------------------------------------------------------
 ## Utils for GenomicRanges
@@ -378,18 +377,28 @@ setMethod("getTooltipInfo","GenomicRanges",function(obj,i,...){
 ##                         ideogram
 ##----------------------------------------------------------------##
 getIdeogram <- function(species=NULL,subchr=NULL){
+  if(!(exists("session")&&extends(class(session),"BrowserSession")))
+    session <- browserSession()
   if(is.null(species)){
     choices <- ucscGenomes()[,1]
     res <- menu(choices,title="Please specify genome")
-    message("Loading...")
-    gr <- GRangesForUCSCGenome(as.character(choices[res]))
-    message("Done")
-  }else{
-    gr <- GRangesForUCSCGenome(species)
+    species <- as.character(choices[res])
   }
+  message("Loading...")
+  query <- ucscTableQuery(session,"cytoBand",species)
+  tableName(query) <- "cytoBand"
+  df <- getTable(query)
+
+  cyto <- GRanges(seqnames=df$chrom,
+                  IRanges(start=df$chromStart,end=df$chromEnd))
+
+  values(cyto) <- df[,c("name","gieStain")]
+  message("Done")
   ## validate chr, keep less chromosomes, more useful for visualization.
   if(!is.null(subchr))
-    gr <- validateChr(gr,subchr)
+    gr <- validateChr(cyto,subchr)
   ## better order them too.
-  gr <- sortChr(gr)
+  gr <- sortChr(cyto)
+  gr
 }
+
