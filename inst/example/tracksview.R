@@ -20,7 +20,7 @@ obj <- IntervalView(cds)
 print(obj)
 
 ## save(cds,file="~/Datas/rdas/cds.rda")
-load("~/Datas/rdas/cds.rda")
+
 
 ## kg.chr1 <- kg[seqnames(kg)=="chr1"]
 
@@ -33,18 +33,27 @@ load("~/Datas/rdas/cds.rda")
 ## test <- SeqView(Hsapiens)
 library(qtbase)
 library(qtpaint)
-class(Qt$QWidget())
 library(visnab)
 gr <- getIdeogram("hg18")
 data(kgsub)
 int1 <- IntervalView(kg.chr1.sub,title="exons")
 int2 <- IntervalView(kg.chr1.sub,title="Pseudo-exons")
+load("~/Datas/rdas/cds.rda")
+cdsi <- IntervalView(cds)
+cdsi$show()
+cdsi$pars$seqname <- "chr2"
 obj.ref <- SeqView(gr)
 load("~/Datas/rdas/bam.rda")
 obj.ali <- AlignmentView(bam)
 tks <- TracksView(obj.ref,int1,int2,obj.ali,ideogram=gr)
+tks <- TracksView(cdsi,ideogram=gr)
 tks$show()
 tks$view$show()
+
+tks$pars$seqname <- "chr4"
+
+tks$createView()
+tks$show()
 
 debug(getIdeogram)
 
@@ -53,6 +62,7 @@ gr <- getIdeogram("hg18")
 ## save(obj.ref,file="~/Datas/rdas/ref.rda")
 load("~/Datas/rdas/ref.rda")
 tks <- TracksView(obj.ref,int2,int1,obj.ali)
+
 sort(ls(tks$view))
 sort(ls(tks$view$viewport()))
 as.matrix(tks$view$viewport()$contentsRect())
@@ -80,19 +90,33 @@ obj@viewrange
 
 args(qplotView)
 
-## The Gpos100 class consists of the darkest staining bands, with
-## the Gpos75, Gpos50 and Gpos25 classes containing progressively lighter
-## staining G-positive bands. The Gneg class consists of the non-staining
-## G-negative light bands.
 
+
+##
+library(qtbase)
+library(qtpaint)
 
 scene <- qscene()
 layer <- qlayer(scene,function(layer,painter){
-  xrect <- seq(from=0,to=600,by=20)
-  col=rep(c("red","green"),600/20/2)
-  qdrawRect(painter,xrect,5,xrect+19,15,fill=col,stroke=NULL)
-},limits=qrect(0,0,600,20),
-                geometry=qrect(0,0,100,100))
-qplotView(scene)$show()
+  qdrawCircle(painter,rnorm(100,50,20),rnorm(100,50,50),5,fill="blue")
+},keyPressFun=function(layer,event){
+  if(event$modifiers() == Qt$Qt$ControlModifier&&
+     event$key() == Qt$Qt$Key_Equal)
+    view$scale(2,1)
+  if(event$modifiers() == Qt$Qt$ControlModifier&&
+     event$key() == Qt$Qt$Key_Minus)
+   view$scale(1/2,1)
+  if(event$modifiers() == Qt$Qt$ControlModifier&&
+     event$key() == Qt$Qt$Key_0)
+   view$resetTransform()
+},limits=qrect(0,0,100,100))
+view <- qplotView(scene)
+view$show()
+args(qtpaint::qlayer)
 
-library(qtpaint)
+trackWidget <- Qt$QWidget()
+trackLayout <- Qt$QGridLayout()
+trackWidget$setLayout(trackLayout)
+trackWidget$layout()
+trackWidget$layout() <- NULL
+sort(ls(trackWidget$QGridLayout()))

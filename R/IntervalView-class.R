@@ -48,22 +48,25 @@ IntervalView <- function(mr,
   obj$pars$fillChanged$connect(function(){
     values(obj@track)$.color <- obj@pars$fill
   })
-  obj$pars$seqnameChanged$connect(function(){
-    start <- 0
-    end <- max(end(ranges(obj$track[seqnames(obj$track)==seqname])))
-    obj$pars$xlimZoom <- c(start,end)
-    obj$scene <- qscene()
-    obj$rootLayer$close()
-    obj$rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
-    obj$view$resetTransform()
-    obj$createView()
-  })
   obj$pars$bgColorChanged$connect(function(){
     bgcol <- obj@pars$bgColor
     bgalpha <- obj@pars$alpha
     qcol <- col2qcol(bgcol,bgalpha)
     scene$setBackgroundBrush(qbrush(qcol))
   })
+  
+  obj$pars$seqnameChanged$connect(function(){
+    start <- 0
+    end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
+    obj$pars$xlimZoom <- c(start,end)
+    ## obj$scene <- qscene()
+    obj$rootLayer$close()
+    obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
+    obj$view$resetTransform()
+    obj$createView()
+  })
+
+
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   obj$createView()
@@ -107,6 +110,20 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
     qdrawText(painter,title,sum(xlimZoom)/2,
               max((binsexon*10+5)/binmx*5),"center","top",color=pars$textColor)
   }
+  keyPressEvent <- function(layer,event){
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Equal)
+      view$scale(2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Minus)
+      view$scale(1/2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_0)
+      view$resetTransform()
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_u)
+      viewInUCSC(obj)
+  }
   ## used for hover
   flag <<- FALSE
   ## construct layer
@@ -117,6 +134,7 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
                       zoom_factor <- 1/2
                     view$scale(zoom_factor,1)
                   },
+                  keyPressFun = keyPressEvent,
                   hoverMoveFun=function(layer,event){
                     rect <- qrect(0,0,1,1)
                     mat <- layer$deviceTransform(event)$inverted()
@@ -136,13 +154,6 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
                         flag <<- FALSE
                       }
                     }
-                  },
-                  keyPressFun=function(layer,event){
-                    key <- event$key()
-                    if(key==Qt$Qt$Key_U)
-                      viewInUCSC(obj)
-                    if(key==Qt$Qt$Key_Space)
-                      view$resetTransform()
                   },
                   row=row,col=col,
                   rowSpan=rowSpan,colSpan=colSpan)

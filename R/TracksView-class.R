@@ -1,8 +1,12 @@
 setOldClass("QWidget")
+setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
 TracksView.gen <- setRefClass("TracksView",contains="QtVisnabView",
                               fields=list(track="list",
                                 ideogram="GRanges",
-                                trackWidget="QWidget"))
+                                trackWidget="QWidgetORNULL",
+                                scene.chrom="QGraphicsSceneORNULL",
+                                layer.chrom="Qanviz::RLayerORNULL",
+                                view.chrom="Qanviz::PlotViewORNULL"))
 
 
 TracksView <- function(...,ideogram=NULL,seqname=NULL){
@@ -14,25 +18,65 @@ TracksView <- function(...,ideogram=NULL,seqname=NULL){
     end <- max(end(ranges(ideogram[seqnames(ideogram)==seqname])))
   }
   xlimZoom <- c(start,end)
-
-    ## grand scene
-  scene <- qscene()
   track <- list(...)
-  ## grand view
-  view <- qplotView(scene,rescale="none")
+  ## grand scene
   pars <- GraphicPars(seqname=seqname, xlimZoom=xlimZoom)
   obj <- TracksView.gen$new(track=track,pars=pars,ideogram=ideogram,
-                            scene=scene,rootLayer=NULL,view=view)
+                            trackWidget=NULL)
+                            ## scene=scene,rootLayer=NULL,view=view,
+                            ## view.chrom=view.chrom,scene.chrom=scene.chrom,
+                            ## trackWidget=trackWidget)
+  ## event
+  obj$pars$xlimZoomChanged$connect(function(){
+    qupdate(obj$scene.chrom)
+  })
+  obj$pars$seqnameChanged$connect(function(){
+    ## obj$scene$close()
+    ## ## grand view
+    ## obj$view <- qplotView(scene,rescale="none")
+    ## ## rooy layer should be responsible for griding!
+    ## obj$scene.chrom$close()
+    ## obj$view.chrom <- qplotView(scene.chrom)
+    ## ## obj$layer.chrom$close()
+    ## ## obj$rootLayer$close()
+    ## obj$trackWidget$close()
+    obj$createView()
+    obj$show()
+  })
+
+  
   obj$createView()
   return(obj)
 }
 
 ## setMethod("print","TracksView",function(x,...){
 TracksView.gen$methods(createView = function(seqname=NULL){
-  
+  scene <<- qscene()
+  ## grand view
+  view <<- qplotView(scene,rescale="none")
+  ## rooy layer should be responsible for griding!
+  scene.chrom <<- qscene()
+  view.chrom <<- qplotView(scene.chrom)
+  if(is.null(trackWidget)){
+    trackWidget <<- Qt$QWidget()
+    trackLayout <- Qt$QGridLayout()
+    trackWidget$setLayout(trackLayout)
+  }
+  trackLayout <- trackWidget$layout()
+  trackLayout$addWidget(view.chrom,0,0)
+  trackLayout$addWidget(view,1,0)
+  trackLayout$setRowStretch(0,0)
+  trackLayout$setRowStretch(1,1)
+  trackLayout$setContentsMargins(5,5,5,5)
+
+
   if(!is.null(seqname))
     pars$seqname <<- seqname
-  seqname <- pars$seqname
+  
+  start <- 0
+  end <- max(end(ranges(ideogram[seqnames(ideogram)==pars$seqname])))
+  pars$xlimZoom <<- c(start,end)
+
   gr <- ideogram
   col.lst <- list(gpos100 = "black",
                   gpos75 = "gray75",
@@ -46,7 +90,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   pfunChrom <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     ## pars$xlimZoom <<- xlimZoom
-    chr <- gr[seqnames(gr)==seqname]
+    chr <- gr[seqnames(gr)==pars$seqname]
     idx <- order(start(chr),decreasing=FALSE)
     chr <- chr[idx]
     nms <- values(chr)$name
@@ -102,11 +146,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     xscale <- seq(from=xlimZoom[1],to=xlimZoom[2],by=aspect.ratio)
     qdrawSegment(painter,xscale,-10,xscale,800,stroke="white")
   }
-
-  gridLayer <- qlayer(scene,pfunGrid,limits=qrect(c(0,600),c(0,600)),
-                      geometry=qrect(c(0,600),c(0,150*length(track))))
-
-        ## grand layer
   wheelZoom <- function(layer, event) {
     zoom_factor <- 1.5
     if(event$delta()<0)
@@ -115,28 +154,27 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     tform$scale(zoom_factor,1)
     view$setTransform(tform)
   }
-    rootLayer <- qlayer(scene,wheelFun=wheelZoom,cache=TRUE,
+
+  gridLayer <- qlayer(scene,pfunGrid,limits=qrect(c(0,600),c(0,600)),
+                      geometry=qrect(c(0,600),c(0,150*length(track))))
+  rootLayer <<- qlayer(scene,wheelFun=wheelZoom,cache=TRUE,
                       geometry=qrect(c(0,600),c(0,150*length(track))))
 
-  ## rooy layer should be responsible for griding!
-  scene.chrom <- qscene()
-  ## event
-  pars$xlimZoomChanged$connect(function(){
-    qupdate(scene.chrom)
-  })
+        ## grand layer
   
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene.chrom$setBackgroundBrush(qbrush(qcol))
   
-  lth <- max(end(gr[seqnames(gr)==seqname]))
-  layer.chrom <- qlayer(scene.chrom,pfunChrom,
+  lth <- max(end(gr[seqnames(gr)==pars$seqname]))
+  layer.chrom <<- qlayer(scene.chrom,pfunChrom,
                         limits=qrect(-0.1*lth,-35,1.1*lth,45),
                         geometry=qrect(0,0,600,100),
                         mouseMoveFun=eventChrom)
-  view.chrom <- qplotView(scene.chrom)
+
   sapply(1:length(track),function(i){
+    track[[i]]$pars$seqname <<- pars$seqname
     track[[i]]$scene <<- scene
     track[[i]]$view <<- view
     track[[i]]$rootLayer <<- rootLayer
@@ -145,6 +183,9 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     track[[i]]$pars$xlimZoomChanged$connect(function(){
       pars$xlimZoom <<- track[[i]]$pars$xlimZoom
     })
+    ## pars$seqnameChanged$connect(function(){
+    ##   track[[i]]$pars$seqname <- pars$seqname
+    ## })
     message("Constructing and Printing...",class(track[[i]]))
     track[[i]]$createView()
   })
@@ -152,20 +193,25 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   sapply(1:length(track),function(i){
     layout$setRowStretchFactor(i-1,1)    
   })
+  
+  ## pars$seqnameChanged$connect(function(){
+  ##   ## start <- 0
+  ##   ## end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
+  ##   ## obj$pars$xlimZoom <- c(start,end)
+  ##   ## obj$scene <- qscene()
+  ##   rootLayer$close()
+  ##   layer.chrom$close()
+  ##   ## rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
+  ##   view$resetTransform()
+  ##   .self$createView()
+  ## })
+
   ## layout$setRowStretchFactor(0,1)
-  trackWidget <<- Qt$QWidget()
-  trackLayout <- Qt$QGridLayout()
-  trackWidget$setLayout(trackLayout)
-  trackLayout$addWidget(view.chrom,0,0)
-  trackLayout$addWidget(view,1,0)
-  trackLayout$setRowStretch(0,0)
-  trackLayout$setRowStretch(1,1)
-  trackLayout$setContentsMargins(5,5,5,5)
 })
 
 TracksView.gen$methods(show = function(){
   trackWidget$show()
-  view$show()
+  ## view$show()
 })
 
 setMethod("print","TracksView",function(x,..){

@@ -7,7 +7,6 @@ setOldClass("Qanviz::RLayer")
 setOldClass("Qanviz::PlotView")
 
 setClassUnion("QGraphicsSceneORNULL", c("QGraphicsScene","NULL"))
-setClassUnion("QGraphicsViewORNULL", c("QGraphicsView","NULL"))
 setClassUnion("Qanviz::RLayerORNULL", c("Qanviz::RLayer","NULL"))
 setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
 

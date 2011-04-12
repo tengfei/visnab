@@ -376,7 +376,7 @@ setMethod("getTooltipInfo","GenomicRanges",function(obj,i,...){
 ##----------------------------------------------------------------##
 ##                         ideogram
 ##----------------------------------------------------------------##
-getIdeogram <- function(species=NULL,subchr=NULL){
+getIdeogram <- function(species=NULL,subchr=NULL,cytobands=TRUE){
   if(!(exists("session")&&extends(class(session),"BrowserSession")))
     session <- browserSession()
   if(is.null(species)){
@@ -384,21 +384,25 @@ getIdeogram <- function(species=NULL,subchr=NULL){
     res <- menu(choices,title="Please specify genome")
     species <- as.character(choices[res])
   }
+  if(cytobands){
   message("Loading...")
   query <- ucscTableQuery(session,"cytoBand",species)
   tableName(query) <- "cytoBand"
   df <- getTable(query)
 
-  cyto <- GRanges(seqnames=df$chrom,
+  gr <- GRanges(seqnames=df$chrom,
                   IRanges(start=df$chromStart,end=df$chromEnd))
 
-  values(cyto) <- df[,c("name","gieStain")]
+  values(gr) <- df[,c("name","gieStain")]
   message("Done")
   ## validate chr, keep less chromosomes, more useful for visualization.
+}else{
+  gr <- GRangesForUCSCGenome(species)
+}
   if(!is.null(subchr))
-    gr <- validateChr(cyto,subchr)
+    gr <- validateChr(gr,subchr)
   ## better order them too.
-  gr <- sortChr(cyto)
+  gr <- sortChr(gr)
   gr
 }
 

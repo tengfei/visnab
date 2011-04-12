@@ -50,6 +50,17 @@ SeqView <- function(obj,
   obj <- SeqView.gen$new(track=obj,pars=pars,title=title,
                          row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
                          scene=scene,view=view,rootLayer=rootLayer)
+  obj$pars$seqnameChanged$connect(function(){
+    start <- 0
+    end <- max(end(ranges(obj$track[seqnames(obj$track)==seqname])))
+    obj$pars$xlimZoom <- c(start,end)
+    ## obj$scene <- qscene()
+    obj$rootLayer$close()
+    obj$rootLayer <- qlayer(obj@scene,geometry=qrect(0,0,800,600))
+    obj$view$resetTransform()
+    obj$createView()
+  })
+
   obj$createView()
   obj
 }
@@ -79,6 +90,18 @@ SeqView.gen$methods(createView = function(seqname=NULL){
     tform <- view$transform()
     tform$scale(zoom_factor,1)
     view$setTransform(tform)
+  }
+
+  keyPressEvent <- function(layer,event){
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Equal)
+      view$scale(2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Minus)
+      view$scale(1/2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_0)
+      view$resetTransform()
   }
 
   ## draw scale  
@@ -121,7 +144,8 @@ SeqView.gen$methods(createView = function(seqname=NULL){
       qdrawText(painter,dnas.split,x_pos,h/2,"center","bottom",
                 color=cols)
     }}
-  layer0 <- qlayer(rootLayer,row=row, col=col, rowSpan=rowSpan, colSpan=colSpan)
+  layer0 <- qlayer(rootLayer,row=row, col=col, rowSpan=rowSpan, colSpan=colSpan,
+                   keyPressFun=keyPressEvent)
   layer0.scale <- qlayer(layer0,paintFun=pfunScale,
                          limits=qrect(pars$xlimZoom[1],h/2-h/9-3*h,
                            pars$xlimZoom[2],h/2+h/9+h),

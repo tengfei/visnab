@@ -13,16 +13,16 @@ AlignmentView.gen <- setRefClass("AlignmentView",contains="QtVisnabView",
 AlignmentView <- function(bam=NULL,
                           lower=10L,
                           cutbin=20L,
-                         seqname=NULL,
-                         scene=NULL,
-                         view = NULL,
-                         rootLayer = NULL,
-                         row=0L,
-                         col=0L,
-                         rowSpan=1L,
-                         colSpan=1L,
-                         fill="black",
-                         title=NULL,
+                          seqname=NULL,
+                          scene=NULL,
+                          view = NULL,
+                          rootLayer = NULL,
+                          row=0L,
+                          col=0L,
+                          rowSpan=1L,
+                          colSpan=1L,
+                          fill="black",
+                          title=NULL,
                           ...){
 
   
@@ -41,9 +41,9 @@ AlignmentView <- function(bam=NULL,
   }
   pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname)
   obj <- AlignmentView.gen$new(track=bam,title=title,
-      row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-      scene=scene,view=view,rootLayer=rootLayer,
-      pars=pars, lower=lower,cutbin=cutbin)
+                               row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
+                               scene=scene,view=view,rootLayer=rootLayer,
+                               pars=pars, lower=lower,cutbin=cutbin)
   obj$createView()
   obj
 }
@@ -70,6 +70,17 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
     view$setTransform(tform)
   }
 
+  keyPressEvent <- function(layer,event){
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Equal)
+      view$scale(2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_Minus)
+      view$scale(1/2,1)
+    if(event$modifiers() == Qt$Qt$ControlModifier&&
+       event$key() == Qt$Qt$Key_0)
+      view$resetTransform()
+  }
   ## preset the level
   zoomLevel <- c(5000)
   ## need to fix this bug
@@ -165,12 +176,12 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   }
   rlayer <- qlayer(rootLayer, 
                    row=row,
-                     col=col,
-                     rowSpan=rowSpan,
-                     colSpan=colSpan)
+                   col=col,
+                   rowSpan=rowSpan,
+                   colSpan=colSpan)
   cov.layer <- qlayer(rlayer,paintFun=pfunCov,
                       limits=qrect(range(xpos),c(0,max(log10(ypos)))),
-                      wheelFun=wheelZoom)
+                      wheelFun=wheelZoom,keyPressFun = keyPressEvent)
   sr.layer <- qlayer(rlayer,paintFun=pfunAlign,row=1L,
                      limits=qrect(range(xpos),c(-(cutbin*90+80),0)),
                      cache=FALSE,
