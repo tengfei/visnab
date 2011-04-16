@@ -35,17 +35,6 @@ setMethod('validateChr',c('GenomicRanges'),
             return(gr)
           })
 
-setGeneric('addLevels',function(gr,...) standardGeneric('addLevels'))
-
-setMethod('addLevels','GenomicRanges',function(gr,...){
-  gr.lst <- split(gr,as.character(seqnames(gr)))
-  lv <- unname(lapply(gr.lst,function(x){
-    values(x)$.level <- as.numeric(disjointBins(ranges(x)))
-    x
-  }))
-  gr <- do.call("c",lv)
-  gr
-})
 
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
@@ -167,35 +156,8 @@ xy2polar <- function(x,y){
   data.frame(radius=radius,angle=angle)
 }
 
-polar2xy <- function(radius,angle){
-  x <- radius*cos(angle/360*(2*pi))
-  y <- radius*sin(angle/360*(2*pi))
-  data.frame(x=x,y=y)
-}
 
 
-map2global <- function(obj,gr){
-  unit <- obj@pars$unit
-  idx <- match(as.character(seqnames(gr)),as.character(obj@pars$chrOrder))
-  st <- values(obj@pars$model)$startAngle[idx]+start(gr)*unit
-  wd <- (end(gr)-start(gr))*unit
-  return(data.frame(start=st,width=wd))
-}
-
-map2global4link <- function(obj,gr){
-  unit <- obj@pars$unit
-  idx <- match(as.character(seqnames(gr)),as.character(obj@pars$chrOrder))
-  st <- values(obj@pars$model)$startAngle[idx]+start(gr)*unit
-  wd <- (end(gr)-start(gr))*unit
-  gr2 <- elementMetadata(gr)
-  gr2 <- GRanges(seqnames=gr2$to.chr,
-                 ranges=IRanges(start=gr2$other.start,
-                   end=gr2$other.end))
-  idx2 <- match(as.character(seqnames(gr2)),as.character(obj@pars$chrOrder))
-  st2 <- values(obj@pars$model)$startAngle[idx2]+start(gr2)*unit
-  wd2 <- (end(gr2)-start(gr2))*unit
-  return(data.frame(start=st,width=wd,other.start=st2,other.width=wd2))
-}
 
 ## ## need to drop this stuff and 
 ## scaleColors <- function(obj,low="red",mid="white",high="yellow",alpha=1){
@@ -204,28 +166,6 @@ map2global4link <- function(obj,gr){
 ##   cols <- mutaframe(.color=cols)
 ##   cols
 ## }
-
-getColor <- function(trackColorTheme,n,types){
-  if(is(trackColorTheme,'mutaframe'))
-    trackColorTheme <- as.character(trackColorTheme[,,drop=TRUE])
-  if(length(trackColorTheme)>1){
-    cols <- trackColorTheme
-    return(cols)
-  }
-  if(length(trackColorTheme)==1){
-    if(trackColorTheme=='default'){
-      cols <- switch(types,
-                     segment='blue',
-                     line='purple',
-                     point='red',
-                     text='black',
-                     sector='gray90')
-    }
-    cols <- rep(cols,n)
-  }
-  
-  return(cols)
-}
 
 
 ## map2granges <- function(gct){

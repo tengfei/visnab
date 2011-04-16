@@ -186,10 +186,10 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
                      limits=qrect(range(xpos),c(-(cutbin*90+80),0)),
                      cache=FALSE,
                      wheelFun=wheelZoom)
-  rlayer$setGeometry(0,0,600,350)
+  rlayer$setGeometry(0,0,600,150)
   layout <- rlayer$gridLayout()
-  layout$setRowPreferredHeight(0,150)
-  layout$setRowPreferredHeight(1,200)
+  layout$setRowPreferredHeight(0,50)
+  layout$setRowPreferredHeight(1,100)
 })
 
 

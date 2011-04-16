@@ -54,7 +54,6 @@ IntervalView <- function(mr,
     qcol <- col2qcol(bgcol,bgalpha)
     scene$setBackgroundBrush(qbrush(qcol))
   })
-  
   obj$pars$seqnameChanged$connect(function(){
     start <- 0
     end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
@@ -65,7 +64,6 @@ IntervalView <- function(mr,
     obj$view$resetTransform()
     obj$createView()
   })
-
 
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)

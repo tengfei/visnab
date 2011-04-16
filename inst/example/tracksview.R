@@ -120,3 +120,8 @@ trackWidget$setLayout(trackLayout)
 trackWidget$layout()
 trackWidget$layout() <- NULL
 sort(ls(trackWidget$QGridLayout()))
+
+
+##
+library(qtbase)
+library(qtpaint)

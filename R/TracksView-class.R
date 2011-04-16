@@ -8,7 +8,6 @@ TracksView.gen <- setRefClass("TracksView",contains="QtVisnabView",
                                 layer.chrom="Qanviz::RLayerORNULL",
                                 view.chrom="Qanviz::PlotViewORNULL"))
 
-
 TracksView <- function(...,ideogram=NULL,seqname=NULL){
   if(is.null(ideogram))
     ideogram <- getIdeogram()
@@ -23,27 +22,14 @@ TracksView <- function(...,ideogram=NULL,seqname=NULL){
   pars <- GraphicPars(seqname=seqname, xlimZoom=xlimZoom)
   obj <- TracksView.gen$new(track=track,pars=pars,ideogram=ideogram,
                             trackWidget=NULL)
-                            ## scene=scene,rootLayer=NULL,view=view,
-                            ## view.chrom=view.chrom,scene.chrom=scene.chrom,
-                            ## trackWidget=trackWidget)
   ## event
   obj$pars$xlimZoomChanged$connect(function(){
     qupdate(obj$scene.chrom)
   })
   obj$pars$seqnameChanged$connect(function(){
-    ## obj$scene$close()
-    ## ## grand view
-    ## obj$view <- qplotView(scene,rescale="none")
-    ## ## rooy layer should be responsible for griding!
-    ## obj$scene.chrom$close()
-    ## obj$view.chrom <- qplotView(scene.chrom)
-    ## ## obj$layer.chrom$close()
-    ## ## obj$rootLayer$close()
-    ## obj$trackWidget$close()
     obj$createView()
     obj$show()
   })
-
   
   obj$createView()
   return(obj)
@@ -68,7 +54,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   trackLayout$setRowStretch(0,0)
   trackLayout$setRowStretch(1,1)
   trackLayout$setContentsMargins(5,5,5,5)
-
 
   if(!is.null(seqname))
     pars$seqname <<- seqname
@@ -135,8 +120,16 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     xlimZoom <- c(pos.x-wids/2,pos.x+wids/2)
     pars$xlimZoom <<- xlimZoom
     ## as.matrix(view$sceneRect())
-    ## pos.scene <- as.numeric(rootLayer$mapToScene(xlimZoom[1],)
-    ## view$centerOn(pos.scene[1],pos.scene[2])
+    sort(ls(scene))
+    sort(ls(view))
+    class(event$pos())
+    pos.scene <- as.numeric(event$scenePos())
+   ##  pos.scene <- as.numeric(rootLayer$mapToScene(xlimZoom[1],xlimZoom[2]))
+   ## as.numeric(rootLayer$mapToScene(pos[1],pos[2]))
+   ##  browser()
+   ##  xlimZoom
+   ##  print(pos.scene)
+    view$centerOn(pos.scene[1],pos.scene[2])
   }
   ## set geometry to rootLayer
   pfunGrid <- function(layer,painter,exposed){
@@ -193,18 +186,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   sapply(1:length(track),function(i){
     layout$setRowStretchFactor(i-1,1)    
   })
-  
-  ## pars$seqnameChanged$connect(function(){
-  ##   ## start <- 0
-  ##   ## end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
-  ##   ## obj$pars$xlimZoom <- c(start,end)
-  ##   ## obj$scene <- qscene()
-  ##   rootLayer$close()
-  ##   layer.chrom$close()
-  ##   ## rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
-  ##   view$resetTransform()
-  ##   .self$createView()
-  ## })
 
   ## layout$setRowStretchFactor(0,1)
 })
