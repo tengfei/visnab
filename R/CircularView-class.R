@@ -1,8 +1,8 @@
 ## TODO:
-## 1.RubberBand
-## 2.GUI to control parameters
-## 3.Validation
 ## 4.Fix speed issues when brushing sectors.
+## fix segments
+## add color default
+
 
 ##----------------------------------------------------------------------------##
 ##                     Classes
@@ -13,7 +13,7 @@ CircularView.gen <- setRefClass("CircularView",contains="QtVisnabView",
                                   tracksOrder="numericORNULL",
                                   tracksWidth="numericORNULL",
                                   chrOrder="characterORNULL",
-                                  model="GRanges"
+                                  model="GenomicRanges"
                                   ))
 
 ##----------------------------------------------------------------------------##
@@ -27,15 +27,15 @@ CircularView <- function(grl,
                          tracksType=NULL,
                          tracksOrder=NULL,
                          ## isPlotted=NULL,
-                         ## tracksColorTheme=NULL,
                          tracksWidth=NULL){
   
   ## check if list element is MutableRanges
-  pars <- GraphicPars()
+  pars <- GraphicPars(bgColor="black",fill="gray80",fgColor="gray80")
   if(any(unlist(lapply(grl,function(gr) extends(class(gr),"GenomicRanges"))))){
     grl <- lapply(grl,function(gr) {
       gr <- as(gr,"MutableGRanges")
-      gr <- addAttr(gr,.color=pars$stroke,.brushed=FALSE)
+      ## color scheme
+      gr <- addAttr(gr,.color=pars$fgColor,.brushed=FALSE)
     })
   }
   N <- length(grl)
@@ -49,18 +49,10 @@ CircularView <- function(grl,
     tracksOrder <- seq_len(N)
   ## reorder it based on tracksOrder
   grl <- grl[order(tracksOrder,decreasing=FALSE)]
-  ##
-  ## if(is.null(tracksColorTheme)){
-  ##   tracksColorTheme <- as.list(rep('default',N))
-  ## }
   ## add levels to all the list
   grl <- lapply(grl,function(gr){
     addLevels(gr)
   })
-  ## add high light
-  ## tracksHighlight <- lapply(grl,function(gr){
-  ##   rep(FALSE,length(gr))
-  ## })
   ## if it's links, we don't need levels
   if("link" %in% tracksType){
     idx <- which("link" == tracksType[order(tracksOrder,decreasing=FALSE)])
@@ -77,13 +69,6 @@ CircularView <- function(grl,
     model <- model[idx]
   }
   
-  ## if(!all(unlist((lapply(grl,function(x){
-  ##   inherits(x,'GenomicRanges')
-  ## })))))
-  ##   stop('All the track object should be a list of GenomicRanges object')
-
-  ## gp1 <- GraphicPars(...)
-  ## gp2 <- GraphicPars()
   ## gp2@pars$isPlotted <- isPlotted[order(tracksOrder,decreasing=FALSE)]
   if(is.null(tracksWidth))
     tracksWidth <- rep(40,N)
@@ -93,8 +78,8 @@ CircularView <- function(grl,
   tracksOrder <- sort(tracksOrder,decreasing=FALSE)
 
   obj <- CircularView.gen$new(tracks=grl,pars=pars,tracksType=tracksType,model=model,
-                       tracksOrder=tracksOrder, tracksWidth=tracksWidth,
-                       chrOrder=chro)
+                              tracksOrder=tracksOrder, tracksWidth=tracksWidth,
+                              chrOrder=chro)
   obj
 }
 
@@ -104,7 +89,6 @@ CircularView.gen$methods(createView = function(seqname=NULL){
   scene <<- qscene()
   view <<- qplotView(scene,rescale="none")
   ## event
-
   ## background
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
@@ -113,21 +97,23 @@ CircularView.gen$methods(createView = function(seqname=NULL){
   ## settings
   length <- 100
   skip <- 3
-  ## theme <- 'default'
   spaceRate <- 0.01
   scale.unit <-35*1e6
   ## 50M is the unit
-  unit <- (360-spaceRate*360*length(model))/sum(as.numeric(width(model))) #angle per base
+  unit <- (360-spaceRate*360*length(model))/sum(as.numeric(width(model)))
   maxlevel <- as.numeric(unlist(lapply(tracks,function(gr){
     max(values(gr)$.level)
   })))
-  ## gp2@pars$tracksColorTheme <- tracksColorTheme[order(tracksOrder,decreasing=FALSE)]
-  wd <- (1+log(maxlevel)*0.2)*tracksWidth
+  ## wd <- (1+log(maxlevel)*0.2)*tracksWidth
+  wd <- tracksWidth
   widthunit <- wd/(maxlevel)
   ## small skip use skip * factor(like 0.2)
   sp <- widthunit*0.2
+  ## trackstart <- c(length,length+cumsum(wd*1.2+skip))[seq_along(sp)]
+  ## trackend <- length+cumsum(wd*1.2+skip)+skip
   trackstart <- c(length,length+cumsum(wd*1.2+skip))[seq_along(sp)]
   trackend <- length+cumsum(wd*1.2+skip)+skip
+
   canvas_radius <-max(trackend)
   ## chrOrder <- chro
   mw <- width(model)*unit
@@ -171,20 +157,18 @@ CircularView.gen$methods(createView = function(seqname=NULL){
 
   lroot <- qlayer(scene,
                   limits=qrect(c(-len,len),c(-len,len)),
-
                   keyPressFun=function(layer,event){
-                    
-                    if(event$modifiers() == Qt$Qt$ControlModifier&&
-                       event$key() == Qt$Qt$Key_Equal)
-                      view$scale(1.5,1)
-                    if(event$modifiers() == Qt$Qt$ControlModifier&&
-                       event$key() == Qt$Qt$Key_Minus)
-                      view$scale(1/1.5,1)
-                    if(event$modifiers() == Qt$Qt$ControlModifier&&
-                       event$key() == Qt$Qt$Key_0)
+                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
+                       (event$key() == Qt$Qt$Key_Equal))
+                      view$scale(1.5,1.5)
+                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
+                       (event$key() == Qt$Qt$Key_Minus))
+                      view$scale(1/1.5,1/1.5)
+                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
+                       (event$key() == Qt$Qt$Key_0))
                       view$resetTransform()
-                    if(event$modifiers() == Qt$Qt$ControlModifier&&
-                       event$key() == Qt$Qt$Key_u)
+                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
+                       (event$key() == Qt$Qt$Key_u))
                       viewInUCSC(obj)
                   },
                   ## mouseMoveFun=function(layer,event){
@@ -203,34 +187,33 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                   },
                   geometry=qrect(0,0,600,600))
 ############################################################
-## All painter funciton
+  ## All painter funciton
 ############################################################
   ## ====================
   ## Link
   ## ====================
   pfunLink <-function(gr,l,w,n,tp){
-   function(layer,painter){
-
-    m2g <- map2global4link(gr)
-    mw <- m2g$width
-    ms <- m2g$start
-    mw.o <- m2g$to.width  
-    ms.o <- m2g$to.start
-    x <- ms+mw/2
-    x2 <- ms.o+mw.o/2
-    wsub <- widthunit[n]
-    skipsub <- wsub*0.2
-    xy1 <- polar2xy(radius=l+wsub,x)
-    xy2 <- polar2xy(radius=l+wsub,x2)
-    paths <- lapply(seq_len(nrow(xy1)),function(i){
-      qglyphQuadCurve(c(xy1[i,1],xy1[i,2]),
-                      c(0,0),
-                      c(xy2[i,1],xy2[i,2]))
-    })
-    cols <- values(gr)$.color
-    qdrawPath(painter,paths,stroke=cols)
-    ## }
-  }}
+    function(layer,painter){
+      m2g <- map2global4link(gr)
+      mw <- m2g$width
+      ms <- m2g$start
+      mw.o <- m2g$to.width  
+      ms.o <- m2g$to.start
+      x <- ms+mw/2
+      x2 <- ms.o+mw.o/2
+      wsub <- widthunit[n]
+      skipsub <- wsub*0.2
+      xy1 <- polar2xy(radius=l+wsub,x)
+      xy2 <- polar2xy(radius=l+wsub,x2)
+      paths <- lapply(seq_len(nrow(xy1)),function(i){
+        qglyphQuadCurve(c(xy1[i,1],xy1[i,2]),
+                        c(0,0),
+                        c(xy2[i,1],xy2[i,2]))
+      })
+      cols <- values(gr)$.color
+      qdrawPath(painter,paths,stroke=cols)
+      ## }
+    }}
   
   ## ===================================
   ## Sector
@@ -276,20 +259,17 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       m2g <- map2global(gr)
       mw <- m2g$width
       ms <- m2g$start
-      ## idx <- isPlotted[[n]]
+      ## Should be more flexible
       if(TRUE)
-      idx <- as.integer(which(unlist(lapply(values(gr)@listData,is,"numeric")))[1])
+        idx <- as.integer(which(unlist(lapply(values(gr)@listData,is,"numeric")))[1])
       x <- ms+mw/2
       y <- values(gr)[,idx]
-      ylim <- c(min(y)*0.8,max(y)*1.2)
-      ylim <- c(min(y)*0.8,max(y)*1.2)
-      wsub <- widthunit[n]
-      skipsub <- wsub*0.2
-      s <- sign(tracksOrder[n])
-      y <- (y-min(y)*0.8)/(diff(ylim))*(wsub*0.8)+wsub*0.1
-      if(s<0) y <- wsub-y
+      ## ylim should be a plotting limits on y-axis
+      ylim <- c(min(y)-0.1*abs(min(y)),max(y)+0.1*abs(max(y)))
+      ## change to layer coordinates
+      y <- (y-min(ylim))/(diff(ylim))*w
+      ## if(s<0) y <- wsub-y
       xy <- polar2xy(l+y,x)
-      ## drawbg(painter,obj,l+w*(n-1)+skip*(n-1)+y,w)
       m2gm <- map2global(model)
       mwm <- m2gm$width
       msm <- m2gm$start
@@ -298,20 +278,28 @@ CircularView.gen$methods(createView = function(seqname=NULL){
         sa <- msm[i]
         sl <- mwm[i]
         paths <- qglyphSector(0,0,length=l,
-                              width=wsub,
-                            startAngle=sa,sweepLength=sl)
-    })
-    qdrawPath(painter,paths,fill='gray',stroke=NA)
-    seqlen <- pretty(c(l,l+wsub))
-    paths <- lapply(seqlen,function(r){
-      qglyphArc(0,0,r=r,0,360)          
-    })
-    qdrawPath(painter,paths,fill=NA,stroke='white')
-    circle <- qglyphCircle()
+                              width=w,
+                              startAngle=sa,sweepLength=sl)
+      })
+      qdrawPath(painter,paths,fill=pars$gridBgColor,stroke=NA)
+      seqlen <- pretty(ylim,n=5,h=3)
+      seqlen.cor <- sapply(seqlen,function(r){
+        (r-min(ylim))/diff(ylim)*w
+      })
+      seqlen.cor <- seqlen.cor+l
+      lapply(1:length(model),function(i){
+        sa <- msm[i]
+        sl <- mwm[i]
+        paths <- lapply(seqlen.cor,function(r){
+          qglyphArc(0,0,r=r,sa,sl)          
+        })
+        qdrawPath(painter,paths,fill=NA,stroke='white')
+      })
+      circle <- qglyphCircle(r=1)
       cols <- values(gr)$.color
-    qdrawGlyph(painter,circle, xy$x,xy$y,fill=cols,stroke=NA)
-    ## drwa circle could be slow, try glyph
-    ## qdrawCircle(painter,xy$x,xy$y,r=1.5,fill=cols,stroke=NA)
+      qdrawGlyph(painter,circle, xy$x,xy$y,fill=cols,stroke=NA)
+      ## need text on scale
+
     }}
 
   ## ===================================
@@ -337,7 +325,8 @@ CircularView.gen$methods(createView = function(seqname=NULL){
         rg <- seq(ms[i],me[i],by=angle.unit)
       })
       scale.lab <- lapply(scale.lst,function(x) {
-        paste(round((seq_len(length(x))-1)*angle.unit/unit/scale.unit,0)*scale.unit/1e6,"M",sep="")
+        paste(round((seq_len(length(x))-1)*angle.unit/unit/scale.unit,0)*
+              scale.unit/1e6,"M",sep="")
       })
       xy1 <- lapply(scale.lst,function(x){polar2xy(l,x)})
       xy2 <- lapply(scale.lst,function(x){polar2xy(l+wsub*0.1,x)})
@@ -353,15 +342,12 @@ CircularView.gen$methods(createView = function(seqname=NULL){
         sl <- mw[i]
         wsub <- widthunit[n]
         skipsub <- wsub*0.2
-        paths <- qglyphArc(0,0,
-                           r=l+wsub*(lv[i]-1)+skipsub*(lv[i]-1),
+        paths <- qglyphArc(0,0,r=l,
                            startAngle=sa,
                            sweepLength=sl)
       })
 
-      cols <- getColor("default",length(paths),tp)
-      if(is(cols,"mutaframe"))
-        cols <- as.character(cols[,,drop=TRUE])
+      cols <- pars$fgColor
       qdrawPath(painter,paths,stroke=cols)
       ## draw scale
       lapply(seq_len(length(scale.lst)),function(i){
@@ -380,46 +366,49 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       })
     }}
 
+  ## ===================================
+  ## Segment
+  ## ===================================
+  pfunSegment <- function(gr,l,w,n,tp){
+    function(layer,painter){
+      ## compute the position
+      m2g <- map2global(gr)
+      mw <- m2g$width
+      ms <- m2g$start
+      mp <- ms+mw/2
+      ## lv <- values(gr)$.level
+      ## if(max(lv)>1)
+      ##   stop("Segment types cannot be applied to overlaped ranges yet")
+      ## wsub <- widthunit[n]
+      ## skipsub <- wsub*0.2
+      ## xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
+      ## xy2 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub,mp)
+      xy1 <- polar2xy(radius=l,mp)
+      xy2 <- polar2xy(radius=l+w,mp)
+        cols <- values(gr)$.color
+        qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    }}
 
   ## ===================================
-  ## Texts
+  ## (Stacked Bar) not really a bar chart yet(neet to be fixed)
   ## ===================================
-  ## painter function for text
-  ## ## compute the position
-  ## m2g <- map2global(obj,gr)
-  ## mw <- m2g$width
-  ## ms <- m2g$start
-  ## ## compute the position
-  ## mp <- ms+mw/2
-  ## lv <- values(gr)$.level
-  ## if(tracksOrder[n]<0){
-  ##   lv <- max(lv)+1-lv
-  ## }
-  ## wsub <- widthunit[n]
-  ## skipsub <- wsub*0.2
-  ## xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
-  pfunText  <- function(layer,painter){
-    idx <- !(mp>90 & mp<270)
-    cols <- getColor(tracksColorTheme[[n]],length(mp),tp)
-    if(is(cols,"mutaframe"))
-      cols <- as.character(cols[,,drop=TRUE])
-    ##qantialias(painter) <- FALSE
-    if(length(cols)>1){
-      qdrawText(painter,as.character(seqnames(gr))[idx],
-                xy1$x[idx],xy1$y[idx],halign='left',valign='center',
-                rot=mp[idx],color=cols[idx])
-      qdrawText(painter,as.character(seqnames(gr))[!idx],
-                xy1$x[!idx],xy1$y[!idx],halign='right',valign='center',
-                rot=mp[!idx]-180,color=cols[!idx])
-    }else{
-      qdrawText(painter,as.character(seqnames(gr))[idx],
-                xy1$x[idx],xy1$y[idx],halign='left',valign='center',
-                rot=mp[idx],color=cols)
-      qdrawText(painter,as.character(seqnames(gr))[!idx],
-                xy1$x[!idx],xy1$y[!idx],halign='right',valign='center',
-                rot=mp[!idx]-180,color=cols)
-    }
-  }
+  pfunBar <- function(gr,l,w,n,tp){
+    function(layer,painter){
+      ## compute the position
+      m2g <- map2global(gr)
+      mw <- m2g$width
+      ms <- m2g$start
+      mp <- ms+mw/2
+      lv <- values(gr)$.level
+      wsub <- widthunit[n]
+      skipsub <- wsub*0.2
+      xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
+      xy2 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub,mp)
+      cols <- values(gr)$.color
+      qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    }}
+
+
   lapply(1:length(tracks),function(n){
     gr <- tracks[[n]]
     tp <- tracksType[n]
@@ -428,10 +417,19 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     if(is.na(tp)){
       tp <- 'sector'
     }
+    if(tp == "sector")
+      values(gr)$.color <- "white"
+    if(tp == "link")
+      values(gr)$.color <- alpha(pars$fgColor,0.5)
+    if(tp == "point")
+      values(gr)$.color <- pars$stroke
+    if(tp == "segment")
+      values(gr)$.color <- alpha(pars$fgColor,0.5)
+
     paintFun <- switch(tp,
                        sector=pfunSector(gr,l,w,n,tp),
-                       ## segment=eval(pfunSegment),
-                       ## text=pfunText,
+                       segment=pfunSegment(gr,l,w,n,tp),
+                       bar=pfunBar(gr,l,w,n,tp),
                        point=pfunPoint(gr,l,w,n,tp),
                        ## line=eval(pfunLine),
                        link=pfunLink(gr,l,w,n,tp),
@@ -570,12 +568,14 @@ setGeneric('addLevels',function(mr,...) standardGeneric('addLevels'))
 ## })
 
 setMethod('addLevels','MutableGRanges',function(mr,...){
-  gr <- GRanges(seqnames(mr),ranges(mr))
+  gr <- as(mr,"GenomicRanges")
   gr.lst <- split(gr,as.character(seqnames(gr)))
-  lv <- unname(unlist(lapply(gr.lst,function(x){
-    as.numeric(disjointBins(ranges(x)))
-  })))
-  ## mr2 <- addAttr(mr,.level=lv)
-  values(mr)$.level <- lv
-  mr
+  lv <- unname(lapply(gr.lst,function(x){
+    values(x)$.level <- as.numeric(disjointBins(ranges(x)))
+    x
+  }))
+  gr <- do.call("c",lv)
+  mr <- as(gr,"MutableGRanges")
 })
+
+## need to plot a diagram

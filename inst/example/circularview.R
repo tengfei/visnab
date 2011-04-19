@@ -15,12 +15,11 @@ library(qtpaint)
 ## },limits=qrect(-10,-10,10,10))
 ## qplotView(scene)$show()
 
-chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
-gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
-obj <- CircularView(list(gr,gr),model=gr,tracksType=c("sector","scale"))
-obj$createView()
-
-obj$view$show()
+## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
+## gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
+## obj <- CircularView(list(gr,gr),model=gr,tracksType=c("sector","scale"))
+## obj$createView()
+## obj$view$show()
 
 
 back <- read.csv(file="/home/tengfei/Datas/james/AllplotingFormatedData/BackFatAlldata_pairwise_sig.csv")
@@ -32,21 +31,42 @@ back$to.chr <- paste("chr",back$to.chr,sep="")
 colnames(back)[4] <- "to.start"
 back$to.end <- back$to.start
 values(back.gr) <- data.frame(back[,3:8])
-idx <- order(values(back.gr)$P_value,decreasing=FALSE)[1:1000]
+idx <- order(values(back.gr)$P_value,decreasing=FALSE)[1:10000]
 back.gri <- back.gr[idx]
 
-chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
-gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
-obj <- CircularView(list(back.gri,gr,back.gri,gr),model=gr,
-                    tracksType=c("link","sector","point","scale"))
-## obj <- CircularView(list(gr,gr),model=gr,tracksType=c("sector","scale"))
-## options(warining=2)
-## obj <- CircularView(list(back.gri),model=gr,tracksType=c("link"))
+
+## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
+## prepare the chromosome which need to be plotted
+chrmodel <- unique(c(unique(as.character(seqnames(back.gr))),unique(values(back.gr)$to.chr)))
+gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
+obj <- CircularView(list(back.gri,gr,back.gri,back.gri,gr),model=gr,
+                    tracksType=c("link","sector","point","bar","scale"))
+
 obj$createView()
 obj$view$show()
-obj$tracksWidth
-values(obj$tracks[[1]])$.color[1:500] <- "blue"
-values(obj$tracks[[2]])$.color[1:3] <- "white"
+
+## create link color
+library(scales)
+col.dt <- values(obj$tracks[[1]])$Effect
+## cols <- cscale(col.dt,seq_gradient_pal("blue","red"),trans=log2_trans())
+cols <- cscale(col.dt,seq_gradient_pal("blue","red"))
+cols <- cscale(col.dt,div_gradient_pal("blue","white","red"))
+cols <- alpha(cols,0.01)
+values(obj$tracks[[1]])$.color <- cols
+col.dt <- values(obj$tracks[[4]])$Test
+cols <- dscale(col.dt,brewer_pal())
+values(obj$tracks[[4]])$.color <- cols
+qupdate(obj$scene)
+
+## plot only 
+
+
+
+mr <- MutableGRanges(seqname=c("chr1","chr2"),
+                     IRanges(start=c(100,200),width=50),
+                     .color=rep("red",2))
+
+
 ## painter need to be fixed later
 pfunLine <- quote({
   m2g <- map2global(obj,gr)
@@ -94,28 +114,45 @@ pfunLine <- quote({
     })
   }})
 
-
-pfunSegment <- quote({
-  ## compute the position
-  m2g <- map2global(obj,gr)
-  mw <- m2g$width
-  ms <- m2g$start
-  mp <- ms+mw/2
-  lv <- values(gr)$.level
-  if(tracksOrder[n]<0){
-    lv <- max(lv)+1-lv
-  }
-  wsub <- obj@pars$widthunit[n]
-  skipsub <- wsub*0.2
-  xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
-  xy2 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub,mp)
-  paintFun <- function(layer,painter){
-    cols <- getColor(obj@pars$tracksColorTheme[[n]],nrow(xy1),tp)
+  ## ===================================
+  ## Texts
+  ## ===================================
+  ## painter function for text
+  ## ## compute the position
+  ## m2g <- map2global(obj,gr)
+  ## mw <- m2g$width
+  ## ms <- m2g$start
+  ## ## compute the position
+  ## mp <- ms+mw/2
+  ## lv <- values(gr)$.level
+  ## if(tracksOrder[n]<0){
+  ##   lv <- max(lv)+1-lv
+  ## }
+  ## wsub <- widthunit[n]
+  ## skipsub <- wsub*0.2
+  ## xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
+  pfunText  <- function(layer,painter){
+    idx <- !(mp>90 & mp<270)
+    cols <- getColor(tracksColorTheme[[n]],length(mp),tp)
     if(is(cols,"mutaframe"))
       cols <- as.character(cols[,,drop=TRUE])
-    qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    ##qantialias(painter) <- FALSE
+    if(length(cols)>1){
+      qdrawText(painter,as.character(seqnames(gr))[idx],
+                xy1$x[idx],xy1$y[idx],halign='left',valign='center',
+                rot=mp[idx],color=cols[idx])
+      qdrawText(painter,as.character(seqnames(gr))[!idx],
+                xy1$x[!idx],xy1$y[!idx],halign='right',valign='center',
+                rot=mp[!idx]-180,color=cols[!idx])
+    }else{
+      qdrawText(painter,as.character(seqnames(gr))[idx],
+                xy1$x[idx],xy1$y[idx],halign='left',valign='center',
+                rot=mp[idx],color=cols)
+      qdrawText(painter,as.character(seqnames(gr))[!idx],
+                xy1$x[!idx],xy1$y[!idx],halign='right',valign='center',
+                rot=mp[!idx]-180,color=cols)
+    }
   }
-})
 
 
 
