@@ -32,6 +32,7 @@ IntervalView <- function(mr,
   if(is.null(scene)){
     scene <- qscene()
     view <- qplotView(scene,rescale="none")
+    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
     rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
   }
   if(extends(class(mr),"GRanges"))

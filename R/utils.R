@@ -9,10 +9,24 @@ setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
   gr
 })
 
+setMethod('removePrefix','MutableRanges',function(gr,rm.prefix){
+  seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
+  gr
+})
+
 
 setGeneric('addPrefix',function(gr,...) standardGeneric('addPrefix'))
 
 setMethod('addPrefix','GenomicRanges',function(gr,add.prefix){
+  seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
+  vl <- values(gr)
+  if('to.chr' %in% names(vl)){
+    values(gr)$to.chr <- paste(add.prefix,values(gr)$to.chr,sep='')
+  }
+  gr
+})
+
+setMethod('addPrefix','MutableGRanges',function(gr,add.prefix){
   seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
   vl <- values(gr)
   if('to.chr' %in% names(vl)){
@@ -35,6 +49,16 @@ setMethod('validateChr',c('GenomicRanges'),
             return(gr)
           })
 
+setMethod('validateChr',c('MutableGRanges'),
+          function(gr,model,...){
+            if(inherits(class(model),'MutableGRanges'))
+              chrset <- unique(as.character(seqnames(model)))
+            else
+              chrset <- model
+            chr <- as.character(seqnames(gr))
+            gr <- gr[chr %in% chrset]
+            return(gr)
+          })
 
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
@@ -55,7 +79,6 @@ isValidatedChr <- function(grl,model){
     return(all(idx))
   }
 }
-
 
 containLetters <- function(obj,only=FALSE){
   obj <- as.character(obj)
@@ -146,7 +169,6 @@ setMethod("replaceChr","character",function(obj,from,to){
   obj[idx] <- to
   return(obj)
 })
-
 
 
 
@@ -346,3 +368,17 @@ getIdeogram <- function(species=NULL,subchr=NULL,cytobands=TRUE){
   gr
 }
 
+
+chrAll <- function(...){
+  lst <- list(...)
+  chr.lst <- lapply(lst,function(gr){
+    chrs <- unique(as.character(seqnames(back.gr)))
+    if("to.chr" %in% names(values(back.gr))){
+      chrs2 <- unique(as.character(values(gr)$to.chr))
+      chrs <- unique(c(chrs,chrs2))
+      }
+    chrs
+  })
+  chrs <- sortChr(unique(unlist(chr.lst)))
+  return(chrs)
+}

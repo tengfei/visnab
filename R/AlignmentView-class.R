@@ -61,6 +61,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
+
   wheelZoom <- function(layer, event) {
     zoom_factor <- 1.5
     if (event$delta() < 0)
@@ -71,16 +72,17 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   }
 
   keyPressEvent <- function(layer,event){
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_Equal)
-      view$scale(2,1)
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_Minus)
-      view$scale(1/2,1)
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_0)
-      view$resetTransform()
-  }
+    if(event$modifiers() == Qt$Qt$ControlModifier){
+      if(event$key() == Qt$Qt$Key_Equal)
+        view$scale(1.5,1)
+      if(event$key() == Qt$Qt$Key_Minus)
+        view$scale(1/1.5,1)
+      if(event$key() == Qt$Qt$Key_0)
+        view$resetTransform()
+      ## if(event$key() == Qt$Qt$Key_u)
+      ##    viewInUCSC(obj)
+    }}
+  
   ## preset the level
   zoomLevel <- c(5000)
   ## need to fix this bug
@@ -188,8 +190,8 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
                      wheelFun=wheelZoom)
   rlayer$setGeometry(0,0,600,150)
   layout <- rlayer$gridLayout()
-  layout$setRowPreferredHeight(0,50)
-  layout$setRowPreferredHeight(1,100)
+  layout$setRowPreferredHeight(0,30)
+  layout$setRowPreferredHeight(1,120)
 })
 
 

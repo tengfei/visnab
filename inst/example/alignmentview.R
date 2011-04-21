@@ -12,7 +12,7 @@ bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
 save(bam,file="~/Datas/rdas/bam.rda")
 load("~/Datas/rdas/bam.rda")
 obj <- AlignmentView(bam,title="Alignment")
-print(obj)
+obj$show()
 
 gr <- GRangesForUCSCGenome("hg19",'chr1')
 bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))

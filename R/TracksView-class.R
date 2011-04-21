@@ -40,6 +40,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   scene <<- qscene()
   ## grand view
   view <<- qplotView(scene,rescale="none")
+  view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
   ## rooy layer should be responsible for griding!
   scene.chrom <<- qscene()
   view.chrom <<- qplotView(scene.chrom)

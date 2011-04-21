@@ -1,62 +1,103 @@
 ## Example
-require(visnab)
-library(qtbase)
 library(qtpaint)
+library(qtbase)
+library(scales)
+require(visnab)
+options(warn=2)
 
-## scene <- qscene()
-## N <- 10000
-## paths <- lapply(1:N,function(i){
-##   qglyphQuadCurve(c(rnorm(1,-10,4),rnorm(1,-10,4)),
-##                   c(0,0),
-##                   c(rnorm(1,10,4),rnorm(1,10,4)))
-## })
-## layer <- qlayer(scene,function(layer,painter){
-##   qdrawPath(painter,paths,stroke="black")
-## },limits=qrect(-10,-10,10,10))
-## qplotView(scene)$show()
+james_pair<- function(file){
+  back <- read.csv(file=file)
+  idx <- which(back$Chr2==30)
+  back$Chr2[idx] <- "X"
+  back.gr <- GRanges(seqnames=paste("chr",back$Chr1,sep=""),
+                     IRanges(start=back$locus1.btau4.0.position,
+                             end=back$locus1.btau4.0.position))
+  colnames(back)[3] <- "to.chr"
+  back$to.chr <- paste("chr",back$to.chr,sep="")
+  colnames(back)[4] <- "to.start"
+  back$to.end <- back$to.start
+  values(back.gr) <- data.frame(back[,3:8])
+  values(back.gr)$Effect <- abs(values(back.gr)$Effect)
+  back.gr
+}
 
-## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
-## gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
-## obj <- CircularView(list(gr,gr),model=gr,tracksType=c("sector","scale"))
-## obj$createView()
-## obj$view$show()
+james_single <- function(file){
+  back.sig <- read.csv(file=file)
+  idx <- which(back.sig$Chr==30)
+  back.sig$Chr[idx] <- "X"
+  back.sig.gr <- GRanges(seqnames=paste("chr",back.sig$Chr,sep=""),
+                         IRanges(start=back.sig$locus.btau4.0.position,
+                                 end=back.sig$locus.btau4.0.position))
 
+  values(back.sig.gr) <- data.frame(back.sig[,3:5])
+  values(back.sig.gr)$Effect <- abs(values(back.sig.gr)$Effect)
+  back.sig.gr
+}
 
-back <- read.csv(file="/home/tengfei/Datas/james/AllplotingFormatedData/BackFatAlldata_pairwise_sig.csv")
-back.gr <- GRanges(seqnames=paste("chr",back$Chr1,sep=""),
-                   IRanges(start=back$locus1.btau4.0.position,
-                           end=back$locus1.btau4.0.position))
-colnames(back)[3] <- "to.chr"
-back$to.chr <- paste("chr",back$to.chr,sep="")
-colnames(back)[4] <- "to.start"
-back$to.end <- back$to.start
-values(back.gr) <- data.frame(back[,3:8])
-idx <- order(values(back.gr)$P_value,decreasing=FALSE)[1:10000]
-back.gri <- back.gr[idx]
+file1="/home/tengfei/Datas/james/Iron_pairwise_sig.csv"
+back.gr <- james_pair(file1)
 
-
+file2="/home/tengfei/Datas/james/Iron_single_sig.csv"
+back.sig.gr <- james_single(file2)
+## idx <- order(values(back.sig.gr)$P_value,decreasing=FALSE)[1:100]
+## back.sig.gr <- back.sig.gr[idx]
 ## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
 ## prepare the chromosome which need to be plotted
-chrmodel <- unique(c(unique(as.character(seqnames(back.gr))),unique(values(back.gr)$to.chr)))
+## pass GRanges/MutableGRanges object, return unique chromosome names
+
+chrmodel <- chrAll(back.gr,back.sig.gr)
+
 gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
-obj <- CircularView(list(back.gri,gr,back.gri,back.gri,gr),model=gr,
-                    tracksType=c("link","sector","point","bar","scale"))
+## gr <- getIdeogram("bosTau4",cytobands=FALSE)
+## obj <- CircularView(list(back.gr,gr,back.sig.gr[,"Effect"],back.gr,gr),model=gr, tracksType=c("link","sector","point","bar","scale"))
+
+obj <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
 
 obj$createView()
 obj$view$show()
 
+length(back.gr)
+
+
 ## create link color
-library(scales)
-col.dt <- values(obj$tracks[[1]])$Effect
+
+## col.dt <- values(obj$tracks[[1]])$Effect
 ## cols <- cscale(col.dt,seq_gradient_pal("blue","red"),trans=log2_trans())
-cols <- cscale(col.dt,seq_gradient_pal("blue","red"))
-cols <- cscale(col.dt,div_gradient_pal("blue","white","red"))
-cols <- alpha(cols,0.01)
-values(obj$tracks[[1]])$.color <- cols
-col.dt <- values(obj$tracks[[4]])$Test
-cols <- dscale(col.dt,brewer_pal())
-values(obj$tracks[[4]])$.color <- cols
-qupdate(obj$scene)
+## cols <- cscale(col.dt,seq_gradient_pal("blue","red"))
+## cols <- cscale(col.dt,div_gradient_pal("blue","white","red"))
+
+setTheme <- function(obj,bgColor="white",sectorFill="gray80",
+                     linkColor="blue",barColor="black",
+                     pointColor="red",pointAlpha=0.3,linkAlpha=0.05,
+                     scaleColor="gray10"){
+  require(scales)
+  require(qtbase)
+  require(qtpaint)
+  bgcol <- bgColor
+  qcol <- col2qcol(bgcol,1)
+  obj$scene$setBackgroundBrush(qbrush(qcol))
+  values(obj$tracks[[4]])$.color <- sectorFill
+  cols <- alpha(linkColor,linkAlpha)
+  values(obj$tracks[[1]])$.color <- cols
+  ## col.dt <- values(obj$tracks[[3]])$Test
+  ## cols <- dscale(col.dt,brewer_pal())
+  values(obj$tracks[[3]])$.color <- "black"
+  values(obj$tracks[[2]])$.color <- alpha(pointColor,pointAlpha)
+  values(obj$tracks[[5]])$.color <- scaleColor
+  qupdate(obj$scene)
+}
+
+setTheme(obj,bgColor="white",sectorFill="gray30",
+                     linkColor="blue",barColor="black",
+                     pointColor="red",pointAlpha=0.9,linkAlpha=0.01,
+                     scaleColor="black")
+
+setTheme(obj,bgColor="black",sectorFill="gray10",
+                     linkColor="white",barColor="gray80",
+                     pointColor="red",pointAlpha=0.9,linkAlpha=0.04,
+                     scaleColor="gray80")
+
+## 
 
 ## plot only 
 
@@ -154,46 +195,7 @@ pfunLine <- quote({
     }
   }
 
-
-
 ## test
 mr <- MutableGRanges(seqname=c("chr1","chr2"),
                      IRanges(start=c(100,200),width=50),
                      .color=rep("red",2))
-scene <- qscene()
-layer <- qlayer(scene,function(layer,painter){
-  qdrawRect(painter,start(mr),10,end(mr),20,fill=values(mr)$.color)
-},limits=qrect(50,0,300,40))
-qplotView(scene)$show()
-mr$elementMetadataChanged$connect(function(){
-  qupdate(scene)
-})
-
-values(mr)$.color[1] <- "blue"
-
-library(qtbase)
-library(qtpaint)
-
-test.gen <- setRefClass("testobj",fields=list(track="list"))
-mr <- MutableGRanges(seqname=c("chr1","chr2"),
-                     IRanges(start=c(100,200),width=50),
-                     .color=rep("red",2))
-mr
-class(addLevels(mr))
-obj <- test.gen$new(track=list(mr))
-scene <- qscene()
-layer <- qlayer(scene,function(layer,painter){
-  qdrawRect(painter,start(obj$track[[1]]),10,end(obj$track[[1]]),20,fill=values(obj$track[[1]])$.color)
-},limits=qrect(50,0,300,40))
-qplotView(scene)$show()
-lapply(obj$track,function(mr){
-mr$elementMetadataChanged$connect(function(){
-  print("test")
-  qupdate(scene)
-})
-})
-
-
-values(mrl[[1]])$.color[1] <- "blue"
-values(obj$track[[1]])$.color[1] <- "blue"
-

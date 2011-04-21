@@ -1,8 +1,6 @@
 ## TODO:
-## 4.Fix speed issues when brushing sectors.
-## fix segments
-## add color default
-
+## 4.Fix speed issues when brushing sectors. and pan the view.
+## Fix range of pfunpoint, 5% margin.
 
 ##----------------------------------------------------------------------------##
 ##                     Classes
@@ -50,14 +48,14 @@ CircularView <- function(grl,
   ## reorder it based on tracksOrder
   grl <- grl[order(tracksOrder,decreasing=FALSE)]
   ## add levels to all the list
-  grl <- lapply(grl,function(gr){
-    addLevels(gr)
+  grl <- lapply(1:length(grl),function(i){
+    if(tracksType[i] == "bar"){
+      grl[[i]] <- addLevels(grl[[i]])
+    }else{
+      values(grl[[i]])$.level <- 1
+    }
+    grl[[i]]
   })
-  ## if it's links, we don't need levels
-  if("link" %in% tracksType){
-    idx <- which("link" == tracksType[order(tracksOrder,decreasing=FALSE)])
-    values(grl[[idx]])['.level'] <- 1
-  }
   if(is.null(chrOrder)){
     chro <- sortChr(unique(as.character(seqnames(model))))
     idx <- match(chro,as.character(seqnames(model)))
@@ -68,7 +66,6 @@ CircularView <- function(grl,
     idx <- match(chro,as.character(seqnames(model)))
     model <- model[idx]
   }
-  
   ## gp2@pars$isPlotted <- isPlotted[order(tracksOrder,decreasing=FALSE)]
   if(is.null(tracksWidth))
     tracksWidth <- rep(40,N)
@@ -88,6 +85,7 @@ CircularView.gen$methods(createView = function(seqname=NULL){
   ## graphic device
   scene <<- qscene()
   view <<- qplotView(scene,rescale="none")
+  view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
   ## event
   ## background
   bgcol <- pars$bgColor
@@ -101,9 +99,9 @@ CircularView.gen$methods(createView = function(seqname=NULL){
   scale.unit <-35*1e6
   ## 50M is the unit
   unit <- (360-spaceRate*360*length(model))/sum(as.numeric(width(model)))
-  maxlevel <- as.numeric(unlist(lapply(tracks,function(gr){
-    max(values(gr)$.level)
-  })))
+  maxlevel <- unlist(lapply(tracks,function(gr){
+    as.numeric(max(values(gr)$.level))
+  }))
   ## wd <- (1+log(maxlevel)*0.2)*tracksWidth
   wd <- tracksWidth
   widthunit <- wd/(maxlevel)
@@ -133,7 +131,7 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     idx <- match(as.character(seqnames(gr)),as.character(chrOrder))
     chrwo <- as.character(seqnames(gr))[is.na(idx)]
     if(any(is.na(idx))){
-      warning("You are losing informations because chromosome\n",chrwo,
+      cat("You are losing informations because chromosome\n",chrwo,
               "\nis not plotted which exists in input data")
     }
     st <- values(model)$startAngle[idx]+start(gr)*unit
@@ -145,32 +143,30 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     idx2 <- match(as.character(seqnames(gr2)),as.character(chrOrder))
     chrwo <- as.character(seqnames(gr2))[is.na(idx2)]
     if(any(is.na(idx2))){
-      warning("You are losing informations because chromosome\n",chrwo,
+      cat("You are losing informations because chromosome\n",chrwo,
               "\nis not plotted which exists in input data")
     }
     st2 <- values(model)$startAngle[idx2]+start(gr2)*unit
     wd2 <- (end(gr2)-start(gr2))*unit
     df <- data.frame(start=st,width=wd,to.start=st2,to.width=wd2)
-    df <- na.omit(df)
+    ## shouldn't drop NA here?
+    ## df <- na.omit(df)
     return(df)
   }
 
-  lroot <- qlayer(scene,
-                  limits=qrect(c(-len,len),c(-len,len)),
+  rootLayer <<- qlayer(scene,
+                  ## limits=qrect(c(-len,len),c(-len,len)),
                   keyPressFun=function(layer,event){
-                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
-                       (event$key() == Qt$Qt$Key_Equal))
-                      view$scale(1.5,1.5)
-                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
-                       (event$key() == Qt$Qt$Key_Minus))
-                      view$scale(1/1.5,1/1.5)
-                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
-                       (event$key() == Qt$Qt$Key_0))
-                      view$resetTransform()
-                    if((event$modifiers() == Qt$Qt$ControlModifier)&&
-                       (event$key() == Qt$Qt$Key_u))
-                      viewInUCSC(obj)
-                  },
+                    if(event$modifiers() == Qt$Qt$ControlModifier){
+                      if(event$key() == Qt$Qt$Key_Equal)
+                        view$scale(1.5,1.5)
+                      if(event$key() == Qt$Qt$Key_Minus)
+                        view$scale(1/1.5,1/1.5)
+                      if(event$key() == Qt$Qt$Key_0)
+                        view$resetTransform()
+                      ## if(event$key() == Qt$Qt$Key_u)
+                      ##    viewInUCSC(obj)
+                    }},
                   ## mouseMoveFun=function(layer,event){
                   ##   pos <- as.numeric(event$pos())
                   ##   if(!is.null(visenv$new.view)){
@@ -185,16 +181,112 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                       zoom_factor <- 1/1.5
                     view$scale(zoom_factor,zoom_factor)
                   },
-                  geometry=qrect(0,0,600,600))
+                  geometry=qrect(0,0,800,800),cache=FALSE)
 ############################################################
   ## All painter funciton
 ############################################################
   ## ====================
   ## Link
   ## ====================
-  pfunLink <-function(gr,l,w,n,tp){
+  pfunLink <-function(gr,idx,paths){
     function(layer,painter){
+      cols <- values(gr)$.color[idx]
+      qdrawPath(painter,paths,stroke=cols)
+    }}
+  
+  ## ===================================
+  ## Sector
+  ## ===================================
+  ## painter for sector
+  pfunSector  <- function(gr,paths,xy,chr,mp){
+    function(layer,painter){
+      cols <- values(gr)$.color
+      qdrawPath(painter,paths,fill=cols,stroke=NA)
+      if(TRUE)
+        qdrawText(painter,chr,xy$x,xy$y,"center","center",rot=mp-90,color="white")
+    }}
+
+  ## ===================================
+  ## Points
+  ## ===================================
+  ##  <- quote({
+  ## need to rescale y
+  pfunPoint  <- function(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid){
+    function(layer,painter){
+      qdrawPath(painter,paths,fill=pars$gridBgColor,stroke=NA)
+      lapply(lst.grid,function(path) {qdrawPath(painter,path,fill=NA,stroke='white')})
+      circle <- qglyphCircle(r=1.2)
+      cols <- values(gr)$.color
+      qdrawGlyph(painter,circle, xy$x,xy$y,fill=cols,stroke=NA)
+      ## need text on scale
+    }}
+
+  ## ===================================
+  ## Scale
+  ## ===================================
+  ## painter for scale
+
+  pfunScale <- function(gr,scale.lst,xy1,xy2,xy1.s,xy2.s,paths,scale.lab){
+    function(layer,painter){
+      cols <- values(gr)$.color
+      qdrawPath(painter,paths,stroke=cols)
+      ## draw scale
+      lapply(seq_len(length(scale.lst)),function(i){
+        rots <- scale.lst[[i]]
+        idx <- rots>90 & rots<270
+        ## large scale
+        qdrawSegment(painter,xy1[[i]]$x,xy1[[i]]$y,
+                     xy2[[i]]$x,xy2[[i]]$y,stroke=cols)
+        ## small scale
+        qdrawSegment(painter,xy1.s[[i]]$x,xy1.s[[i]]$y,
+                     xy2.s[[i]]$x,xy2.s[[i]]$y,stroke=cols)
+        if(sum(idx)>0)
+        qdrawText(painter,scale.lab[[i]][idx],xy2[[i]]$x[idx],
+                  xy2[[i]]$y[idx],"right","center",rot=rots[idx]-180,color=cols)
+        if(sum(!idx)>0)
+        qdrawText(painter,scale.lab[[i]][!idx],xy2[[i]]$x[!idx],
+                  xy2[[i]]$y[!idx],"left","center",rot=rots[!idx],color=cols)   
+      })
+    }}
+
+  ## ===================================
+  ## Segment
+  ## ===================================
+  pfunSegment <- function(gr,xy1,xy2){
+    function(layer,painter){
+      ## compute the position
+        cols <- values(gr)$.color
+        qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    }}
+
+  ## ===================================
+  ## (Stacked Bar) not really a bar chart yet(neet to be fixed)
+  ## ===================================
+  pfunBar <- function(gr,xy1,xy2){
+    function(layer,painter){
+      cols <- values(gr)$.color
+      qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    }}
+
+  ## rootLayer<<-qlayer(scene,geometry=qrect(0,0,700,700))
+  lapply(1:length(tracks),function(n){
+    gr <- tracks[[n]]
+    tp <- tracksType[n]
+    l <- trackstart[n]
+    w <- tracksWidth[n]
+    if(is.na(tp)){
+      tp <- 'sector'
+    }
+    ## leave computation before paint function
+    if(tp == "sector"){
+      values(gr)$.color <- "white"
+    }
+    if(tp == "link"){
+      values(gr)$.color <- alpha(pars$fgColor,0.5)
       m2g <- map2global4link(gr)
+      idx <- apply(m2g,1,function(row){all(!is.na(row))})
+      ## gr <- gr[idx]
+      m2g <- na.omit(m2g)
       mw <- m2g$width
       ms <- m2g$start
       mw.o <- m2g$to.width  
@@ -210,52 +302,35 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                         c(0,0),
                         c(xy2[i,1],xy2[i,2]))
       })
-      cols <- values(gr)$.color
-      qdrawPath(painter,paths,stroke=cols)
-      ## }
-    }}
-  
-  ## ===================================
-  ## Sector
-  ## ===================================
-  ## painter for sector
-  pfunSector  <- function(gr,l,w,n,tp){
-    function(layer,painter){
-      m2g <- map2global(gr)
+
+    }
+    if(tp == "sector"){
+            m2g <- map2global(gr)
       mw <- m2g$width
       ms <- m2g$start
       mp <- ms+mw/2
-      lv <- values(gr)$.level
-      if(tracksOrder[n]<0){
-        lv <- max(lv)+1-lv
-      }
+      ## lv <- values(gr)$.level
+      ## if(tracksOrder[n]<0){
+      ##   lv <- max(lv)+1-lv
+      ## }
       wsub <- widthunit[n]
       skipsub <- wsub*0.2
-      xy <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub/2,mp)
+      ## xy <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub/2,mp)
+      xy <- polar2xy(radius=l+wsub/2,mp)
       chr <- as.character(seqnames(gr))
       chr <- gsub('chr','',chr)
       paths <- lapply(1:length(gr),function(i){
         sa <- ms[i]
         sl <- mw[i]
         paths <- qglyphSector(0,0,
-                              length=l+wsub*(lv[i]-1)+skipsub*(lv[i]-1),
+                              ## length=l+wsub*(lv[i]-1)+skipsub*(lv[i]-1),
+                              length=l,
                               width=wsub,
                               startAngle=sa,
                               sweepLength=sl)
       })
-      cols <- values(gr)$.color
-      qdrawPath(painter,paths,fill=cols,stroke=NA)
-      if(TRUE)
-        qdrawText(painter,chr,xy$x,xy$y,"center","center",rot=mp-90,color="black")
-    }}
-
-  ## ===================================
-  ## Points
-  ## ===================================
-  ##  <- quote({
-  ## need to rescale y
-  pfunPoint  <- function(gr,l,w,n,tp){
-    function(layer,painter){
+    }
+    if(tp == "point"){
       m2g <- map2global(gr)
       mw <- m2g$width
       ms <- m2g$start
@@ -265,7 +340,10 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       x <- ms+mw/2
       y <- values(gr)[,idx]
       ## ylim should be a plotting limits on y-axis
-      ylim <- c(min(y)-0.1*abs(min(y)),max(y)+0.1*abs(max(y)))
+      ylim <- range(y)
+      ## ylim <- c(min(y)-0.05*abs(min(y)),max(y)+0.05*abs(max(y)))
+      mrg <- 0.05*diff(ylim)
+      ylim <- c(ylim[1]-mrg,ylim[2]+mrg)
       ## change to layer coordinates
       y <- (y-min(ylim))/(diff(ylim))*w
       ## if(s<0) y <- wsub-y
@@ -273,6 +351,20 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       m2gm <- map2global(model)
       mwm <- m2gm$width
       msm <- m2gm$start
+      seqlen <- pretty(ylim,n=5,h=3)
+      seqlen.cor <- sapply(seqlen,function(r){
+        (r-min(ylim))/diff(ylim)*w
+      })
+      seqlen.cor <- seqlen.cor+l
+      seqlen.cor <-  subset(seqlen.cor,(seqlen.cor <= l+w)&
+                           (seqlen.cor >= l))
+      lst.grid <- lapply(1:length(model),function(i){
+        sa <- msm[i]
+        sl <- mwm[i]
+        paths <- lapply(seqlen.cor,function(r){
+          qglyphArc(0,0,r=r,sa,sl)          
+        })
+      })
       ## compute the position
       paths <- lapply(1:length(model),function(i){
         sa <- msm[i]
@@ -281,42 +373,26 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                               width=w,
                               startAngle=sa,sweepLength=sl)
       })
-      qdrawPath(painter,paths,fill=pars$gridBgColor,stroke=NA)
-      seqlen <- pretty(ylim,n=5,h=3)
-      seqlen.cor <- sapply(seqlen,function(r){
-        (r-min(ylim))/diff(ylim)*w
-      })
-      seqlen.cor <- seqlen.cor+l
-      lapply(1:length(model),function(i){
-        sa <- msm[i]
-        sl <- mwm[i]
-        paths <- lapply(seqlen.cor,function(r){
-          qglyphArc(0,0,r=r,sa,sl)          
-        })
-        qdrawPath(painter,paths,fill=NA,stroke='white')
-      })
-      circle <- qglyphCircle(r=1)
-      cols <- values(gr)$.color
-      qdrawGlyph(painter,circle, xy$x,xy$y,fill=cols,stroke=NA)
-      ## need text on scale
-
-    }}
-
-  ## ===================================
-  ## Scale
-  ## ===================================
-  ## painter for scale
-
-  pfunScale <- function(gr,l,w,n,tp){
-    function(layer,painter){
+      values(gr)$.color <- pars$stroke
+    }
+    if(tp == "segment"){
       m2g <- map2global(gr)
       mw <- m2g$width
       ms <- m2g$start
+      mp <- ms+mw/2
+      xy1 <- polar2xy(radius=l,mp)
+      xy2 <- polar2xy(radius=l+w,mp)
+      values(gr)$.color <- alpha(pars$fgColor,0.5)
+    }
+    if(tp == "scale"){
+            m2g <- map2global(gr)
+      mw <- m2g$width
+      ms <- m2g$start
       me <- ms+mw
-      lv <- values(gr)$.level
-      if(tracksOrder[n]<0){
-        lv <- max(lv)+1-lv
-      }
+      ## lv <- values(gr)$.level
+      ## if(tracksOrder[n]<0){
+      ##   lv <- max(lv)+1-lv
+      ## }
       wsub <- widthunit[n]
       skipsub <- wsub*0.2
       scale.unit <- scale.unit
@@ -346,55 +422,8 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                            startAngle=sa,
                            sweepLength=sl)
       })
-
-      cols <- pars$fgColor
-      qdrawPath(painter,paths,stroke=cols)
-      ## draw scale
-      lapply(seq_len(length(scale.lst)),function(i){
-        rots <- scale.lst[[i]]
-        idx <- rots>90 & rots<270
-        ## large scale
-        qdrawSegment(painter,xy1[[i]]$x,xy1[[i]]$y,
-                     xy2[[i]]$x,xy2[[i]]$y,stroke=cols)
-        ## small scale
-        qdrawSegment(painter,xy1.s[[i]]$x,xy1.s[[i]]$y,
-                     xy2.s[[i]]$x,xy2.s[[i]]$y,stroke=cols)
-        qdrawText(painter,scale.lab[[i]][idx],xy2[[i]]$x[idx],
-                  xy2[[i]]$y[idx],"right","center",rot=rots[idx]-180)
-        qdrawText(painter,scale.lab[[i]][!idx],xy2[[i]]$x[!idx],
-                  xy2[[i]]$y[!idx],"left","center",rot=rots[!idx])   
-      })
-    }}
-
-  ## ===================================
-  ## Segment
-  ## ===================================
-  pfunSegment <- function(gr,l,w,n,tp){
-    function(layer,painter){
-      ## compute the position
-      m2g <- map2global(gr)
-      mw <- m2g$width
-      ms <- m2g$start
-      mp <- ms+mw/2
-      ## lv <- values(gr)$.level
-      ## if(max(lv)>1)
-      ##   stop("Segment types cannot be applied to overlaped ranges yet")
-      ## wsub <- widthunit[n]
-      ## skipsub <- wsub*0.2
-      ## xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
-      ## xy2 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub,mp)
-      xy1 <- polar2xy(radius=l,mp)
-      xy2 <- polar2xy(radius=l+w,mp)
-        cols <- values(gr)$.color
-        qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
-    }}
-
-  ## ===================================
-  ## (Stacked Bar) not really a bar chart yet(neet to be fixed)
-  ## ===================================
-  pfunBar <- function(gr,l,w,n,tp){
-    function(layer,painter){
-      ## compute the position
+    }
+    if(tp == "bar"){
       m2g <- map2global(gr)
       mw <- m2g$width
       ms <- m2g$start
@@ -404,40 +433,18 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       skipsub <- wsub*0.2
       xy1 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1),mp)
       xy2 <- polar2xy(radius=l+wsub*(lv-1)+skipsub*(lv-1)+wsub,mp)
-      cols <- values(gr)$.color
-      qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
-    }}
-
-
-  lapply(1:length(tracks),function(n){
-    gr <- tracks[[n]]
-    tp <- tracksType[n]
-    l <- trackstart[n]
-    w <- tracksWidth[n]
-    if(is.na(tp)){
-      tp <- 'sector'
     }
-    if(tp == "sector")
-      values(gr)$.color <- "white"
-    if(tp == "link")
-      values(gr)$.color <- alpha(pars$fgColor,0.5)
-    if(tp == "point")
-      values(gr)$.color <- pars$stroke
-    if(tp == "segment")
-      values(gr)$.color <- alpha(pars$fgColor,0.5)
-
     paintFun <- switch(tp,
-                       sector=pfunSector(gr,l,w,n,tp),
-                       segment=pfunSegment(gr,l,w,n,tp),
-                       bar=pfunBar(gr,l,w,n,tp),
-                       point=pfunPoint(gr,l,w,n,tp),
+                       sector=pfunSector(gr,paths,xy,chr,mp),
+                       segment=pfunSegment(gr,xy1,xy2),
+                       bar=pfunBar(gr,xy1,xy2),
+                       point=pfunPoint(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid),
                        ## line=eval(pfunLine),
-                       link=pfunLink(gr,l,w,n,tp),
-                       scale=pfunScale(gr,l,w,n,tp)
+                       link=pfunLink(gr,idx,paths),
+                       scale=pfunScale(gr,scale.lst,xy1,xy2,xy1.s,xy2.s,paths,scale.lab)
                        )
-    layer <- qlayer(scene,paintFun=paintFun,
-                    limits=qrect(c(-len,len),c(-len,len)),
-                    geometry=qrect(0,0,600,600),cache=FALSE)
+    layer <- qlayer(rootLayer,paintFun=paintFun,
+                    limits=qrect(c(-len,len),c(-len,len)),cache=FALSE)
     tracks[[n]]$elementMetadataChanged$connect(function(){
       qupdate(layer)
     })
@@ -544,9 +551,9 @@ getColor <- function(trackColorTheme,n,types){
     }
     cols <- rep(cols,n)
   }
-  
   return(cols)
 }
+
 
 polar2xy <- function(radius,angle){
   x <- radius*cos(angle/360*(2*pi))
@@ -557,15 +564,6 @@ polar2xy <- function(radius,angle){
 
 setGeneric('addLevels',function(mr,...) standardGeneric('addLevels'))
 
-## setMethod('addLevels','MutableGRanges',function(gr,...){
-##   gr.lst <- split(gr,as.character(seqnames(gr)))
-##   lv <- unname(lapply(gr.lst,function(x){
-##     values(x)$.level <- as.numeric(disjointBins(ranges(x)))
-##     x
-##   }))
-##   gr <- do.call("c",lv)
-##   gr
-## })
 
 setMethod('addLevels','MutableGRanges',function(mr,...){
   gr <- as(mr,"GenomicRanges")
