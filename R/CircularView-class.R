@@ -209,8 +209,6 @@ CircularView.gen$methods(createView = function(seqname=NULL){
   ## ===================================
   ## Points
   ## ===================================
-  ##  <- quote({
-  ## need to rescale y
   pfunPoint  <- function(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid){
     function(layer,painter){
       qdrawPath(painter,paths,fill=pars$gridBgColor,stroke=NA)
@@ -218,7 +216,6 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       circle <- qglyphCircle(r=1.2)
       cols <- values(gr)$.color
       qdrawGlyph(painter,circle, xy$x,xy$y,fill=cols,stroke=NA)
-      ## need text on scale
     }}
 
   ## ===================================
@@ -266,6 +263,25 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     function(layer,painter){
       cols <- values(gr)$.color
       qdrawSegment(painter,xy1$x,xy1$y,xy2$x,xy2$y,stroke=cols)
+    }}
+
+  ## ===================================
+  ## Lines(revised from pfunPoint)
+  ## ===================================
+  pfunLine  <- function(gr,seqlen.cor,xy,paths,
+                        msm,mwm,lst.grid,chrgp){
+    function(layer,painter){
+      ## draw grid
+      qdrawPath(painter,paths,fill=pars$gridBgColor,stroke=NA)
+      lapply(lst.grid,function(path) {qdrawPath(painter,path,fill=NA,stroke='white')})
+      ## draw line
+      cols <- unique(values(gr)$.color)[1]
+      by(xy,chrgp,function(chrgr){
+        chrgr <- chrgr[order(chrgr$pos,decreasing=FALSE),]
+        N <- nrow(chrgr)
+        qdrawSegment(painter,chrgr$x[-N],chrgr$y[-N],
+                     chrgr$x[-1],chrgr$y[-1],stroke=cols)        
+      })
     }}
 
   ## rootLayer<<-qlayer(scene,geometry=qrect(0,0,700,700))
@@ -330,14 +346,15 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                               sweepLength=sl)
       })
     }
-    if(tp == "point"){
+    if(tp == "point" | tp == "line"){
       m2g <- map2global(gr)
+      chrgp <- as.character(seqnames(gr))
       mw <- m2g$width
       ms <- m2g$start
       ## Should be more flexible
       if(TRUE)
         idx <- as.integer(which(unlist(lapply(values(gr)@listData,is,"numeric")))[1])
-      x <- ms+mw/2
+      x <- circle.pos.x <- ms+mw/2
       y <- values(gr)[,idx]
       ## ylim should be a plotting limits on y-axis
       ylim <- range(y)
@@ -348,6 +365,7 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       y <- (y-min(ylim))/(diff(ylim))*w
       ## if(s<0) y <- wsub-y
       xy <- polar2xy(l+y,x)
+      xy$pos <- circle.pos.x
       m2gm <- map2global(model)
       mwm <- m2gm$width
       msm <- m2gm$start
@@ -373,8 +391,10 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                               width=w,
                               startAngle=sa,sweepLength=sl)
       })
+
       values(gr)$.color <- pars$stroke
     }
+    
     if(tp == "segment"){
       m2g <- map2global(gr)
       mw <- m2g$width
@@ -439,7 +459,7 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                        segment=pfunSegment(gr,xy1,xy2),
                        bar=pfunBar(gr,xy1,xy2),
                        point=pfunPoint(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid),
-                       ## line=eval(pfunLine),
+                       line=pfunLine(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid,chrgp),
                        link=pfunLink(gr,idx,paths),
                        scale=pfunScale(gr,scale.lst,xy1,xy2,xy1.s,xy2.s,paths,scale.lab)
                        )
