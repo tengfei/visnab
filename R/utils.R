@@ -9,7 +9,7 @@ setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
   gr
 })
 
-setMethod('removePrefix','MutableRanges',function(gr,rm.prefix){
+setMethod('removePrefix','MutableGRanges',function(gr,rm.prefix){
   seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
   gr
 })

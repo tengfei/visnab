@@ -22,4 +22,5 @@ Collate: visnab.R
 	 StackedView-class.R
 	 TracksView-class.R
 	 theme.R
+	 GUI.R
 	 zzz.R

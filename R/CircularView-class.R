@@ -77,6 +77,7 @@ CircularView <- function(grl,
   obj <- CircularView.gen$new(tracks=grl,pars=pars,tracksType=tracksType,model=model,
                               tracksOrder=tracksOrder, tracksWidth=tracksWidth,
                               chrOrder=chro)
+  obj$createView()
   obj
 }
 
@@ -181,7 +182,7 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                       zoom_factor <- 1/1.5
                     view$scale(zoom_factor,zoom_factor)
                   },
-                  geometry=qrect(0,0,800,800),cache=FALSE)
+                  geometry=qrect(0,0,700,700),cache=FALSE)
 ############################################################
   ## All painter funciton
 ############################################################
@@ -203,7 +204,8 @@ CircularView.gen$methods(createView = function(seqname=NULL){
       cols <- values(gr)$.color
       qdrawPath(painter,paths,fill=cols,stroke=NA)
       if(TRUE)
-        qdrawText(painter,chr,xy$x,xy$y,"center","center",rot=mp-90,color="white")
+        qdrawText(painter,chr,xy$x,xy$y,"center","center",
+                  rot=mp-90,color="black",cex=1.3)
     }}
 
   ## ===================================
@@ -597,3 +599,10 @@ setMethod('addLevels','MutableGRanges',function(mr,...){
 })
 
 ## need to plot a diagram
+CircularView.gen$methods(show = function(){
+  view$show()
+})
+
+setMethod("print","CircularView",function(x,..){
+  x$show()
+})

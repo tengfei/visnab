@@ -8,7 +8,8 @@ exportMethods("removePrefix",
               "print",
               ## "addAttr",
               ## "setDefAttr",
-              "viewInUCSC")
+              "viewInUCSC",
+              "visnabGUI")
 
 exportClasses("GraphicPars",
               "VisnabView",

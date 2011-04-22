@@ -1,8 +1,8 @@
 ## Example
-library(qtpaint)
-library(qtbase)
-library(scales)
 require(visnab)
+library(qtbase)
+library(qtpaint)
+library(scales)
 options(warn=2)
 
 james_pair<- function(file){
@@ -53,11 +53,16 @@ gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
 
 obj <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
 
-obj$createView()
-obj$view$show()
+## obj$createView()
+
+setTheme(obj,bgColor="white",sectorFill="gray30",
+                     linkColor="blue",barColor="black",
+                     pointColor="red",pointAlpha=0.9,linkAlpha=0.01,
+                     scaleColor="black")
+obj$show()
 
 length(back.gr)
-
+visnabGUI(obj)
 
 ## create link color
 
@@ -87,73 +92,14 @@ setTheme <- function(obj,bgColor="white",sectorFill="gray80",
   qupdate(obj$scene)
 }
 
-setTheme(obj,bgColor="white",sectorFill="gray30",
-                     linkColor="blue",barColor="black",
-                     pointColor="red",pointAlpha=0.9,linkAlpha=0.01,
-                     scaleColor="black")
+
 
 setTheme(obj,bgColor="black",sectorFill="gray10",
                      linkColor="white",barColor="gray80",
                      pointColor="red",pointAlpha=0.9,linkAlpha=0.04,
                      scaleColor="gray80")
 
-## 
-
-## plot only 
-
-
-
-mr <- MutableGRanges(seqname=c("chr1","chr2"),
-                     IRanges(start=c(100,200),width=50),
-                     .color=rep("red",2))
-
-
-## painter need to be fixed later
-pfunLine <- quote({
-  m2g <- map2global(obj,gr)
-  mw <- m2g$width
-  ms <- m2g$start
-  ## idx <- obj@pars$isPlotted[[n]]
-  x <- ms+mw/2
-  y <- values(gr)[,idx]
-  ylim=c(min(y)*0.8,max(y)*1.2)
-  wsub <- obj@pars$widthunit[n]
-  skipsub <- wsub*0.2
-  s <- sign(tracksOrder[n])
-  y <- y/(diff(ylim))*(wsub*0.8)+wsub*0.1
-  if(s<0) y <- wsub-y
-  xy <- polar2xy(l+y,x)
-  ## need to rescale y
-  paintFun <- function(layer,painter){
-    ## drawbg(painter,obj,l+w*(n-1)+skip*(n-1)+y,w)
-    m2gm <- map2global(obj,obj@pars$model)
-    mwm <- m2gm$width
-    msm <- m2gm$start
-    ## compute the position
-    paths <- lapply(1:length(obj@pars$model),function(i){
-      sa <- msm[i]
-      sl <- mwm[i]
-      paths <- qglyphSector(0,0,length=l,
-                            width=wsub,
-                            startAngle=sa,sweepLength=sl)
-    })
-    qdrawPath(painter,paths,fill='gray80',stroke=NA)
-    seqlen <- pretty(c(l,l+wsub))
-    paths <- lapply(seqlen,function(r){
-      qglyphArc(0,0,r=r,0,360)          
-    })
-    qdrawPath(painter,paths,fill=NA,stroke='white')
-    sp <- as.character(seqnames(gr))
-    idx <- seq_len(length(sp))
-    by(idx,sp,function(idx){
-      st <- x[idx]
-      idx <- idx[order(st)]
-      if(is(cols,"mutaframe"))
-        cols <- as.character(cols[,,drop=TRUE])
-      cols <- getColor(obj@pars$tracksColorTheme[[n]],length(gr),tp)
-      qdrawLine(painter,xy$x[idx],xy$y[idx],stroke='black')
-    })
-  }})
+args(qdrawText)
 
   ## ===================================
   ## Texts
@@ -195,7 +141,11 @@ pfunLine <- quote({
     }
   }
 
-## test
-mr <- MutableGRanges(seqname=c("chr1","chr2"),
-                     IRanges(start=c(100,200),width=50),
-                     .color=rep("red",2))
+## Now do sth fun add a command line filter to 
+
+
+CircularViewWindow(obj)$show()
+layout <- Qt$QGridLayout()
+sort(ls(layout))
+wts <- Qt$QWidget()
+sort(ls(wts))
