@@ -110,18 +110,16 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
               max((binsexon*10+5)/binmx*5),"center","top",color=pars$textColor)
   }
   keyPressEvent <- function(layer,event){
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_Equal)
-      view$scale(2,1)
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_Minus)
-      view$scale(1/2,1)
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_0)
-      view$resetTransform()
-    if(event$modifiers() == Qt$Qt$ControlModifier&&
-       event$key() == Qt$Qt$Key_u)
-      viewInUCSC(obj)
+                    if(event$modifiers() == Qt$Qt$ControlModifier){
+                      if(event$key() == Qt$Qt$Key_Equal)
+                        view$scale(1.5,1)
+                      if(event$key() == Qt$Qt$Key_Minus)
+                        view$scale(1/1.5,1)
+                      if(event$key() == Qt$Qt$Key_0)
+                        view$resetTransform()
+                    }
+                      ## if(event$key() == Qt$Qt$Key_u)
+                      ##    viewInUCSC(obj)
   }
   ## used for hover
   flag <<- FALSE

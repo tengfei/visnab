@@ -14,18 +14,22 @@ load("~/Datas/rdas/bam.rda")
 obj <- AlignmentView(bam,title="Alignment")
 obj$show()
 
-gr <- GRangesForUCSCGenome("hg19",'chr1')
-bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
+## gr <- GRangesForUCSCGenome("hg19",'chr1')
+gr <- getIdeogram("hg19",cyto=FALSE)
+file <- "~/Datas/seqs/rna-seq/rna95.sorted.bam"
+obj <- AlignmentView(file,gr)
+obj$show()
+obj$pars$seqname <- "chr2"
+## bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
 ## save(bam,file="~/Datas/rdas/bam.rda")
 load("~/Datas/rdas/bam.rda")
 obj <- AlignmentView(bam,title="align")
+obj$pars$seqname
 print(obj)
+
 
 ## for pileup
 library(ShortRead)
-
-
-
 
 fls <- "./rna95.sorted.bam"
 

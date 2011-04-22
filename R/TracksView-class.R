@@ -28,6 +28,7 @@ TracksView <- function(...,ideogram=NULL,seqname=NULL){
   })
   obj$pars$seqnameChanged$connect(function(){
     obj$createView()
+    gc()
     obj$show()
   })
   
@@ -35,7 +36,7 @@ TracksView <- function(...,ideogram=NULL,seqname=NULL){
   return(obj)
 }
 
-## setMethod("print","TracksView",function(x,...){
+
 TracksView.gen$methods(createView = function(seqname=NULL){
   scene <<- qscene()
   ## grand view
@@ -55,14 +56,12 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   trackLayout$setRowStretch(0,0)
   trackLayout$setRowStretch(1,1)
   trackLayout$setContentsMargins(5,5,5,5)
-
   if(!is.null(seqname))
     pars$seqname <<- seqname
-  
+  seqname <- pars$seqname
   start <- 0
   end <- max(end(ranges(ideogram[seqnames(ideogram)==pars$seqname])))
   pars$xlimZoom <<- c(start,end)
-
   gr <- ideogram
   col.lst <- list(gpos100 = "black",
                   gpos75 = "gray75",
@@ -114,22 +113,12 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   }
   ## event
   eventChrom <- function(layer,event){
-    ## layer$setAcceptsHoverEvents(TRUE)
     pos <- as.numeric(event$pos())
     pos.x <- pos[1]
     wids <- diff(pars$xlimZoom)
     xlimZoom <- c(pos.x-wids/2,pos.x+wids/2)
     pars$xlimZoom <<- xlimZoom
-    ## as.matrix(view$sceneRect())
-    sort(ls(scene))
-    sort(ls(view))
-    class(event$pos())
     pos.scene <- as.numeric(event$scenePos())
-   ##  pos.scene <- as.numeric(rootLayer$mapToScene(xlimZoom[1],xlimZoom[2]))
-   ## as.numeric(rootLayer$mapToScene(pos[1],pos[2]))
-   ##  browser()
-   ##  xlimZoom
-   ##  print(pos.scene)
     view$centerOn(pos.scene[1],pos.scene[2])
   }
   ## set geometry to rootLayer
@@ -148,14 +137,12 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     tform$scale(zoom_factor,1)
     view$setTransform(tform)
   }
-
   gridLayer <- qlayer(scene,pfunGrid,limits=qrect(c(0,600),c(0,600)),
                       geometry=qrect(c(0,600),c(0,150*length(track))))
   rootLayer <<- qlayer(scene,wheelFun=wheelZoom,cache=TRUE,
                       geometry=qrect(c(0,600),c(0,150*length(track))))
 
         ## grand layer
-  
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
@@ -177,9 +164,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     track[[i]]$pars$xlimZoomChanged$connect(function(){
       pars$xlimZoom <<- track[[i]]$pars$xlimZoom
     })
-    ## pars$seqnameChanged$connect(function(){
-    ##   track[[i]]$pars$seqname <- pars$seqname
-    ## })
     message("Constructing and Printing...",class(track[[i]]))
     track[[i]]$createView()
   })
@@ -187,8 +171,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   sapply(1:length(track),function(i){
     layout$setRowStretchFactor(i-1,1)    
   })
-
-  ## layout$setRowStretchFactor(0,1)
 })
 
 TracksView.gen$methods(show = function(){

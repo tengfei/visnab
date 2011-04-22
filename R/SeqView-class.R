@@ -37,11 +37,6 @@ SeqView <- function(obj,
     end <- max(end(ranges(obj[seqnames(obj)==seqname])))
   }
   xlimZoom <- c(start,end)
-  if(is.null(scene)){
-    scene=qscene()
-    view = qplotView(scene,rescale="none")
-    rootLayer = qlayer(scene,geometry=qrect(0,0,800,600))
-  }
   if(extends(class(obj),"GRanges"))
     obj <- as(obj,"MutableGRanges")
   pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname)
@@ -56,7 +51,7 @@ SeqView <- function(obj,
     obj$pars$xlimZoom <- c(start,end)
     ## obj$scene <- qscene()
     obj$rootLayer$close()
-    obj$rootLayer <- qlayer(obj@scene,geometry=qrect(0,0,800,600))
+    obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600))
     obj$view$resetTransform()
     obj$createView()
   })
@@ -71,6 +66,11 @@ SeqView <- function(obj,
 ##----------------------------------------------------------------------------##
 
 SeqView.gen$methods(createView = function(seqname=NULL){
+  if(is.null(scene)){
+    scene <<- qscene()
+    view <<- qplotView(scene,rescale="none")
+    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
+  }
   if(!is.null(seqname))
     pars$seqname <<- seqname
   seqname <- pars$seqname

@@ -1,16 +1,20 @@
 ##----------------------------------------------------------------------------##
 ##             For class "AlignmentView"
 ##----------------------------------------------------------------------------##
+setClassUnion("listORNULL",c("list","NULL"))
 AlignmentView.gen <- setRefClass("AlignmentView",contains="QtVisnabView",
-                                 fields=list(track="list",
+                                 fields=list(track="listORNULL",
                                    lower="numeric",
-                                   cutbin="numeric"))
+                                   cutbin="numeric",
+                                   file="character",
+                                   model="GenomicRanges"))
 
 ##----------------------------------------------------------------------##
 ##             "AlignmentView" constructor
 ##----------------------------------------------------------------------##
 
-AlignmentView <- function(bam=NULL,
+AlignmentView <- function(file=NULL,
+                          model=NULL,
                           lower=10L,
                           cutbin=20L,
                           seqname=NULL,
@@ -25,25 +29,24 @@ AlignmentView <- function(bam=NULL,
                           title=NULL,
                           ...){
 
-  
   if(is.null(title))
     title <- deparse(substitute(bam))
   if(is.null(seqname)){
-    seqname <- unlist(strsplit(names(bam),":"))[1]
-    start <- 0
-    end <- as.numeric(unlist(strsplit(unlist(strsplit(names(bam),":"))[2],"-"))[2])
+    seqname <- as.character(seqnames(model))[1]
   }
-  xlimZoom <- c(start,end)
-  if(is.null(scene)){
-    scene=qscene()
-    view = qplotView(scene,rescale="none")
-    rootLayer = qlayer(scene,geometry=qrect(0,0,800,600))
-  }
-  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname)
-  obj <- AlignmentView.gen$new(track=bam,title=title,
+  pars <- GraphicPars(seqname = seqname)
+  obj <- AlignmentView.gen$new(track=NULL,model=model,title=title,file=file,
                                row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                               scene=scene,view=view,rootLayer=rootLayer,
+                               scene=NULL,view=NULL,rootLayer=NULL,
                                pars=pars, lower=lower,cutbin=cutbin)
+  obj$pars$seqnameChanged$connect(function(){
+    obj$rootLayer$close()
+    obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
+    obj$view$resetTransform()
+    obj$createView()
+    gc()
+    ## obj$show()
+  })
   obj$createView()
   obj
 }
@@ -54,14 +57,27 @@ AlignmentView <- function(bam=NULL,
 ##---------------------------------------------------------##
 
 AlignmentView.gen$methods(createView = function(seqname = NULL){
+  if(is.null(scene)){
+    scene <<- qscene()
+    view <<- qplotView(scene,rescale="none")
+    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
+  }
   if(!is.null(seqname))
     pars$seqname <<- seqname
   seqname <- pars$seqname
+  start <- 0
+  end <- max(end(model[seqnames(model)==seqname]))
+  pars$xlimZoom <<- c(start,end)
+  gr <- GRanges(seqnames=seqname,ranges=IRanges(start=start,end=end))
+  message("Loading bam file")
+  bam <- scanBam(file, param=ScanBamParam(which = gr))
+  track <<- bam[[1]]
+  message("Processing")
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
-
   wheelZoom <- function(layer, event) {
     zoom_factor <- 1.5
     if (event$delta() < 0)
@@ -82,14 +98,13 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
       ## if(event$key() == Qt$Qt$Key_u)
       ##    viewInUCSC(obj)
     }}
-  
   ## preset the level
   zoomLevel <- c(5000)
   ## need to fix this bug
   if(nchar(seqname)>1)
     seqname <- as.numeric(substr(seqname,4,4))
   ## precessing data
-  bam <- track[[seqname]]
+  bam <- bam[[1]]
   ir <- data.frame(start=bam$pos,width=width(bam$seq),
                    strand=bam$strand)
   ir <- GRanges(seqnames=seqname,
@@ -127,7 +142,6 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   cov.neg.xpost <- sort(c(cov.neg.xpos-cov.neg.len+1,cov.neg.xpos),decreasing=FALSE)
   cov.neg.valt <- cov.neg.valt[rep(idx,each=2)]
   cov.neg.xpost <- cov.neg.xpost[rep(idx,each=2)]
-
 
   pfunAlign <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
