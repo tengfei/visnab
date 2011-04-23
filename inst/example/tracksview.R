@@ -44,9 +44,10 @@ load("~/Datas/rdas/cds.rda")
 cdsi <- IntervalView(cds)
 file <- "~/Datas/seqs/rna-seq/rna95.sorted.bam"
 obj.ali <- AlignmentView(file,gr)
-## tks <- TracksView(obj.ref,int1,int2,obj.ali,ideogram=gr)
+## tks <- TracksView(obj.ref,int1,int2,objload("~/Dropbox/Documents/presentation/proposal/data/ali.rda").ali,ideogram=gr)
 gr <- getIdeogram("hg18",cyto=TRUE)
 tks <- TracksView(obj.ref,cdsi,obj.ali,ideogram=gr)
+save(tks,file="~/Datas/rdas/tks.rda")
 tks$show()
 
 tks$pars$seqname <- "chr4"

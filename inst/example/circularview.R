@@ -3,7 +3,7 @@ require(visnab)
 library(qtbase)
 library(qtpaint)
 library(scales)
-options(warn=2)
+## options(warn=0)
 
 james_pair<- function(file){
   back <- read.csv(file=file)
@@ -51,29 +51,12 @@ gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
 ## gr <- getIdeogram("bosTau4",cytobands=FALSE)
 ## obj <- CircularView(list(back.gr,gr,back.sig.gr[,"Effect"],back.gr,gr),model=gr, tracksType=c("link","sector","point","bar","scale"))
 
-obj <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
+obj.cir <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
 
-## obj$createView()
-
-setTheme(obj,bgColor="white",sectorFill="gray30",
-                     linkColor="blue",barColor="black",
-                     pointColor="red",pointAlpha=0.9,linkAlpha=0.01,
-                     scaleColor="black")
-obj$show()
-
-length(back.gr)
-visnabGUI(obj)
-
-## create link color
-
-## col.dt <- values(obj$tracks[[1]])$Effect
-## cols <- cscale(col.dt,seq_gradient_pal("blue","red"),trans=log2_trans())
-## cols <- cscale(col.dt,seq_gradient_pal("blue","red"))
-## cols <- cscale(col.dt,div_gradient_pal("blue","white","red"))
 
 setTheme <- function(obj,bgColor="white",sectorFill="gray80",
                      linkColor="blue",barColor="black",
-                     pointColor="red",pointAlpha=0.3,linkAlpha=0.05,
+                     pointColor="red",pointAlpha=0.3,linkAlpha=0.02,
                      scaleColor="gray10"){
   require(scales)
   require(qtbase)
@@ -92,14 +75,28 @@ setTheme <- function(obj,bgColor="white",sectorFill="gray80",
   qupdate(obj$scene)
 }
 
+setTheme(obj.cir,bgColor="white",sectorFill="gray30",
+                     linkColor="blue",barColor="black",
+                     pointColor="red",pointAlpha=0.9,linkAlpha=1,
+                     scaleColor="black")
 
+save(obj.cir,back.gr,back.sig.gr,gr,file="~/Datas/rdas/circle.rda")
+## obj$show()
+
+visnabGUI(obj.cir)
+
+
+## create link color
+
+## col.dt <- values(obj$tracks[[1]])$Effect
+## cols <- cscale(col.dt,seq_gradient_pal("blue","red"),trans=log2_trans())
+## cols <- cscale(col.dt,seq_gradient_pal("blue","red"))
+## cols <- cscale(col.dt,div_gradient_pal("blue","white","red"))
 
 setTheme(obj,bgColor="black",sectorFill="gray10",
                      linkColor="white",barColor="gray80",
                      pointColor="red",pointAlpha=0.9,linkAlpha=0.04,
                      scaleColor="gray80")
-
-args(qdrawText)
 
   ## ===================================
   ## Texts

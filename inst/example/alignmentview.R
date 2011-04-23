@@ -18,11 +18,11 @@ obj$show()
 gr <- getIdeogram("hg19",cyto=FALSE)
 file <- "~/Datas/seqs/rna-seq/rna95.sorted.bam"
 obj <- AlignmentView(file,gr)
-obj$show()
 obj$pars$seqname <- "chr2"
 ## bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
 ## save(bam,file="~/Datas/rdas/bam.rda")
 load("~/Datas/rdas/bam.rda")
+rm(bam)
 obj <- AlignmentView(bam,title="align")
 obj$pars$seqname
 print(obj)
