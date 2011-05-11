@@ -1,18 +1,24 @@
 ## Example
 require(visnab)
-library(qtbase)
-library(qtpaint)
-library(scales)
+## library(qtbase)
+## library(qtpaint)
+## library(scales)
 ## options(warn=0)
 
 james_pair<- function(file){
   back <- read.csv(file=file)
   idx <- which(back$Chr2==30)
   back$Chr2[idx] <- "X"
+  idx <- which(back$Chr1==30)
+  back$Chr1[idx] <- "X"
+  ## cat("NA rows: ",ncol(dim(back.sig))-ncol(na.omit(back.sit)))
+  ## back.sig <- na.omit(back.sig)
   back.gr <- GRanges(seqnames=paste("chr",back$Chr1,sep=""),
                      IRanges(start=back$locus1.btau4.0.position,
                              end=back$locus1.btau4.0.position))
   colnames(back)[3] <- "to.chr"
+  ## idx <- which(back$to.chr==30)
+  ## back$to.chr[idx] <- "X"
   back$to.chr <- paste("chr",back$to.chr,sep="")
   colnames(back)[4] <- "to.start"
   back$to.end <- back$to.start
@@ -24,6 +30,8 @@ james_pair<- function(file){
 james_single <- function(file){
   back.sig <- read.csv(file=file)
   idx <- which(back.sig$Chr==30)
+  cat("NA rows: ",ncol(back.sig)-ncol(na.omit(back.sig)))
+  back.sig <- na.omit(back.sig)
   back.sig$Chr[idx] <- "X"
   back.sig.gr <- GRanges(seqnames=paste("chr",back.sig$Chr,sep=""),
                          IRanges(start=back.sig$locus.btau4.0.position,
@@ -33,26 +41,6 @@ james_single <- function(file){
   values(back.sig.gr)$Effect <- abs(values(back.sig.gr)$Effect)
   back.sig.gr
 }
-
-file1="/home/tengfei/Datas/james/Iron_pairwise_sig.csv"
-back.gr <- james_pair(file1)
-
-file2="/home/tengfei/Datas/james/Iron_single_sig.csv"
-back.sig.gr <- james_single(file2)
-## idx <- order(values(back.sig.gr)$P_value,decreasing=FALSE)[1:100]
-## back.sig.gr <- back.sig.gr[idx]
-## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
-## prepare the chromosome which need to be plotted
-## pass GRanges/MutableGRanges object, return unique chromosome names
-
-chrmodel <- chrAll(back.gr,back.sig.gr)
-
-gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
-## gr <- getIdeogram("bosTau4",cytobands=FALSE)
-## obj <- CircularView(list(back.gr,gr,back.sig.gr[,"Effect"],back.gr,gr),model=gr, tracksType=c("link","sector","point","bar","scale"))
-
-obj.cir <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
-
 
 setTheme <- function(obj,bgColor="white",sectorFill="gray80",
                      linkColor="blue",barColor="black",
@@ -75,15 +63,63 @@ setTheme <- function(obj,bgColor="white",sectorFill="gray80",
   qupdate(obj$scene)
 }
 
-setTheme(obj.cir,bgColor="white",sectorFill="gray30",
-                     linkColor="blue",barColor="black",
-                     pointColor="red",pointAlpha=0.9,linkAlpha=1,
-                     scaleColor="black")
+
+## file1="/home/tengfei/Datas/james/Iron_pairwise_sig.csv"
+## back.gr <- james_pair(file1)
+
+## file2="/home/tengfei/Datas/james/Iron_single_sig.csv"
+## back.sig.gr <- james_single(file2)
+
+files <- list.files("/home/tengfei/Datas/james/AllplotingFormatedData",full.name=TRUE)
+files.all <- grep("[A|a]ll[D|d]ata",files,value=TRUE)
+
+files.single <- grep("[S|s]ingle",files.all,value=TRUE)
+files.pair <- grep("pairwise",files.all,value=TRUE)
+
+files.single
+files.pair
+
+env <- new.env()
+
+sapply(1:8,function(i){
+  i <- 8
+  back.gr <- james_pair(files.pair[i])
+  back.sig.gr <- james_single(files.single[i])
+  chrmodel <- chrAll(back.gr,back.sig.gr)
+  gr <- getIdeogram("bosTau4",subchr=chrmodel,cytobands=FALSE)
+  obj.cir <- CircularView(list(back.gr,back.sig.gr[,"Effect"],back.gr,gr,gr),model=gr, tracksType=c("link","point","bar","sector","scale"))
+  setTheme(obj.cir,bgColor="white",sectorFill="gray30",
+           linkColor="blue",barColor="black",
+           pointColor="red",pointAlpha=0.9,linkAlpha=0.01,
+           scaleColor="black")
+
+  obj.cir$show()
+  assign(paste("obj",i,sep=""),obj.cir,envir=env)
+})
+
+visnabGUIlist(env)
+visnabGUI(env$obj1)
+env$obj1$view$show()
+length(env)
+## now we have 8 treats listed in the same order.
+
+## idx <- order(values(back.sig.gr)$P_value,decreasing=FALSE)[1:100]
+## back.sig.gr <- back.sig.gr[idx]
+## chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
+## prepare the chromosome which need to be plotted
+## pass GRanges/MutableGRanges object, return unique chromosome names
+
+## gr <- getIdeogram("bosTau4",cytobands=FALSE)
+## obj <- CircularView(list(back.gr,gr,back.sig.gr[,"Effect"],back.gr,gr),model=gr, tracksType=c("link","sector","point","bar","scale"))
+
+
+
+
 
 save(obj.cir,back.gr,back.sig.gr,gr,file="~/Datas/rdas/circle.rda")
 ## obj$show()
 
-visnabGUI(obj.cir)
+
 
 
 ## create link color

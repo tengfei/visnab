@@ -372,8 +372,8 @@ getIdeogram <- function(species=NULL,subchr=NULL,cytobands=TRUE){
 chrAll <- function(...){
   lst <- list(...)
   chr.lst <- lapply(lst,function(gr){
-    chrs <- unique(as.character(seqnames(back.gr)))
-    if("to.chr" %in% names(values(back.gr))){
+    chrs <- unique(as.character(seqnames(gr)))
+    if("to.chr" %in% names(values(gr))){
       chrs2 <- unique(as.character(values(gr)$to.chr))
       chrs <- unique(c(chrs,chrs2))
       }
@@ -382,3 +382,61 @@ chrAll <- function(...){
   chrs <- sortChr(unique(unlist(chr.lst)))
   return(chrs)
 }
+
+## Interactive indicator
+## start to record
+
+IMessageStart <- function(geometry=qrect(0,0,10,100),leaf=20,freq=0.05){
+  .indicatorScene <<- qscene()
+  .indicatorLayer <<- qlayer(.indicatorScene)
+  .indicatorView <<- qplotView(.indicatorScene)
+  .messageLayer <- qlayer(.indicatorLayer,paintFun=function(layer,painter){
+    if(exists(".message"))
+      qdrawText(painter,.message,0,0,color="black")
+  },col=1,rowSpan=3)
+  gr <- GRanges(seqnames=paste("chr",1:leaf),
+                ranges=IRanges(start=rep(1,leaf),
+                               end=rep(10,leaf)))
+  obj <- CircularView(list(gr),tracksType="sector",model=gr,scene=.indicatorScene,
+                      view=.indicatorView,rootLayer=.indicatorLayer,col=0,row=0,
+                      .sectorText=FALSE,
+                      tracksWidth=80)
+  obj$show()
+  layout <- .indicatorLayer$gridLayout()
+  layout$setRowPreferredHeight(0,10)
+  layout$setColumnPreferredWidth(0,10)
+  layout$setColumnPreferredWidth(1,100)
+
+  ## colorchange
+  ## if(.indicatorFlag){
+  if(TRUE){
+    for(idx in 1:leaf){
+      values(obj$tracks[[1]])$.color[idx] <- "black"
+      Sys.sleep(freq)
+      values(obj$tracks[[1]])$.color[idx] <- "white"
+      Sys.sleep(freq)
+    }
+  }
+}
+
+
+
+##
+## IMessageStart(freq=0.0001)
+## .indicatorScene$setBackgroundBrush(qbrush(col2qcol("black",0)))
+## .indicatorScene$setBackgroundBrush(qbrush(qcolor(255,255,0,0)))
+
+## .indicatorScene$setBackgroundBrush(qbrush(col2qcol("lightgray"), Qt$Qt$VerPattern))
+
+IMessage <- function(..., scene=.indicatorScene,
+                     view=.indicatorView,
+                     rootLayer=.indicatorLayer,
+                     leaf=7){
+  ## fun with circular view, pseudo "chromosome"
+  ## should support RangedData later
+  .message <<- paste(...)
+}
+
+## IMessage()
+
+

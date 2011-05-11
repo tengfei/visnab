@@ -144,7 +144,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
 
         ## grand layer
   bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
+  bgalpha <- pars$bgAlpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene.chrom$setBackgroundBrush(qbrush(qcol))
   

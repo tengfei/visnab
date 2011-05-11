@@ -15,8 +15,8 @@ AlignmentView.gen <- setRefClass("AlignmentView",contains="QtVisnabView",
 
 AlignmentView <- function(file=NULL,
                           model=NULL,
-                          lower=10L,
-                          cutbin=20L,
+                          lower=NULL,
+                          cutbin=NULL,
                           seqname=NULL,
                           scene=NULL,
                           view = NULL,
@@ -70,7 +70,8 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   end <- max(end(model[seqnames(model)==seqname]))
   pars$xlimZoom <<- c(start,end)
   gr <- GRanges(seqnames=seqname,ranges=IRanges(start=start,end=end))
-  message("Loading bam file")
+  
+  message("Loading bam file... for",seqname)
   bam <- scanBam(file, param=ScanBamParam(which = gr))
   track <<- bam[[1]]
   message("Processing")
@@ -99,8 +100,9 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
       ##    viewInUCSC(obj)
     }}
   ## preset the level
-  zoomLevel <- c(5000)
-  ## need to fix this bug
+  zoomLevel.sr <- c(5000)
+  zoomLevel.cov <- c(5000)
+  ## FIXME: need to fix this bug, naming in Rsamtools
   if(nchar(seqname)>1)
     seqname <- as.numeric(substr(seqname,4,4))
   ## precessing data
@@ -114,7 +116,8 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   ir.pos <- ir[strand(ir)=="+"]
   ir.neg <- ir[strand(ir)=="-"]
   covg <- coverage(ranges(ir))
-  ir.v <- slice(covg,lower=lower)
+  
+  ir.v <- slice(covg,lower=10)
   xpos <- viewWhichMaxs(ir.v)
   ypos <- viewMaxs(ir.v)
   
@@ -150,7 +153,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
       ## ## qdrawSegment(painter,xpos,log(ypos),xpos,0)
       ## sr.layer$setLimits(qrect(range(xpos),c(0,max(log(ypos)))))
     }
-    if(diff(xlimZoom)<=zoomLevel[1]){
+    if(diff(xlimZoom)<=zoomLevel.sr[1]){
       idxs <- findOverlaps(ranges(ir),IRanges(xlimZoom[1],xlimZoom[2]))
       idxs <- idxs@matchMatrix[,1]
       idxs <- unique(idxs)
@@ -178,10 +181,12 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
         }
       }}
   }
+  
   pfunCov <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     pars$xlimZoom <<- xlimZoom
     ## ## positive coverage
+    if(diff(xlimZoom)>zoomLevel.cov[1])
     qdrawLine(painter,cov.pos.xpost,log10(cov.pos.valt),stroke="green")
     ## ## negative coverage    
     qdrawLine(painter,cov.neg.xpost, log10(cov.neg.valt),stroke="blue")

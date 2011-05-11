@@ -65,7 +65,6 @@ IntervalView <- function(mr,
     obj$view$resetTransform()
     obj$createView()
   })
-
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   obj$createView()
@@ -156,15 +155,6 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
                   rowSpan=rowSpan,colSpan=colSpan)
   layer$setLimits(qrect(min(start(mr)),-2,max(end(mr)),7))                      
   layer$setGeometry(0,0,600,150)
-})
-
-
-IntervalView.gen$methods(show = function(){
-  view$show()
-})
-
-setMethod("print","IntervalView",function(x,..){
-  x$show()
 })
 
 

@@ -12,11 +12,24 @@ VisnabView.gen <- setRefClass("VisnabView",contains="VIRTUAL",
 ## setGeneric("seqnames<-",
 ##            function(x,...,value) standardGeneric("seqnames<-"))
 
+
 setReplaceMethod("seqnames","VisnabView",
                  function(x,value){
-                   x$seqname <- value
+                   x$pars$seqname <- value
                    x
                  })
+
+setGeneric("geom",function(x,...) standardGeneric("geom"))
+setMethod("geom","VisnabView",function(x,...){
+  print(x$pars$geom)
+})
+
+setGeneric("geom<-",function(x,value) standardGeneric("geom<-"))
+setReplaceMethod("geom","VisnabView",
+                function(x,value){
+                  x$pars$geom <- value
+                  x
+                })
 
 
 setMethod("show","VisnabView",function(object){

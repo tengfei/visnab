@@ -8,7 +8,11 @@ setwd('~/Datas/seqs/rna-seq')
 ## gr <- GRangesForUCSCGenome("hg19")
 chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
 gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
-bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
+
+bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr2))
+bam <- scanBam(file,param=ScanBamParam(which=gr[1]))
+bam[[1]]
+
 save(bam,file="~/Datas/rdas/bam.rda")
 load("~/Datas/rdas/bam.rda")
 obj <- AlignmentView(bam,title="Alignment")
@@ -19,7 +23,10 @@ gr <- getIdeogram("hg19",cyto=FALSE)
 file <- "~/Datas/seqs/rna-seq/rna95.sorted.bam"
 obj <- AlignmentView(file,gr)
 obj$pars$seqname <- "chr2"
-## bam <- scanBam("rna95.sorted.bam", param=ScanBamParam(which = gr))
+
+
+bam <- scanBam(file, param=ScanBamParam(which = gr[1]))
+str(bam[[1]])
 ## save(bam,file="~/Datas/rdas/bam.rda")
 load("~/Datas/rdas/bam.rda")
 rm(bam)
@@ -32,6 +39,7 @@ print(obj)
 library(ShortRead)
 
 fls <- "./rna95.sorted.bam"
+
 
 pileup <- function(reads, bases = DNA_BASES) {
   seqs <- sread(reads)
@@ -49,3 +57,4 @@ pileup <- function(reads, bases = DNA_BASES) {
   colnames(counts) <- as.character(seq(ncol(counts)))
   counts
 }
+

@@ -10,6 +10,7 @@ setClassUnion('vectorORNULL',c('vector','NULL'))
 
 GPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
+                           signalingField("bgAlpha","numericORNULL"),
                            signalingField("fgColor","character"),
                            signalingField("fill","character"),
                            signalingField("stroke","character"),
@@ -21,7 +22,10 @@ GPars.gen <- setRefClass("GraphicPars",
                            signalingField("textColor","character"),
                            signalingField("xlimZoom","numericORNULL"),
                            signalingField("ylimZoom","numericORNULL"),
+                           signalingField("xlim","numericORNULL"),
+                           signalingField("ylim","numericORNULL"),
                            signalingField("seqname","characterORNULL"),
+                           signalingField("geom","characterORNULL"),
                            signalingField("default","list")
                            ))
 
@@ -35,14 +39,17 @@ GraphicPars <- function(bgColor="gray80",
                         fill="black",
                         stroke="black",
                         alpha=1,
+                        bgAlpha=1,
                         gridBgColor="gray80",
                         gridColor="white",
                         hoverColor="blue",
+                        geom=NULL,
                         xlimZoom=NULL,
                         ylimZoom=NULL,
                         seqname=NULL){
 
   dfs <- list(bgColor=bgColor,
+              bgAlpha=bgAlpha,
               fgColor=fgColor,
               textColor=textColor,
               fill=fill,
@@ -51,7 +58,8 @@ GraphicPars <- function(bgColor="gray80",
               gridBgColor=gridBgColor,
               gridColor=gridColor,
               ## attrs=list(),
-              hoverColor=hoverColor)
+              hoverColor=hoverColor,
+              geom=geom)
 
   
   gp <- GPars.gen$new(bgColor=bgColor,
@@ -60,6 +68,7 @@ GraphicPars <- function(bgColor="gray80",
                       fill=fill,
                       stroke=stroke,
                       alpha=alpha,
+                      bgAlpha=bgAlpha,
                       gridBgColor=gridBgColor,
                       gridColor=gridColor,
                       attrs=list(),
@@ -67,6 +76,7 @@ GraphicPars <- function(bgColor="gray80",
                       xlimZoom=xlimZoom,
                       ylimZoom=ylimZoom,
                       seqname=seqname,
+                      geom=geom,
                       default=dfs)
   return(gp)
 }

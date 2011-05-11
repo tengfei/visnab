@@ -1,7 +1,11 @@
-require(rtracklayer)
-require(visnab)
 
+require(rtracklayer)
 session <- browserSession()
+genome(session) <- "hg19"
+sort(trackNames(session))
+tableName(session)
+
+
 kg <- track(session, "knownGene", "hg19",asRangedData=FALSE)
 kg.chr1 <- kg[seqnames(kg)=="chr1"]
 vals <- values(kg.chr1)
@@ -70,3 +74,4 @@ sort(ls(obj$rootLayer$gridLayout()))
 ls(obj$rootLayer$gridLayout()$itemAt(0,0))
 
 obj$pars$seqname <- "chr5"
+

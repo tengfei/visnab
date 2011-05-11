@@ -11,7 +11,8 @@ CircularView.gen <- setRefClass("CircularView",contains="QtVisnabView",
                                   tracksOrder="numericORNULL",
                                   tracksWidth="numericORNULL",
                                   chrOrder="characterORNULL",
-                                  model="GenomicRanges"
+                                  model="GenomicRanges",
+                                  .sectorText="logical"
                                   ))
 
 ##----------------------------------------------------------------------------##
@@ -25,7 +26,13 @@ CircularView <- function(grl,
                          tracksType=NULL,
                          tracksOrder=NULL,
                          ## isPlotted=NULL,
-                         tracksWidth=NULL){
+                         tracksWidth=NULL,
+                         scene=NULL,
+                         view=NULL,
+                         rootLayer=NULL,
+                         row=0L,
+                         col=0L,
+                         .sectorText=TRUE){
   
   ## check if list element is MutableRanges
   pars <- GraphicPars(bgColor="black",fill="gray80",fgColor="gray80")
@@ -76,7 +83,9 @@ CircularView <- function(grl,
 
   obj <- CircularView.gen$new(tracks=grl,pars=pars,tracksType=tracksType,model=model,
                               tracksOrder=tracksOrder, tracksWidth=tracksWidth,
-                              chrOrder=chro)
+                              chrOrder=chro, scene=scene, row=row, col=col,
+                              view=view, rootLayer=rootLayer,
+                              .sectorText=.sectorText)
   obj$createView()
   obj
 }
@@ -84,9 +93,40 @@ CircularView <- function(grl,
 
 CircularView.gen$methods(createView = function(seqname=NULL){
   ## graphic device
-  scene <<- qscene()
-  view <<- qplotView(scene,rescale="none")
-  view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+  if(is.null(scene)){
+    scene <<- qscene()
+    view <<- qplotView(scene,rescale="none")
+    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+    rootLayer <<- qlayer(scene,
+                  ## limits=qrect(c(-len,len),c(-len,len)),
+                  keyPressFun=function(layer,event){
+                    if(event$modifiers() == Qt$Qt$ControlModifier){
+                      if(event$key() == Qt$Qt$Key_Equal)
+                        view$scale(1.5,1.5)
+                      if(event$key() == Qt$Qt$Key_Minus)
+                        view$scale(1/1.5,1/1.5)
+                      if(event$key() == Qt$Qt$Key_0)
+                        view$resetTransform()
+                      ## if(event$key() == Qt$Qt$Key_u)
+                      ##    viewInUCSC(obj)
+                    }},
+                  ## mouseMoveFun=function(layer,event){
+                  ##   pos <- as.numeric(event$pos())
+                  ##   if(!is.null(visenv$new.view)){
+                  ##     scene.pos <- layer$mapToScene(pos[1],pos[2])
+                  ##     spos <- as.numeric(scene.pos)
+                  ##     visenv$new.view$centerOn(spos[1],spos[2])
+                  ##   }
+                  ## },
+                  wheelFun= function(layer, event) {
+                    zoom_factor <- 1.5
+                    if(event$delta()<0)
+                      zoom_factor <- 1/1.5
+                    view$scale(zoom_factor,zoom_factor)
+                  },
+                  geometry=qrect(0,0,700,700),cache=FALSE)
+
+  }
   ## event
   ## background
   bgcol <- pars$bgColor
@@ -155,34 +195,6 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     return(df)
   }
 
-  rootLayer <<- qlayer(scene,
-                  ## limits=qrect(c(-len,len),c(-len,len)),
-                  keyPressFun=function(layer,event){
-                    if(event$modifiers() == Qt$Qt$ControlModifier){
-                      if(event$key() == Qt$Qt$Key_Equal)
-                        view$scale(1.5,1.5)
-                      if(event$key() == Qt$Qt$Key_Minus)
-                        view$scale(1/1.5,1/1.5)
-                      if(event$key() == Qt$Qt$Key_0)
-                        view$resetTransform()
-                      ## if(event$key() == Qt$Qt$Key_u)
-                      ##    viewInUCSC(obj)
-                    }},
-                  ## mouseMoveFun=function(layer,event){
-                  ##   pos <- as.numeric(event$pos())
-                  ##   if(!is.null(visenv$new.view)){
-                  ##     scene.pos <- layer$mapToScene(pos[1],pos[2])
-                  ##     spos <- as.numeric(scene.pos)
-                  ##     visenv$new.view$centerOn(spos[1],spos[2])
-                  ##   }
-                  ## },
-                  wheelFun= function(layer, event) {
-                    zoom_factor <- 1.5
-                    if(event$delta()<0)
-                      zoom_factor <- 1/1.5
-                    view$scale(zoom_factor,zoom_factor)
-                  },
-                  geometry=qrect(0,0,700,700),cache=FALSE)
 ############################################################
   ## All painter funciton
 ############################################################
@@ -203,9 +215,10 @@ CircularView.gen$methods(createView = function(seqname=NULL){
     function(layer,painter){
       cols <- values(gr)$.color
       qdrawPath(painter,paths,fill=cols,stroke=NA)
-      if(TRUE)
+      if(.sectorText)
         qdrawText(painter,chr,xy$x,xy$y,"center","center",
-                  rot=mp-90,color="black",cex=1.3)
+                  rot=mp-90,color="white",cex=1.3)
+
     }}
 
   ## ===================================
@@ -466,7 +479,8 @@ CircularView.gen$methods(createView = function(seqname=NULL){
                        scale=pfunScale(gr,scale.lst,xy1,xy2,xy1.s,xy2.s,paths,scale.lab)
                        )
     layer <- qlayer(rootLayer,paintFun=paintFun,
-                    limits=qrect(c(-len,len),c(-len,len)),cache=FALSE)
+                    limits=qrect(c(-len,len),c(-len,len)),cache=FALSE,
+                    row=row,col=col)
     tracks[[n]]$elementMetadataChanged$connect(function(){
       qupdate(layer)
     })
