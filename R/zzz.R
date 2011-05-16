@@ -1,6 +1,6 @@
-## visenv <- new.env()
-## .onLoad <- function(libname,pkgname){
-##   visenv$themes <- list()
-##   visenv$themes$default <- .setDefaultTheme()
-## }
+.onLoad <- function(libname,pkgname){
+  bioc <- getOption("BioC")
+  bioc$visnab <- .DefaultOpts()
+  options(BioC = bioc)
+}
 

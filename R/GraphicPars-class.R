@@ -2,13 +2,13 @@
 ##                Class Union Used
 ##-----------------------------------------------------------------##
 
-setClassUnion('numericORNULL',c('numeric','NULL'))
-setClassUnion('characterORNULL',c('character','NULL'))
-setClassUnion('vectorORNULL',c('vector','NULL'))
+setClassUnion("numericORNULL", c("numeric","NULL"))
+setClassUnion("characterORNULL", c("character", "NULL"))
+setClassUnion("vectorORNULL", c("vector","NULL"))
+setClassUnion("functionORNULL", c("function","NULL"))
 
 
-
-GPars.gen <- setRefClass("GraphicPars",
+GraphicPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
                            signalingField("bgAlpha","numericORNULL"),
                            signalingField("fgColor","character"),
@@ -26,60 +26,45 @@ GPars.gen <- setRefClass("GraphicPars",
                            signalingField("ylim","numericORNULL"),
                            signalingField("seqname","characterORNULL"),
                            signalingField("geom","characterORNULL"),
-                           signalingField("default","list")
+                           signalingField("cpal","functionORNULL"),
+                           signalingField("dpal","functionORNULL")
                            ))
 
 ##----------------------------------------------------------------##
 ##                Constructor for GraphicsPars
 ##----------------------------------------------------------------##
 
-GraphicPars <- function(bgColor="gray80",
-                        fgColor="black",
-                        textColor="black",
-                        fill="black",
-                        stroke="black",
-                        alpha=1,
-                        bgAlpha=1,
-                        gridBgColor="gray80",
-                        gridColor="white",
-                        hoverColor="blue",
-                        geom=NULL,
-                        xlimZoom=NULL,
-                        ylimZoom=NULL,
-                        seqname=NULL){
-
-  dfs <- list(bgColor=bgColor,
-              bgAlpha=bgAlpha,
-              fgColor=fgColor,
-              textColor=textColor,
-              fill=fill,
-              stroke=stroke,
-              alpha=alpha,
-              gridBgColor=gridBgColor,
-              gridColor=gridColor,
-              ## attrs=list(),
-              hoverColor=hoverColor,
-              geom=geom)
-
-  
-  gp <- GPars.gen$new(bgColor=bgColor,
-                      fgColor=fgColor,
-                      textColor=textColor,
-                      fill=fill,
-                      stroke=stroke,
-                      alpha=alpha,
-                      bgAlpha=bgAlpha,
-                      gridBgColor=gridBgColor,
-                      gridColor=gridColor,
-                      attrs=list(),
-                      hoverColor=hoverColor,
-                      xlimZoom=xlimZoom,
-                      ylimZoom=ylimZoom,
-                      seqname=seqname,
-                      geom=geom,
-                      default=dfs)
-  return(gp)
+GraphicPars <- function(..., view = "VisnabView"){
+  lst <- list(...)
+  bioc <- options("BioC")
+  lst.def <- bioc$BioC$visnab[[view]]
+  if(length(lst)>0){
+     ## update A with B
+    lst.new <- update_opts(lst.def, lst)
+  }else{
+    lst.new <- lst.def
+  }
+  gp <- do.call(GraphicPars.gen$new,lst.new)
 }
+
+update_opts <- function(old, new){
+  nms.new <- names(new)
+  nms.old <- names(old)
+  idx <-  nms.new %in% nms.old
+  nms.diff <- nms.new[!idx]
+  ## checking names
+  for(i in seq_along(nms.diff)){
+    cat("variable",nms.diff[i], "not exists\n")
+  }
+  new.exist <- new[idx]
+  ## FIXME: simply replace, not checking types yet
+  for(i in seq_along(new.exist)){
+    nm <- names(new.exist)[i]
+    old[[nm]] <- new.exist[[i]]
+  }
+  return(old)
+}
+
 
 setMethod("show","GraphicPars",function(object){
   cat("Parameters stored in pars\n")
@@ -87,7 +72,7 @@ setMethod("show","GraphicPars",function(object){
     y <- get(nm,env=object@.xData)
     if((is(y,"character"))||(is(y,"numeric"))){
       cat(nm, " = ", toString(y), "\n")
-  }
+    }
     if(is(y,"Signal")){
       cat(nm, " = ")
       show(y)
@@ -98,18 +83,16 @@ setMethod("show","GraphicPars",function(object){
     }
   }
 })
-## set back to default
 
-GPars.gen$methods(
-                  reset = function(default=NULL){
-                    if(is.null(default))
-                      dfs <- .self$default
+## set back to default
+GraphicPars.gen$methods(
+                  reset = function(){
+                    dfs <- options("BioC")$visnab[["VisnabView"]]
                     nms <- names(dfs)
                     for(nm in nms){
                       assign(nm,dfs[[nm]],env=.self@.xData)
                     }
                   }
                   )
-
 
 

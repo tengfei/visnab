@@ -1,4 +1,6 @@
-## Export from visnab
+############################################################
+## Export
+############################################################
 exportMethods(removePrefix,
               validateChr,
               addPrefix,
@@ -12,8 +14,6 @@ exportMethods(removePrefix,
               geom,
               "geom<-")
 
-              
-
 exportClasses(GraphicPars,
               VisnabView,
               QtVisnabView,
@@ -23,9 +23,10 @@ exportClasses(GraphicPars,
               SeqView,
               StackedView,
               TxdbView,
-              TracksView)
+              TracksView,
+              MutableGRangesORGRanges)
 
-## Constructor
+## ## Constructor
 export(GraphicPars,
        IntervalView,
        CircularView,
@@ -35,34 +36,60 @@ export(GraphicPars,
        TracksView,
        TxdbView)
 
-## utils method
+## ## utils method
 export("getIdeogram")
 
 
 ## Import
-import(qtbase, qtpaint, plumbr, scales)
-## MutableRanges
-importClassesFrom(MutableRanges,MutableGRanges)
-importFrom(MutableRanges,MutableGRanges)
-## GenomicRanges
-importFrom(GenomicRanges, seqnames, "seqnames<-",strand , "strand<-")
-importClassesFrom(GenomicRanges,GRanges,GenomicRanges,GRangesList)
-importMethodsFrom(GenomicRanges,unlist,ranges,
-                  "elementMetadata<-",start,end,width,
-                  "start<-","end<-","width<-","[","[<-",
-                  c,reduce,coverage,show)
+import(methods)
+importFrom(utils, head, tail)
+importFrom(stats, start, end, update, aggregate)
+importFrom(plumbr, Signal, declareSignal, signalingField, mutaframe, mutalist)
+importClassesFrom(plumbr, Signal)
+## scales
+importFrom(scales, rescale, alpha, area_pal, brewer_pal,
+           dichromat_pal, gradient_n_pal, div_gradient_pal, seq_gradient_pal, 
+           grey_pal, hue_pal, identity_pal, linetype_pal, manual_pal, rescale_pal,
+           shape_pal, cscale, dscale)
+
+import(qtbase, qtpaint)
 
 ## IRanges
-importClassesFrom(IRanges, IRanges)
-importMethodsFrom(IRanges, unlist)
-## importMethodsFrom(IRanges,"")
+importClassesFrom(IRanges,IRanges, Annotated, Vector)
+importFrom(IRanges, IRanges,
+           "elementMetadata",
+           "elementMetadata<-",
+           "values","values<-", start, width, end,  mid, "start<-", "width<-", "end<-",
+           ranges, "ranges<-", "metadata", "metadata<-", 
+           isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
+           viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
+importMethodsFrom(IRanges, unlist,"[","[<-","%in%",
+                  show, aggregate, append)
+
+## GenomicRanges
+importFrom(GenomicRanges, "seqnames<-",
+           ## seqnames,strand , seqinfo,
+           "strand<-", GRanges, GRangesList)
+importMethodsFrom(GenomicRanges, seqnames, strand, seqinfo, show)
+importClassesFrom(GenomicRanges, GenomicRanges, GRangesList, GRanges)
+
+
+## MutableRanges
+importClassesFrom(MutableRanges,MutableGRanges)
+importMethodsFrom(MutableRanges,coerce, update,
+                  seqnames, strand, seqinfo,
+                  ranges,
+                  elementMetadata, metadata)
+importFrom(MutableRanges,MutableGRanges)
+
+
 
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 ## GenomicFeatures
 importClassesFrom(GenomicFeatures,TranscriptDb)
 ## rtracklayer
-importClassesFrom(rtracklayer, BrowserView)
+## importClassesFrom(rtracklayer, BrowserView)
 importFrom(rtracklayer, browserSession, genome, "genome<-",
            ucscTableQuery, tableNames, getTable, GenomicData,
            "track<-", GRangesForUCSCGenome, browserView,
@@ -71,5 +98,5 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
 ## Rsamtools
 importFrom(Rsamtools, ScanBamParam, scanBam)
 ## for temporary
-exportPattern("^[^\\.]")
+## exportPattern("^[^\\.]")
 

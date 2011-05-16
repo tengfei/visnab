@@ -4,8 +4,8 @@ Title: VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data
 Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which is designed for visualization of genomic data, especially for next generation sequencing data. Besides traditional track-based views,VisNAB also aims to offer alternative views, including Bird-Eye overview, circular view, etc. At the same time, it also provides statistical cues and analytical tools for guiding scientists to find he information of interests. With support of QT library and related API in R, it's possible to make interactive graphics for visualizing and exploring huge amount of data with high performance. This toolkit with other packages in Bioconductor could form a powerful analytical pipeline for exploring the genomic data.
 Author: Tengfei Yin, Michael Lawrence, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
-Depends: methods
-Imports: MutableRanges, GenomicRanges, IRanges, rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales, BSgenome
+Depends: methods, utils, stats
+Imports: methods, utils, stats, IRanges, GenomicRanges, MutableRanges, rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales, BSgenome
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: visnab.R
@@ -23,5 +23,6 @@ Collate: visnab.R
 	 TxdbView-class.R
 	 TracksView-class.R
 	 theme.R
+	 theme-default.R
 	 GUI.R
 	 zzz.R
