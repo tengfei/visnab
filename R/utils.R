@@ -2,7 +2,18 @@
 ## Utils for GenomicaRanges
 ## ------------------------------------------------------------
 
-setGeneric('removePrefix',function(gr,...) standardGeneric('removePrefix'))
+setMethod('addLevels','MutableGRanges',function(mr,...){
+  gr <- as(mr,"GenomicRanges")
+  gr.lst <- split(gr,as.character(seqnames(gr)))
+  lv <- unname(lapply(gr.lst,function(x){
+    values(x)$.level <- as.numeric(disjointBins(ranges(x)))
+    x
+  }))
+  gr <- do.call("c",lv)
+  mr <- as(gr,"MutableGRanges")
+})
+
+
 
 setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
   seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
@@ -15,7 +26,7 @@ setMethod('removePrefix','MutableGRanges',function(gr,rm.prefix){
 })
 
 
-setGeneric('addPrefix',function(gr,...) standardGeneric('addPrefix'))
+
 
 setMethod('addPrefix','GenomicRanges',function(gr,add.prefix){
   seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
@@ -36,7 +47,6 @@ setMethod('addPrefix','MutableGRanges',function(gr,add.prefix){
 })
 
 
-setGeneric('validateChr',function(gr,...) standardGeneric('validateChr'))
 
 setMethod('validateChr',c('GenomicRanges'),
           function(gr,model,...){
@@ -93,7 +103,6 @@ containLetters <- function(obj,only=FALSE){
   }
 }
 
-setGeneric("sortChr",function(obj,...) standardGeneric("sortChr"))
 
 setMethod("sortChr","GenomicRanges",function(obj,model=NULL,prefix="chr"){
   idx <- orderChr(as.character(seqnames(obj)),model,prefix)
@@ -125,8 +134,6 @@ setMethod("sortChr","character",function(obj,model=NULL,prefix="chr"){
 })
 
 
-setGeneric("orderChr",function(obj,...) standardGeneric("orderChr"))
-
 setMethod("orderChr","GenomicRanges",function(obj,model=NULL,prefix="chr"){
   idx <- orderChr(as.character(seqnames(obj)),model,prefix)
   idx
@@ -150,8 +157,6 @@ setMethod("orderChr","character",function(obj,model=NULL,prefix='chr'){
     }
 })
 
-
-setGeneric("replaceChr",function(obj,...) standardGeneric("replaceChr"))
 
 setMethod("replaceChr","GenomicRanges",function(obj,from,to){
   new.chr <- replaceChr(as.character(seqnames(obj)),from,to)
@@ -177,35 +182,6 @@ xy2polar <- function(x,y){
   radius <- sqrt(x^2+y^2)
   data.frame(radius=radius,angle=angle)
 }
-
-
-
-
-## ## need to drop this stuff and 
-## scaleColors <- function(obj,low="red",mid="white",high="yellow",alpha=1){
-##   cols <- cscale(obj,gradient_2_pal(low="red",high="yellow"))
-##   cols <- alpha(cols,alpha)
-##   cols <- mutaframe(.color=cols)
-##   cols
-## }
-
-
-## map2granges <- function(gct){
-##   idx <- seq_len(nrow(gct))
-##   chrlist <- lapply(idx,function(i){
-##     probe <- gct[i,1]
-##     chr <- hgu133aCHR[[as.character(probe)]]
-##     chrstart <- hgu133aCHRLOC[[as.character(probe)]]
-##     chrend <- hgu133aCHRLOCEND[[as.character(probe)]]
-##     chrstrand <- ifelse(sign(chrstart)<0,'-','+')
-##     data.frame(id=i,chr,chrstart,chrend,chrstrand)
-##   })
-##   chr <- do.call('rbind',chrlist)
-##   gr <- GRanges(seqnames=chr$chr,ranges=IRanges(start=abs(chr$chrstart),end=abs(chr$chrend)),strand=chr$chrstrand)
-##   elementMetadata(gr) <- gct[chr$id,]
-##   gr
-## }
-
 
 visZoom <- function(obj,scale.factor=c(4,4)){
   ## this obj must contain list of scene, viewU, layer
@@ -295,7 +271,6 @@ setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
 
 setMethod("addAttr","MutableGRanges",function(obj,...){
   lst <- list(...)
-  ## Check if column exists
   nms <- names(lst)
   df <- elementMetadata(obj)
   nms.exist <- colnames(df)
@@ -308,8 +283,11 @@ setMethod("addAttr","MutableGRanges",function(obj,...){
   lst <- lst[!idx]
   dfex <- as.data.frame(do.call(cbind,lst),stringsAsFactors=FALSE)
   ## New attributes, haven't check selection in plumbr yet
-  elementMetadata(obj) <- c(df,dfex)
-  ## should record attached attr
+  df.nw <- c(df,as(dfex,"DataFrame"))
+  df.nw
+  obj
+  elementMetadata(obj)  <- df.nw
+  ## elementMetadata(obj)  <- df
   obj
 })
 

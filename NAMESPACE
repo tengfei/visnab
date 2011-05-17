@@ -24,7 +24,10 @@ exportClasses(GraphicPars,
               StackedView,
               TxdbView,
               TracksView,
-              MutableGRangesORGRanges)
+              MutableGRangesORGRanges,
+              characterORNULL,
+              numericORNULL,
+              functionORNULL)
 
 ## ## Constructor
 export(GraphicPars,
@@ -41,10 +44,10 @@ export("getIdeogram")
 
 
 ## Import
-import(methods)
+## import(methods)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
-importFrom(plumbr, Signal, declareSignal, signalingField, mutaframe, mutalist)
+importFrom(plumbr, signalingField, mutaframe, Signal)
 importClassesFrom(plumbr, Signal)
 ## scales
 importFrom(scales, rescale, alpha, area_pal, brewer_pal,
@@ -55,31 +58,39 @@ importFrom(scales, rescale, alpha, area_pal, brewer_pal,
 import(qtbase, qtpaint)
 
 ## IRanges
-importClassesFrom(IRanges,IRanges, Annotated, Vector)
-importFrom(IRanges, IRanges,
+importClassesFrom(IRanges,IRanges)
+importFrom(IRanges, IRanges, Rle,
            "elementMetadata",
            "elementMetadata<-",
            "values","values<-", start, width, end,  mid, "start<-", "width<-", "end<-",
-           ranges, "ranges<-", "metadata", "metadata<-", 
+           ## ranges,
+           "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
            viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
 importMethodsFrom(IRanges, unlist,"[","[<-","%in%",
+                  ## start, end,
                   show, aggregate, append)
 
 ## GenomicRanges
-importFrom(GenomicRanges, "seqnames<-",
+importFrom(GenomicRanges,
+            "seqnames<-","strand<-",
            ## seqnames,strand , seqinfo,
-           "strand<-", GRanges, GRangesList)
-importMethodsFrom(GenomicRanges, seqnames, strand, seqinfo, show)
-importClassesFrom(GenomicRanges, GenomicRanges, GRangesList, GRanges)
+            GRanges, GRangesList)
+importMethodsFrom(GenomicRanges, ranges, "ranges<-",
+                  start, end, width, "start<-", "end<-", "width<-",
+                  ## seqnames, strand, seqinfo,
+                  show,
+                   ## "seqnames<-", "seqinfo<-",
+                  "elementMetadata<-",
+                  elementMetadata)
+importClassesFrom(GenomicRanges, GRanges, GenomicRanges)
 
 
 ## MutableRanges
-importClassesFrom(MutableRanges,MutableGRanges)
-importMethodsFrom(MutableRanges,coerce, update,
+importClassesFrom(MutableRanges, MutableGRanges)
+importMethodsFrom(MutableRanges, coerce, update,
                   seqnames, strand, seqinfo,
-                  ranges,
-                  elementMetadata, metadata)
+                  ranges, elementMetadata, metadata)
 importFrom(MutableRanges,MutableGRanges)
 
 
