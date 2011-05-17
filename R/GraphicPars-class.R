@@ -1,17 +1,16 @@
 ##-----------------------------------------------------------------##
 ##                Class Union Used
 ##-----------------------------------------------------------------##
-
+## FIXME: remove NULL as possible as I can
 GraphicPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
-                           signalingField("bgAlpha","numericORNULL"),
+                           signalingField("bgAlpha","numeric"),
                            signalingField("fgColor","character"),
                            signalingField("fill","character"),
                            signalingField("stroke","character"),
                            signalingField("alpha","numeric"),
                            signalingField("gridBgColor","character"),
                            signalingField("gridColor","character"),
-                           signalingField("attrs","list"),
                            signalingField("hoverColor","character"),
                            signalingField("textColor","character"),
                            signalingField("xlimZoom","numericORNULL"),
@@ -39,7 +38,6 @@ GraphicPars <- function(..., view = "VisnabView"){
   }
   gp <- do.call(GraphicPars.gen$new,lst.new)
 }
-
 
 setMethod("show","GraphicPars",function(object){
   cat("Parameters stored in pars\n")

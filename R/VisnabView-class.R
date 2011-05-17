@@ -23,6 +23,19 @@ setReplaceMethod("geom","VisnabView",
                   x
                 })
 
+## return current graphics pars
+## FIXME: This should return more defined fields
+setMethod("Aes", "VisnabView", function(x){
+  cat("Graphic Parameters:\n")
+  cat("--------------------\n")
+  for(nm in ls(x$pars@.xData)){
+    y <- get(nm,env=x$pars@.xData)
+    if((is(y,"character"))||(is(y,"numeric"))){
+      cat(nm, " = ", toString(y), "\n")
+    }
+  }
+})
+
 setMethod("show","VisnabView",function(object){
   show(object$pars)
 })
