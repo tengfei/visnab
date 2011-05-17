@@ -1,5 +1,7 @@
-setOldClass("QWidget")
-setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
+##----------------------------------------------------------------------------##
+##                     "TracksView"
+##----------------------------------------------------------------------------##
+
 TracksView.gen <- setRefClass("TracksView",contains="QtVisnabView",
                               fields=list(track="list",
                                 ideogram="GRanges",

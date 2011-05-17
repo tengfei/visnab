@@ -97,7 +97,6 @@ TxdbView <- function(track,
 ## createview method
 ############################################################
 TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
-  
   if(!is.null(geom))
     pars$geom <<-  geom
 

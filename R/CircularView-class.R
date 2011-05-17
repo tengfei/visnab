@@ -1,7 +1,3 @@
-## TODO:
-## 4.Fix speed issues when brushing sectors. and pan the view.
-## Fix range of pfunpoint, 5% margin.
-
 ##----------------------------------------------------------------------------##
 ##                     Classes
 ##----------------------------------------------------------------------------##
@@ -248,16 +244,18 @@ CircularView.gen$methods(createView = function(seqname=NULL){
         idx <- rots>90 & rots<270
         ## large scale
         qdrawSegment(painter,xy1[[i]]$x,xy1[[i]]$y,
-                     xy2[[i]]$x,xy2[[i]]$y,stroke=cols)
+                     xy2[[i]]$x,xy2[[i]]$y,stroke=unique(cols)[1])
         ## small scale
         qdrawSegment(painter,xy1.s[[i]]$x,xy1.s[[i]]$y,
-                     xy2.s[[i]]$x,xy2.s[[i]]$y,stroke=cols)
+                     xy2.s[[i]]$x,xy2.s[[i]]$y,stroke=unique(cols)[1])
         if(sum(idx)>0)
         qdrawText(painter,scale.lab[[i]][idx],xy2[[i]]$x[idx],
-                  xy2[[i]]$y[idx],"right","center",rot=rots[idx]-180,color=cols)
+                  xy2[[i]]$y[idx],"right","center",rot=rots[idx]-180,
+                  color=unique(cols)[1])
         if(sum(!idx)>0)
         qdrawText(painter,scale.lab[[i]][!idx],xy2[[i]]$x[!idx],
-                  xy2[[i]]$y[!idx],"left","center",rot=rots[!idx],color=cols)   
+                  xy2[[i]]$y[!idx],"left","center",
+                  rot=rots[!idx],color=unique(cols)[1])   
       })
     }}
 
@@ -598,19 +596,6 @@ polar2xy <- function(radius,angle){
 }
 
 
-setGeneric('addLevels',function(mr,...) standardGeneric('addLevels'))
-
-
-setMethod('addLevels','MutableGRanges',function(mr,...){
-  gr <- as(mr,"GenomicRanges")
-  gr.lst <- split(gr,as.character(seqnames(gr)))
-  lv <- unname(lapply(gr.lst,function(x){
-    values(x)$.level <- as.numeric(disjointBins(ranges(x)))
-    x
-  }))
-  gr <- do.call("c",lv)
-  mr <- as(gr,"MutableGRanges")
-})
 
 ## need to plot a diagram
 CircularView.gen$methods(show = function(){

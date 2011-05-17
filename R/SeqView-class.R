@@ -1,10 +1,7 @@
-## Some features we need:
-## 1. Single Chromosome
-## 2. Scale
 ##----------------------------------------------------------------------------##
 ##             For class "SeqView"
 ##----------------------------------------------------------------------------##
-setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
+
 SeqView.gen <- setRefClass("SeqView",contains="QtVisnabView",
                            fields=list(track="MutableGRanges",
                              BSgenome="BSgenomeORNULL"))

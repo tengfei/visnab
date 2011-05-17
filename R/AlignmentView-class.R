@@ -15,8 +15,8 @@ AlignmentView.gen <- setRefClass("AlignmentView",contains="QtVisnabView",
 
 AlignmentView <- function(file=NULL,
                           model=NULL,
-                          lower=NULL,
-                          cutbin=NULL,
+                          lower=10L,
+                          cutbin=20L,
                           seqname=NULL,
                           scene=NULL,
                           view = NULL,
@@ -71,7 +71,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   pars$xlimZoom <<- c(start,end)
   gr <- GRanges(seqnames=seqname,ranges=IRanges(start=start,end=end))
   
-  message("Loading bam file... for",seqname)
+  message("Loading bam file... for ",seqname)
   bam <- scanBam(file, param=ScanBamParam(which = gr))
   track <<- bam[[1]]
   message("Processing")
@@ -149,7 +149,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL){
   pfunAlign <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     pars$xlimZoom <<- xlimZoom
-    if(diff(xlimZoom)>zoomLevel[1]){
+    if(diff(xlimZoom)>zoomLevel.sr[1]){
       ## ## qdrawSegment(painter,xpos,log(ypos),xpos,0)
       ## sr.layer$setLimits(qrect(range(xpos),c(0,max(log(ypos)))))
     }

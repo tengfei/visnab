@@ -5,43 +5,57 @@
 ##-----------------------------------------------------------------##
 ##                  FOR class 'StackedView'
 ##-----------------------------------------------------------------##
+
 StackedView.gen <- setRefClass("StackedView",contains="QtVisnabView",
-                               fields=list(track="MutableGRanges",
+                               fields=c(track="MutableGRanges",
                                  pos.hover="numericORNULL",
                                  pos.press="numericORNULL",
                                  pos.move="numericORNULL",
                                  pos.right="numericORNULL",
-                                 pos.release="numericORNULL"))
+                                 pos.release="numericORNULL",
+                                 signalingField("hotspot",
+                                                "MutableGRanges"),
+                                 signalingField("hotspotColor","character")))
 
 ## This one is used for bird-eye overview
-## Cytobands is not quite useful and also reduce the mapping speed.
-
-## not support cytoband temoprarily.
-StackedView <- function(mr,species=NULL,cytoband=FALSE,subchr=NULL,
-                        scene=NULL,seqname=NULL,...){
-  if(extends(class(mr),"GRanges"))
-    mr <- as(mr,"MutableGRanges")
+## not support cytoband drawing temoprarily.
+StackedView <- function(track,species=NULL,cytoband=FALSE,subchr=NULL,
+                        scene=NULL,seqname=NULL,
+                        hotspot=NULL,hotspotColor="red",...){
+  if(is(track,"GRanges"))
+    track <- as(track,"MutableGRanges")
+  if(is.null(hotspot))
+    hotspot <- MutableGRanges()
+  if(is(hotspot,"GRanges"))
+    hotspot <- as(hotspot,"MutableGRanges")
   if(is.null(scene)){
     scene <- qscene()
     view <- qplotView(scene,rescale="none")
     rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
   }
   if(is.null(seqname))
-    seqname <- as.character(unique(as.character(seqnames(mr)))[1])
-  pars <- GraphicPars(seqname=seqname)
-  obj <- StackedView.gen$new(track=mr,pars=pars,
-                             scene=scene,view=view,rootLayer=rootLayer)
+    seqname <- as.character(unique(as.character(seqnames(track)))[1])
+  pars <- GraphicPars(seqname = seqname, cpal = blackred_pal(),
+                      dpal = brewer_pal(),
+                      view = "StackedView")
+  obj <- StackedView.gen$new(track=track,pars=pars,scene=scene,
+                             view=view,rootLayer=rootLayer,
+                             hotspot=hotspot,
+                             hotspotColor=hotspotColor)
+  ## connected events
+  obj$hotspotChanged$connect(function(){qupdate(obj$scene)})
+  obj$hotspotColorChanged$connect(function(){qupdate(obj$scene)})
   obj$createView()
   obj
 }
+
 
 StackedView.gen$methods(createView = function(seqname=NULL){
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
-  mr <- track
-  mx <- max(end(mr))
+  mx <- max(end(track))
   width <- wids <- 12
   scale <- scs <- 400
   mars <- mars <- c(50,50,40,20)
@@ -49,14 +63,15 @@ StackedView.gen$methods(createView = function(seqname=NULL){
   bg.col <- 'white'
   chrText.width <- chw <- 40
   bg.alpha <- 1
-  refMap <- lapply(1:length(mr),function(i){
+  refMap <- lapply(1:length(track),function(i){
     x0 <- chw+mars[2]
-    x1 <- end(mr[i])/mx*scs+mars[2]+chw
+    x1 <- end(track[i])/mx*scs+mars[2]+chw
     y0 <- mars[3]+spf*i
     y1 <- mars[3]+spf*i+wids
     data.frame(x0=x0,x1=x1,y0=y0,y1=y1)
   })
-  refMap <- do.call('rbind',refMap)
+  refMap <- as.data.frame(do.call('rbind',refMap))
+  refMap$seqname <- seqnames(track)
   ## define local variables
   pos.hover <<- NULL
   pos.press <<- NULL
@@ -84,15 +99,41 @@ StackedView.gen$methods(createView = function(seqname=NULL){
     }
   }
   ## painter
+  ## need some transformation function here
+  chromToLayer <- function(x){
+    pos <- mars[2]+chw+x/mx*scs
+  }
   pfun <- function(layer,painter){
     chrs <- seqnames(gr)
+    ## FIXME: need to be vectorized
     for(i in 1:length(chrs)){
       qdrawText(painter,chrs[i],mars[2],mars[3]+spf*i+wids/2)
-      qdrawRect(painter,0+chw+mars[2],mars[3]+spf*i,
-                mars[2]+chw+end(gr[seqnames(gr)==chrs[i]])/mx*scs,
-                mars[3]+wids+spf*i)
+      qdrawRect(painter, refMap$x0, refMap$y0, refMap$x1, refMap$y1)
     }}
-
+  ## hot spot pfun, could be replaced and defined by user
+  hotspotPfun <- function(layer,painter){
+    ## a filed to store hotspot region need here
+    sts <- start(hotspot)
+    sts <- chromToLayer(sts)
+    eds <- end(hotspot)
+    eds <- chromToLayer(eds)
+    chrs <- as.character(seqnames(hotspot))
+    ## just for now, need to be more flexible
+    ## TODO: color="blabla"
+    if((as.character(hotspotColor)%in% names(elementMetadata(hotspot)))){
+      cols.value <- elementMetadata(hotspot)[[hotspotColor]]
+      if(is.numeric(cols.value)){
+        cols <- cscale(cols.value, pars$cpal)
+      }else{
+        cols <- dscale(factor(cols.value), pars$dpal)
+      }}else{
+        cols <- hotspotColor
+      }
+    idx <- match(chrs,as.character(refMap$seqname))
+    qdrawRect(painter,sts,refMap[idx,'y0']-2,eds,
+              refMap[idx,'y1']+2,stroke=NA,fill=cols)
+  }
+  
   hotlinePfun <- function(layer,painter){
     if(!is.null(pos.hover)){
       isin <- isInsideChrom(pos.hover)
@@ -157,9 +198,13 @@ StackedView.gen$methods(createView = function(seqname=NULL){
   chromLayer <- qlayer(rootLayer,paintFun=pfun,
                        cache=TRUE,
                        limits=lmts)
+    ## hotspot
+  hotspotLayer <- qlayer(rootLayer,paintFun=hotspotPfun,
+                         cache=TRUE,limits=lmts)
   ## layer for coordinate when mouse hover
   hotlineLayer <- qlayer(rootLayer,paintFun=hotlinePfun,
                          hoverMoveFun=mouseHover,cache=FALSE,limits=lmts)
+
   ## layer for range selection
   hotRegionLayer <- qlayer(rootLayer,paintFun=hotRegionPfun,
                            mouseMoveFun=hotRegionMove,

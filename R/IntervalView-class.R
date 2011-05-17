@@ -36,6 +36,8 @@ IntervalView <- function(mr,
     rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
   }
   if(extends(class(mr),"GRanges"))
+    class(mr)
+    as(mr,"MutableGRanges")
     mr <- as(mr,"MutableGRanges")
   ## connect signal
   mr$elementMetadataChanged$connect(function() {
