@@ -2,12 +2,6 @@
 ##                Class Union Used
 ##-----------------------------------------------------------------##
 
-setClassUnion("numericORNULL", c("numeric","NULL"))
-setClassUnion("characterORNULL", c("character", "NULL"))
-setClassUnion("vectorORNULL", c("vector","NULL"))
-setClassUnion("functionORNULL", c("function","NULL"))
-
-
 GraphicPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
                            signalingField("bgAlpha","numericORNULL"),
@@ -35,34 +29,15 @@ GraphicPars.gen <- setRefClass("GraphicPars",
 ##----------------------------------------------------------------##
 
 GraphicPars <- function(..., view = "VisnabView"){
-  lst <- list(...)
   bioc <- options("BioC")
   lst.def <- bioc$BioC$visnab[[view]]
+  lst <- list(...)
   if(length(lst)>0){
-     ## update A with B
-    lst.new <- update_opts(lst.def, lst)
+    lst.new <- update_opts(lst, data=lst.def)
   }else{
     lst.new <- lst.def
   }
   gp <- do.call(GraphicPars.gen$new,lst.new)
-}
-
-update_opts <- function(old, new){
-  nms.new <- names(new)
-  nms.old <- names(old)
-  idx <-  nms.new %in% nms.old
-  nms.diff <- nms.new[!idx]
-  ## checking names
-  for(i in seq_along(nms.diff)){
-    cat("variable",nms.diff[i], "not exists\n")
-  }
-  new.exist <- new[idx]
-  ## FIXME: simply replace, not checking types yet
-  for(i in seq_along(new.exist)){
-    nm <- names(new.exist)[i]
-    old[[nm]] <- new.exist[[i]]
-  }
-  return(old)
 }
 
 
@@ -86,8 +61,8 @@ setMethod("show","GraphicPars",function(object){
 
 ## set back to default
 GraphicPars.gen$methods(
-                  reset = function(){
-                    dfs <- options("BioC")$visnab[["VisnabView"]]
+                  reset = function(view = "VisnabView"){
+                    dfs <- options("BioC")$BioC$visnab[[view]]
                     nms <- names(dfs)
                     for(nm in nms){
                       assign(nm,dfs[[nm]],env=.self@.xData)
