@@ -1,7 +1,4 @@
 TODO List
-1. Going to release this package in May
-2. Make circular fast
-3. Write first documentation for circular view this week
-4. Write first GUI for circular view this week.
-5. Try MutableRanges and Plumbr signal and selection
-
+* Add genome fileds, so as to check multiple views
+* Views or plots should be supported
+** MA plot (edgeR/DEseq) 
