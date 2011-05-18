@@ -12,14 +12,17 @@ Collate: AllClasses.R
 	 AllGenerics.R
 	 visnab.R
          painter-utils.R
-	 utils.R			
+	 utils.R	
+	 event-utils.R		
 	 GraphicPars-class.R
 	 VisnabView-class.R
 	 QtVisnabView-class.R
+	 ScaleView-class.R
+	 SeqView-class.R	 
+	 SingleChromView-class.R
          CircularView-class.R
 	 IntervalView-class.R
 	 AlignmentView-class.R
-	 SeqView-class.R
 	 GrandLinearView-class.R
 	 StackedView-class.R
 	 TxdbView-class.R
