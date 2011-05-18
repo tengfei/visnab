@@ -9,14 +9,17 @@ setGeneric("Aes",function(x,...) standardGeneric("Aes"))
 
 ## setGeneric("aes<-", function(x, value) standardGeneric("aes<-"))
 
-setGeneric("viewInUCSC",function(obj,...) standardGeneric("viewInUCSC"))
+setGeneric("viewInBrowser",function(obj,...) standardGeneric("viewInBrowser"))
 
-setGeneric('addLevels',function(mr,...) standardGeneric('addLevels'))
+setGeneric("viewrange", function(obj,...) standardGeneric("viewrange"))
 
-setGeneric('removePrefix',function(gr,...) standardGeneric('removePrefix'))
-setGeneric('addPrefix',function(gr,...) standardGeneric('addPrefix'))
+setGeneric("addLevels",function(mr,...) standardGeneric("addLevels"))
 
-setGeneric('validateChr',function(gr,...) standardGeneric('validateChr'))
+setGeneric("removePrefix",function(gr,...) standardGeneric("removePrefix"))
+setGeneric("addPrefix",function(gr,...) standardGeneric("addPrefix"))
+
+setGeneric("validateChr",function(gr,...) standardGeneric("validateChr"))
 setGeneric("sortChr",function(obj,...) standardGeneric("sortChr"))
 setGeneric("orderChr",function(obj,...) standardGeneric("orderChr"))
 setGeneric("replaceChr",function(obj,...) standardGeneric("replaceChr"))
+

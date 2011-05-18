@@ -45,6 +45,7 @@ StackedView <- function(track,species=NULL,cytoband=FALSE,subchr=NULL,
   ## connected events
   obj$hotspotChanged$connect(function(){qupdate(obj$scene)})
   obj$hotspotColorChanged$connect(function(){qupdate(obj$scene)})
+  obj$pars$seqnameChanged$connect(function(){qupdate(obj$scene)})
   obj$createView()
   obj
 }
@@ -71,7 +72,7 @@ StackedView.gen$methods(createView = function(seqname=NULL){
     data.frame(x0=x0,x1=x1,y0=y0,y1=y1)
   })
   refMap <- as.data.frame(do.call('rbind',refMap))
-  refMap$seqname <- seqnames(track)
+  refMap$seqname <- as.character(seqnames(track))
   ## define local variables
   pos.hover <<- NULL
   pos.press <<- NULL
@@ -112,14 +113,12 @@ StackedView.gen$methods(createView = function(seqname=NULL){
     }}
   ## hot spot pfun, could be replaced and defined by user
   hotspotPfun <- function(layer,painter){
-    ## a filed to store hotspot region need here
+    if(length(hotspot)>0){
     sts <- start(hotspot)
     sts <- chromToLayer(sts)
     eds <- end(hotspot)
     eds <- chromToLayer(eds)
     chrs <- as.character(seqnames(hotspot))
-    ## just for now, need to be more flexible
-    ## TODO: color="blabla"
     if((as.character(hotspotColor)%in% names(elementMetadata(hotspot)))){
       cols.value <- elementMetadata(hotspot)[[hotspotColor]]
       if(is.numeric(cols.value)){
@@ -128,10 +127,16 @@ StackedView.gen$methods(createView = function(seqname=NULL){
         cols <- dscale(factor(cols.value), pars$dpal)
       }}else{
         cols <- hotspotColor
+        cols <- rep(cols,length(hotspot))
       }
-    idx <- match(chrs,as.character(refMap$seqname))
-    qdrawRect(painter,sts,refMap[idx,'y0']-2,eds,
-              refMap[idx,'y1']+2,stroke=NA,fill=cols)
+      idx <- match(chrs,as.character(refMap$seqname))
+      idx.naomit <- na.omit(idx)
+      idx.na <- is.na(idx)
+    cols <- cols[!idx.na]
+    cat(unique(chrs[idx.na]),"cannot be mapped and ignored\n")
+    qdrawRect(painter,sts[!idx.na],refMap[idx.naomit,'y0']-2,eds[!idx.na],
+              refMap[idx.naomit,'y1']+2,stroke=NA,fill=cols)
+  }
   }
   
   hotlinePfun <- function(layer,painter){
@@ -144,18 +149,13 @@ StackedView.gen$methods(createView = function(seqname=NULL){
       }
     }
   }
-  selectedChromPfun <- function(layer,painter){
-    if(!is.null(pos.right)){
-      isin <- isInsideChrom(pos.right)
-      if(isin$isin){
-        chrom <- isin$chrom
-        pars$seqname <<- paste("chr",chrom,sep="")
-        qdrawRect(painter,refMap[chrom,'x0']-5,refMap[chrom,'y0']-spf/4,
-                  refMap[chrom,'x1']+5,refMap[chrom,'y1']+spf/4,stroke="blue")
-      }
-    }
-  }
   
+  selectedChromPfun <- function(layer,painter){
+    chrom <- pars$seqname
+    ref <- refMap[refMap$seqname==chrom,]
+    qdrawRect(painter,ref[,"x0"]-5,ref[,'y0']-spf/4,
+              ref[,'x1']+5,ref[,'y1']+spf/4,stroke="blue")
+  }
   hotRegionPfun <- function(layer,painter){
     if(!is.null(pos.press)){
       isin <- isInsideChrom(pos.press)
@@ -165,7 +165,8 @@ StackedView.gen$methods(createView = function(seqname=NULL){
         bottomY <- refMap[chrom,'y0']
         qdrawRect(painter,pos.press[1],topY,pos.move[1],bottomY,fill=rgb(0,0,1,0.5))
       }
-    }}
+    }
+  }
   ## events
   ## mouseHover for hotline
   mouseHover <- function(layer,event){
@@ -185,25 +186,31 @@ StackedView.gen$methods(createView = function(seqname=NULL){
   rightSelectFun <- function(layer,event){
     if(event$buttons()==2){
       pos.right <<- as.numeric(event$buttonDownPos(Qt$Qt$RightButton))
-      qupdate(selectedChromLayer)
+      if(!is.null(pos.right)){
+        isin <- isInsideChrom(pos.right)
+        if(isin$isin){
+          chrom <- isin$chrom
+          pars$seqname <<- paste("chr",chrom,sep="")
+        }
+      }
+      ## qupdate(selectedChromLayer)
     }
   }
 
   lmts <- qrect(0,0,mars[2]+chw+scs+mars[4],
                 mars[3]+mars[1]+
                 spf*length(seqnames(gr))+wids)
-  ## ## basic layer
-  ## rootLayer <- qlayer(scene,geometry=qrect(0,0,600,400))
   ## layer for drawing chromosomes
   chromLayer <- qlayer(rootLayer,paintFun=pfun,
                        cache=TRUE,
                        limits=lmts)
-    ## hotspot
-  hotspotLayer <- qlayer(rootLayer,paintFun=hotspotPfun,
-                         cache=TRUE,limits=lmts)
-  ## layer for coordinate when mouse hover
+    ## layer for coordinate when mouse hover
   hotlineLayer <- qlayer(rootLayer,paintFun=hotlinePfun,
                          hoverMoveFun=mouseHover,cache=FALSE,limits=lmts)
+
+    ## hotspot
+  hotspotLayer <- qlayer(rootLayer,paintFun=hotspotPfun,
+                         cache=FALSE,limits=lmts)
 
   ## layer for range selection
   hotRegionLayer <- qlayer(rootLayer,paintFun=hotRegionPfun,
@@ -224,6 +231,52 @@ StackedView.gen$methods(show = function(){
 setMethod("print","StackedView",function(x,..){
   x$show()
 })
+
+
+
+
+## show supported geoms
+setMethod("Geom","StackedView",function(x,...){
+  geoms <- options("BioC")$bioc$visnab$StackedView$geom
+  if(!is.null(geoms))
+    print(geoms)
+  else
+    message("No supported geom is found for this object")
+})
+
+
+##
+StackedView.gen$methods(regSignal = function(){
+  pars$strokeChanged$connect(function(){
+    qupdate(scene)
+  })
+  pars$fillChanged$connect(function(){
+    values(.self@track)$.color <- .self@pars$fill
+  })
+  pars$geomChanged$connect(function(){
+    qupdate(scene)
+  })
+  pars$bgColorChanged$connect(function(){
+    bgcol <- .self@pars$bgColor
+    bgalpha <- .self@pars$alpha
+    qcol <- col2qcol(bgcol,bgalpha)
+    scene$setBackgroundBrush(qbrush(qcol))
+  })
+  pars$ylimChanged$connect(function(){
+    rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+                                   pars$xlim[2], pars$ylim[2]))
+  })
+  pars$seqnameChanged$connect(function(){
+    start <- 0
+    end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
+    pars$xlimZoom <<- c(start,end)
+    rootLayer$close()
+    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600),row=row)
+    view$resetTransform()
+    .self$createView()
+  })
+})
+
 
 
 

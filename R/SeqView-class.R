@@ -26,13 +26,19 @@ SeqView <- function(obj,
                     fill="gray80",
                     ...){
 
-  if(is.null(title))
-    title <- deparse(substitute(obj))
+
   if(is.null(seqname)){
     seqname <- as.character(unique(as.character(seqnames(obj)))[1])
     start <- 0
     end <- max(end(ranges(obj[seqnames(obj)==seqname])))
   }
+  if(is.null(scene)){
+    scene <- qscene()
+    view <- qplotView(scene,rescale="none")
+    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
+  }
+
   xlimZoom <- c(start,end)
   if(extends(class(obj),"GRanges"))
     obj <- as(obj,"MutableGRanges")

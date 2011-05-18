@@ -37,6 +37,7 @@ GraphicPars <- function(..., view = "VisnabView"){
     lst.new <- lst.def
   }
   gp <- do.call(GraphicPars.gen$new,lst.new)
+  return(gp)
 }
 
 setMethod("show","GraphicPars",function(object){
