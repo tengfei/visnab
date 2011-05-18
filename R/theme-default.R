@@ -21,14 +21,18 @@
   IntervalView <- update_opts(geom = c("full","dense"), data = def)
   AlignmentView <- def
   SeqView <- def
+  ScaleView <- update_opts(geom = c("twosides"), data = def)
+  SingleChromView <- def
   StackedView <- def
-  TxdbView <- def
+  TxdbView <- update_opts(geom = c("full","dense"), data = def)
   TracksView <- def
   return(list(VisnabView = VisnabView,
               CircularView = CircularView,
               IntervalView = IntervalView,
               AlignmentView = AlignmentView,
               SeqView = SeqView,
+              ScaleView = ScaleView,
+              SingleChromView = SingleChromView,
               StackedView = StackedView,
               TxdbView = TxdbView,
               TracksView = TracksView))
