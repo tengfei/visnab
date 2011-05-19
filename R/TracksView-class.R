@@ -2,7 +2,8 @@
 ##                     "TracksView"
 ##----------------------------------------------------------------------------##
 
-TracksView.gen <- setRefClass("TracksView",contains="QtVisnabView",
+TracksView.gen <- setRefClass("TracksView",
+                              contains="QtVisnabView",
                               fields=list(track="list",
                                 ideogram="GRanges",
                                 trackWidget="QWidgetORNULL"))
@@ -42,8 +43,8 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   view <<- qplotView(scene,rescale="none")
   view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
   ## rooy layer should be responsible for griding!
-  scene.chrom <<- qscene()
-  view.chrom <<- qplotView(scene.chrom)
+  ## scene.chrom <<- qscene()
+  ## view.chrom <<- qplotView(scene.chrom)
   if(is.null(trackWidget)){
     trackWidget <<- Qt$QWidget()
     trackLayout <- Qt$QGridLayout()
@@ -85,10 +86,10 @@ TracksView.gen$methods(createView = function(seqname=NULL){
                       geometry=qrect(c(0,600),c(0,150*length(track))))
 
   ## grand layer
-  bgcol <- pars$bgColor
-  bgalpha <- pars$bgAlpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene.chrom$setBackgroundBrush(qbrush(qcol))
+  ## bgcol <- pars$bgColor
+  ## bgalpha <- pars$bgAlpha
+  ## qcol <- col2qcol(bgcol,bgalpha)
+  ## scene.chrom$setBackgroundBrush(qbrush(qcol))
   
   sapply(1:length(track),function(i){
     track[[i]]$pars$seqname <<- pars$seqname

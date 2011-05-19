@@ -241,7 +241,7 @@ setMethod("geom","StackedView",function(x,...){
   cat("Choosed geom: ",x$pars$geom,"\n")
   cat("---------------------\n")
   cat("Supported geoms: \n")
-  geoms <- options("BioC")$bioc$visnab$StackedView$geom
+  geoms <- getOption("BioC")$visnab$StackedView$geom
   if(!is.null(geoms))
     cat(geoms,"\n")
   else
@@ -249,7 +249,7 @@ setMethod("geom","StackedView",function(x,...){
 })
 
 setReplaceMethod("geom","StackedView", function(x,value){
-                   geoms <- options("BioC")$bioc$visnab$StackedView$geom
+                   geoms <- getOption("BioC")$visnab$StackedView$geom
                    if(!(value %in% geoms))
                      stop("Geom should be one of", geoms)
                    else

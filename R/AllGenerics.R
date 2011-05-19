@@ -23,3 +23,5 @@ setGeneric("sortChr",function(obj,...) standardGeneric("sortChr"))
 setGeneric("orderChr",function(obj,...) standardGeneric("orderChr"))
 setGeneric("replaceChr",function(obj,...) standardGeneric("replaceChr"))
 
+## GUI
+setGeneric("visnabGUI",function(obj,...) standardGeneric("visnabGUI"))

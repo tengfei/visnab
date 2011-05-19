@@ -13,16 +13,6 @@ setReplaceMethod("seqnames","VisnabView",
                  })
 
 
-setMethod("geom","VisnabView",function(x,...){
-  print(x$pars$geom)
-})
-
-setReplaceMethod("geom","VisnabView",
-                 function(x,value){
-                   x$pars$geom <- value
-                   x
-                 })
-
 ## return current graphics pars
 ## FIXME: This should return more defined fields
 setMethod("Aes", "VisnabView", function(x){

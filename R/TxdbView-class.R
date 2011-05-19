@@ -7,7 +7,8 @@ TxdbView.gen <- setRefClass("TxdbView",contains="QtVisnabView",
                               fiveUTR="GRangesList",
                               threeUTR="GRangesList",
                               cds="GRangesList",
-                              tx="GRanges"))
+                              tx="GRanges",
+                              exons = "GRanges"))
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
@@ -23,13 +24,8 @@ TxdbView <- function(track,
                      rowSpan=1L,
                      colSpan=1L,
                      fill="black",
-                     title=NULL,
                      geom=c("full","dense")){
 
-  ## if null, set first chromosome as viewed chromosome
-  ## if(is.null(title))
-  ##   title <- deparse(substitute(mr))
-  
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   start <- 0
@@ -54,10 +50,11 @@ TxdbView <- function(track,
   cds <- cdsBy(track,by="tx")
   message("Loading transcripts...")
   tx <- transcripts(track)
+  ## loading exons?
 
   obj <- TxdbView.gen$new(track=track, pars=pars,
                           row=row,col=col, rowSpan=rowSpan, colSpan=colSpan,
-                          scene=NULL,view=NULL,rootLayer=NULL,title=title,
+                          scene=NULL,view=NULL,rootLayer=NULL,
                           introns=introns, fiveUTR=fiveUTR, threeUTR=threeUTR,
                           cds=cds,tx=tx)
 
@@ -69,12 +66,13 @@ TxdbView <- function(track,
   })
 
   obj$pars$seqnameChanged$connect(function(){
+    browser()
     start <- 0
     ## end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
     end <- seqlengths(track)[[obj$pars$seqname]]
     obj$pars$xlimZoom <- c(start,end)
     obj$scene <- qscene()
-    layout <- obj$rootLayer$gridLayout()
+    layout <- obj$rootLayer
     layout[obj$row,obj$col]$close()
     ## obj$thisLayer$close()
     ## obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
@@ -97,9 +95,10 @@ TxdbView <- function(track,
 ## createview method
 ############################################################
 TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
+  
   if(!is.null(geom))
     pars$geom <<-  geom
-
+  
   if(is.null(scene)){
     scene <<- qscene()
     view <<- qplotView(scene,rescale="none")
@@ -115,6 +114,7 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
+  
   start <- 0
   end <- seqlengths(track)[[seqname]]
   ## compute levels
@@ -151,7 +151,6 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
 
   irs <- reduce(c(cds.r,five.r,three.r))
   int.r <- setdiff(int.r,irs)
-
 
   values(int)$tx_id <- rep(names(introns.sub),int.l)
   values(futr)$tx_id <- rep(names(fiveUTR.sub),futr.l)
@@ -232,7 +231,8 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
       ## draw arrow to indicate direction
       ## qdrawSegment(painter,start(introns.pos),8,start(introns.pos)+,8)
       pars$ylim <<- ylim
-    }else if(pars$geom=="dense"){
+    }
+    if(pars$geom=="dense"){
       ## reduced structure
       ## 5'UTR
       if(length(st.five.r)>0)
@@ -248,9 +248,7 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
                 fill="black",stroke=NA)
       if(length(st.int.r)>0)
         qdrawSegment(painter,st.int.r,10,ed.int.r,10,stroke="black")
-      pars$ylim <<- c(0,20)
-    }else{
-      cat("geom must be one of full/dense")
+      pars$ylim <<- c(-20,40)
     }
   }
 
@@ -276,4 +274,26 @@ TxdbView.gen$methods(show = function(){
 setMethod("print","TxdbView",function(x,..){
   x$show()
 })
+
+## show supported geoms
+setMethod("geom","TxdbView",function(x,...){
+  cat("Choosed geom: ",x$pars$geom,"\n")
+  cat("---------------------\n")
+  cat("Supported geoms: \n")
+  geoms <- getOption("BioC")$visnab$TxdbView$geom
+  if(!is.null(geoms))
+    cat(geoms,"\n")
+  else
+    message("No supported geom is found for this object")
+})
+
+setReplaceMethod("geom","TxdbView", function(x,value){
+                   geoms <- getOption("BioC")$visnab$TxdbView$geom
+                   if(!(value %in% geoms))
+                     stop("Geom should be one of", geoms)
+                   else
+                     x$pars$geom <- value
+                   x
+                 })
+
 
