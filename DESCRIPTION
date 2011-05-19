@@ -22,6 +22,7 @@ Collate: AllClasses.R
 	 SingleChromView-class.R
          CircularView-class.R
 	 IntervalView-class.R
+	 CoverageView-class.R
 	 AlignmentView-class.R
 	 GrandLinearView-class.R
 	 StackedView-class.R
