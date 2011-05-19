@@ -1,29 +1,29 @@
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
-IntervalView.gen <- setRefClass("IntervalView",contains="QtVisnabView",
-                                fields=list(track="MutableGRanges",
-                                  flag="logical"))
+IntervalView.gen <- setRefClass("IntervalView",
+                                contains = "QtVisnabView",
+                                fields = list(track = "MutableGRanges",
+                                              flag = "logical"))
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------##
 
 IntervalView <- function(mr,
-                         seqname=NULL,
-                         scene=NULL,
+                         seqname = NULL,
+                         scene = NULL,
                          view = NULL,
                          rootLayer = NULL,
-                         row=0L,
-                         col=0L,
-                         rowSpan=1L,
-                         colSpan=1L,
-                         fill="black",
-                         title=NULL){
+                         row = 0L,
+                         col = 0L,
+                         rowSpan = 1L,
+                         colSpan = 1L,
+                         fill = "black",
+                         geom = c("full","dense"),
+                         ...){
 
   ## if null, set first chromosome as viewed chromosome
-  if(is.null(title))
-    title <- deparse(substitute(mr))
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(mr)))[1])
   start <- 0
@@ -35,40 +35,22 @@ IntervalView <- function(mr,
     view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
     rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
   }
-  if(extends(class(mr),"GRanges"))
-    class(mr)
-    as(mr,"MutableGRanges")
+  if(is(mr, "GRanges"))
     mr <- as(mr,"MutableGRanges")
   ## connect signal
   mr$elementMetadataChanged$connect(function() {
     qupdate(scene)
   })
-  pars <- GraphicPars(fill=fill,xlimZoom = xlimZoom, seqname=seqname)
+  pars <- GraphicPars(fill = fill,xlimZoom = xlimZoom, seqname = seqname,
+                      geom = geom[1], ...,
+                      view = "IntervalView")
   obj <- IntervalView.gen$new(track=mr,pars=pars,
                               row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                              scene=scene,view=view,rootLayer=rootLayer,title=title)
-  obj$pars$strokeChanged$connect(function(){qupdate(scene)})
-  obj$pars$fillChanged$connect(function(){
-    values(obj@track)$.color <- obj@pars$fill
-  })
-  obj$pars$bgColorChanged$connect(function(){
-    bgcol <- obj@pars$bgColor
-    bgalpha <- obj@pars$alpha
-    qcol <- col2qcol(bgcol,bgalpha)
-    scene$setBackgroundBrush(qbrush(qcol))
-  })
-  obj$pars$seqnameChanged$connect(function(){
-    start <- 0
-    end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
-    obj$pars$xlimZoom <- c(start,end)
-    ## obj$scene <- qscene()
-    obj$rootLayer$close()
-    obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
-    obj$view$resetTransform()
-    obj$createView()
-  })
+                              scene=scene,view=view,rootLayer=rootLayer)
+  ## event
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
+  obj$regSignal()
   obj$createView()
   return(obj)
 }
@@ -84,8 +66,7 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
-  mr <- track
-  mr <- mr[seqnames(mr)==seqname]
+  mr <- track[seqnames(track)==seqname]
   start <- pars$xlimZoom[1]
   end <- pars$xlimZoom[2]
   if(!is.null(start)&!is.null(end)){
@@ -96,44 +77,31 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
   irexon <- IRanges(start(mr),end(mr))
   binsexon <- disjointBins(irexon)
   binmx <- max(binsexon*10+5)
+  pars$xlim <<- c(0, end(mr))
+  pars$ylim <<- c(0, 5)
+  mr.r <- reduce(mr)
   lvpainter <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     ylimZoom <- as.matrix(exposed)[,2]
     pars$xlimZoom <<- xlimZoom
     pars$ylimZoom <<- ylimZoom
     ## Draw rectangle
-    qdrawRect(painter,start(mr),(binsexon*10)/binmx*5,end(mr),
-              (binsexon*10+5)/binmx*5,
-              stroke=NA,fill=values(track)$.color)
+    if(pars$geom == "full"){
+      qdrawRect(painter,start(mr),(binsexon*10)/binmx*5,end(mr),
+                (binsexon*10+5)/binmx*5,
+                stroke=NA,fill=values(mr)$.color)
+      pars$ylim <<- c(0,5)
+    }
+    if(pars$geom == "dense"){
+      qdrawRect(painter,start(mr.r), 10, end(mr.r), 20,
+                stroke=NA,fill=values(mr.r)$.color)
+      pars$ylim <<- c(0,30)
+    }
+    ## qdrawText(painter,title,sum(xlimZoom)/2,
+    ##           max((binsexon*10+5)/binmx*5),"center","top",color=pars$textColor)
+    }
 
-    ## Draw title
-    qdrawText(painter,title,sum(xlimZoom)/2,
-              max((binsexon*10+5)/binmx*5),"center","top",color=pars$textColor)
-  }
-  keyPressEvent <- function(layer,event){
-                    if(event$modifiers() == Qt$Qt$ControlModifier){
-                      if(event$key() == Qt$Qt$Key_Equal)
-                        view$scale(1.5,1)
-                      if(event$key() == Qt$Qt$Key_Minus)
-                        view$scale(1/1.5,1)
-                      if(event$key() == Qt$Qt$Key_0)
-                        view$resetTransform()
-                    }
-                      ## if(event$key() == Qt$Qt$Key_u)
-                      ##    viewInUCSC(obj)
-  }
-  ## used for hover
-  flag <<- FALSE
-  ## construct layer
-  layer <- qlayer(rootLayer,paintFun=lvpainter,
-                  wheelFun=  function(layer, event) {
-                    zoom_factor <- 2
-                    if (event$delta() < 0)
-                      zoom_factor <- 1/2
-                    view$scale(zoom_factor,1)
-                  },
-                  keyPressFun = keyPressEvent,
-                  hoverMoveFun=function(layer,event){
+  hoverMoveEvent <- function(layer,event){
                     rect <- qrect(0,0,1,1)
                     mat <- layer$deviceTransform(event)$inverted()
                     rect <- mat$mapRect(rect)
@@ -152,11 +120,34 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
                         flag <<- FALSE
                       }
                     }
-                  },
+                  }
+  ## used for hover
+  flag <<- FALSE
+  ## construct layer
+  layer <- qlayer(rootLayer,paintFun=lvpainter,
+                  wheelFun=  wheelEventZoom(view),
+                  keyPressFun = keyPressEventZoom(track, view = view, sy = 1),
+                  hoverMoveFun = hoverMoveEvent,
                   row=row,col=col,
                   rowSpan=rowSpan,colSpan=colSpan)
-  layer$setLimits(qrect(min(start(mr)),-2,max(end(mr)),7))                      
+  layer$setLimits(qrect(pars$xlim[1], pars$ylim[1], pars$xlim[2], pars$ylim[2]))
   layer$setGeometry(0,0,600,150)
 })
 
 
+IntervalView.gen$methods(show = function(){
+  view$show()
+})
+
+setMethod("print","IntervalView",function(x,..){
+  x$show()
+})
+
+## show supported geoms
+setMethod("Geom","IntervalView",function(x,...){
+  geoms <- getOption("BioC")$visnab$IntervalView$geom
+  if(!is.null(geoms))
+    cat("Supported Geoms: ",geoms, "\n")
+  else
+    cat("No supported geom is found for this object\n")
+})

@@ -8,9 +8,11 @@ exportMethods(removePrefix,
               orderChr,
               replaceChr,
               print,
-              viewInUCSC,
+              viewInBrowser,
               visnabGUI,
               "seqnames<-",
+              Aes,
+              Geom,
               geom,
               "geom<-")
 
@@ -19,8 +21,11 @@ exportClasses(GraphicPars,
               QtVisnabView,
               CircularView,
               IntervalView,
+              CoverageView,
               AlignmentView,
               SeqView,
+              ScaleView,
+              SingleChromView,
               StackedView,
               TxdbView,
               TracksView,
@@ -110,5 +115,5 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
 ## Rsamtools
 importFrom(Rsamtools, ScanBamParam, scanBam)
 ## for temporary
-## exportPattern("^[^\\.]")
+exportPattern("^[^\\.]")
 

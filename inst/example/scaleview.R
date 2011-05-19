@@ -1,0 +1,10 @@
+library(MutableRanges)
+library(visnab)
+data(hg19Ideogram)
+obj <- ScaleView(hg19Ideogram)
+print(obj)
+Geom(obj)
+geom(obj)
+Aes(obj)
+## FIXME:
+viewrange(obj)
