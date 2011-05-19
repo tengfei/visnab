@@ -103,7 +103,7 @@ StackedView.gen$methods(createView = function(seqname=NULL){
     pos <- mars[2]+chw+x/mx*scs
   }
   pfun <- function(layer,painter){
-    chrs <- seqnames(gr)
+    chrs <- seqnames(track)
     ## FIXME: need to be vectorized
     for(i in 1:length(chrs)){
       qdrawText(painter,chrs[i],mars[2],mars[3]+spf*i+wids/2)
@@ -188,23 +188,25 @@ StackedView.gen$methods(createView = function(seqname=NULL){
         isin <- isInsideChrom(pos.right)
         if(isin$isin){
           chrom <- isin$chrom
-          pars$seqname <<- paste("chr",chrom,sep="")
+          chrom <- refMap[chrom, "seqname"]
+          pars$seqname <<- chrom
         }
       }
-      ## qupdate(selectedChromLayer)
     }
   }
 
   lmts <- qrect(0,0,mars[2]+chw+scs+mars[4],
                 mars[3]+mars[1]+
-                spf*length(seqnames(gr))+wids)
+                spf*length(seqnames(track))+wids)
+
   ## layer for drawing chromosomes
-  chromLayer <- qlayer(rootLayer,paintFun=pfun,
-                       cache=TRUE,
-                       limits=lmts)
-    ## layer for coordinate when mouse hover
+  chromLayer <- qlayer(rootLayer,paintFun=pfun, cache=FALSE, limits=lmts)
+
+  ## layer for coordinate when mouse hover
   hotlineLayer <- qlayer(rootLayer,paintFun=hotlinePfun,
                          hoverMoveFun=mouseHover,cache=FALSE,limits=lmts)
+
+
 
     ## hotspot
   hotspotLayer <- qlayer(rootLayer,paintFun=hotspotPfun,
@@ -220,6 +222,7 @@ StackedView.gen$methods(createView = function(seqname=NULL){
   selectedChromLayer <- qlayer(rootLayer,paintFun=selectedChromPfun,
                                limits=lmts,cache=FALSE)
 
+
 })
 
 StackedView.gen$methods(show = function(){
@@ -234,13 +237,26 @@ setMethod("print","StackedView",function(x,..){
 
 
 ## show supported geoms
-setMethod("Geom","StackedView",function(x,...){
+setMethod("geom","StackedView",function(x,...){
+  cat("Choosed geom: ",x$pars$geom,"\n")
+  cat("---------------------\n")
+  cat("Supported geoms: \n")
   geoms <- options("BioC")$bioc$visnab$StackedView$geom
   if(!is.null(geoms))
-    print(geoms)
+    cat(geoms,"\n")
   else
     message("No supported geom is found for this object")
 })
+
+setReplaceMethod("geom","StackedView", function(x,value){
+                   geoms <- options("BioC")$bioc$visnab$StackedView$geom
+                   if(!(value %in% geoms))
+                     stop("Geom should be one of", geoms)
+                   else
+                     x$pars$geom <- value
+                   x
+                 })
+
 
 
 ##

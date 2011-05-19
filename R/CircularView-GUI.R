@@ -1,4 +1,3 @@
-
 ############################################################
 ## CircularView GUI
 ############################################################
@@ -6,8 +5,6 @@
 ##------------------------------------------------------------
 ## sliders for Cicurlar view
 ##------------------------------------------------------------
-
-setGeneric("visnabGUI",function(obj,...) standardGeneric("visnabGUI"))
 
 setMethod("visnabGUI","CircularView",function(obj,...){
   orientation <- Qt$Qt$Horizontal
