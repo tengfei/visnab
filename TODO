@@ -2,3 +2,8 @@ TODO List
 * Add genome fileds, so as to check multiple views
 * Views or plots should be supported
 ** MA plot (edgeR/DEseq) 
+* Support Mode
+** Bush mode
+* Legend
+* Dockable Widgets
+* Simple List?
