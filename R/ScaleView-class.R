@@ -18,7 +18,7 @@ ScaleView <- function(track,
                       col = 0L,
                       rowSpan = 1L,
                       colSpan = 1L,
-                      geom = c("twosides"),
+                      geom = c("twoside"),
                       ...){
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")
@@ -58,7 +58,7 @@ ScaleView.gen$methods(createView = function(seqname=NULL){
   h <- 10
   lengths <- diff(pars$xlimZoom)
   pfunScale <- function(layer,painter,exposed){
-    if(pars$geom == "twosides"){
+    if(pars$geom == "twoside"){
       xlimZoom <- as.matrix(exposed)[,1]
       pars$xlimZoom <<- xlimZoom
       st <- xlimZoom[1]
