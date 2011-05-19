@@ -80,7 +80,6 @@ IntervalView.gen$methods(createView = function(seqname=NULL){
   pars$xlim <<- c(0, end(mr))
   pars$ylim <<- c(0, 5)
   mr.r <- reduce(mr)
-  browser()
   lvpainter <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     ylimZoom <- as.matrix(exposed)[,2]
