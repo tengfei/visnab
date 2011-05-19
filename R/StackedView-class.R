@@ -17,8 +17,6 @@ StackedView.gen <- setRefClass("StackedView",contains="QtVisnabView",
                                                 "MutableGRanges"),
                                  signalingField("hotspotColor","character")))
 
-## This one is used for bird-eye overview
-## not support cytoband drawing temoprarily.
 StackedView <- function(track,species=NULL,cytoband=FALSE,subchr=NULL,
                         scene=NULL,seqname=NULL,
                         hotspot=NULL,hotspotColor="red",...){
