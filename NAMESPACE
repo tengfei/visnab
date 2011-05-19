@@ -90,7 +90,8 @@ importClassesFrom(GenomicRanges, GRanges, GenomicRanges)
 importClassesFrom(MutableRanges, MutableGRanges)
 importMethodsFrom(MutableRanges, coerce, update,
                   seqnames, strand, seqinfo,
-                  ranges, elementMetadata, metadata)
+                  ranges, elementMetadata, metadata,
+                  "elementMetadata<-")
 importFrom(MutableRanges,MutableGRanges)
 
 
