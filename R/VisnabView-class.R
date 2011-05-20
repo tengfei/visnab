@@ -2,20 +2,16 @@
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
 VisnabView.gen <- setRefClass("VisnabView",contains="VIRTUAL",
-                              fields=list(
-                                pars="GraphicPars"
+                              fields=c(
+                                pars="GraphicPars",
+                                signalingField("selectedRangesModel", "MutableGRanges"),
+                                signalingField("selectedRangesModelColor", "character")
                                 ))
-
-setReplaceMethod("seqnames","VisnabView",
-                 function(x,value){
-                   x$pars$seqname <- value
-                   x
-                 })
 
 
 ## return current graphics pars
 ## FIXME: This should return more defined fields
-setMethod("Aes", "VisnabView", function(x){
+setMethod("aes", "VisnabView", function(x){
   cat("Graphic Parameters:\n")
   cat("--------------------\n")
   for(nm in ls(x$pars@.xData)){
@@ -26,19 +22,81 @@ setMethod("Aes", "VisnabView", function(x){
   }
 })
 
-aes <- Aes
 
 setMethod("show","VisnabView",function(object){
   show(object$pars)
 })
 
-setMethod("viewrange", "VisnabView", function(obj,...){
-  seqname <- obj$pars$seqname
-  ir <- IRanges(start = obj$pars$xlimZoom[1],
-                end = obj$pars$xlimZoom[2])
+setMethod("range", "VisnabView", function(x,...){
+  seqname <- x$pars$seqname
+  ir <- IRanges(start = x$pars$xlimZoom[1],
+                end = x$pars$xlimZoom[2])
   gr <- GRanges(seqnames=seqname, ir)
   return(gr)
 })
+
+setReplaceMethod("range", "VisnabView", function(x, value){
+  if(is(value, "IRanges")){
+    if(length(value)>1)
+      stop("Viewed range can only be of length 1")
+    x$pars$xlimZoom <- c(start(value), end(value))
+  }
+  if(is(value, "numeric")){
+    if(length(value)!=2)
+      stop("Please specify start and end value")
+    if(diff(value)<=0)
+      stop("Viewed range cannot be less than 0")
+    x$pars$xlimZoom <- value
+  }
+  if(is(value, "character")){
+    if(substr(value,1,3) != "chr")
+      stop("Please follow the routine when naming the seqnames,
+            with prefix 'chr',such as chr1, chrX ...")
+    x$pars$seqname <- value
+  }
+  if(extends(class(value),"GenomicRanges")){
+    if(length(value)>1)
+      stop("Viewed range can only be of length 1")
+    seqname <- as.character(seqnames(value))
+    if(substr(as.character(seqname),1,3) != "chr")
+      stop("Please follow the routine when naming the seqnames,
+            with prefix 'chr',such as chr1, chrX ...")
+    x$pars$seqname <- seqname
+    x$pars$xlimZoom <- c(start(value), end(value))
+  }
+  x
+})
+
+
+setMethod("selectedRangesModel", "VisnabView", function(obj, ...){
+  print(obj$selectedRangesModel)
+})
+
+setReplaceMethod("selectedRangesModel", "VisnabView", function(x,value){
+if(is(value, "GRanges"))
+  value <- as(value, "MutableGRanges")
+if(is(value, "MutableGRanges"))
+  x$selectedRangesModel <- value
+x
+})
+
+selectedRangesModel <- function(data, color = "red"){
+  if(is(data, "GRanges"))
+    data <- as(data, "MutableGRanges")
+  structure(list(data = data, color = color), class = "selectedRangesModel")
+}
+
+setMethod("+", "VisnabView", function(e1, e2){
+  if(is(e2, "selectedRangesModel")){
+    e1$selectedRangesModel <- e2$data
+    e1$selectedRangesModelColor <- e2$color
+    invisible(e1)
+  }else{
+    invisible(e1)
+  }
+})
+
+
 
 setMethod("viewInBrowser","VisnabView",function(obj, genome, browser = "UCSC"){
   if(browser == "UCSC"){
