@@ -10,6 +10,7 @@ TxdbView.gen <- setRefClass("TxdbView",contains="QtVisnabView",
                               tx="GRanges",
                               exons = "GRanges"))
 
+
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------##
@@ -19,6 +20,8 @@ TxdbView <- function(track,
                      scene=NULL,
                      view = NULL,
                      rootLayer = NULL,
+                     selectedRangesModel = NULL,
+                     selectedRangesModelColor = "red", 
                      row=0L,
                      col=0L,
                      rowSpan=1L,
@@ -28,17 +31,18 @@ TxdbView <- function(track,
 
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
+  if(is.null(selectedRangesModel))
+    selectedRangesModel <- MutableGRanges()
+  if(is(selectedRangesModel,"GRanges"))
+    selectedRangesModel <- as(selectedRangesModel,"MutableGRanges")
   start <- 0
   end <- seqlengths(track)[[seqname]]
+  seqlength <- end
   xlimZoom <- c(start,end)
-  ## if(extends(class(mr),"GRanges"))
-  ##   mr <- as(mr,"MutableGRanges")
-  ## ## connect signal
-  ## mr$elementMetadataChanged$connect(function() {
-  ##   qupdate(scene)
-  ## })
   pars <- GraphicPars(fill=fill,xlimZoom = xlimZoom,
-                      seqname=seqname, geom=geom)
+                      seqname=seqname, geom=geom[1],
+                      seqlength = seqlength,
+                      view = "TxdbView")
   ## store those infor in object, so make switch to other chromosome fast
   message("Loading Introns...")
   introns <- intronsByTranscript(track)
@@ -51,42 +55,20 @@ TxdbView <- function(track,
   message("Loading transcripts...")
   tx <- transcripts(track)
   ## loading exons?
+  obj <- TxdbView.gen$new(track = track, pars = pars,
+                          selectedRangesModel = selectedRangesModel,
+                          selectedRangesModelColor = selectedRangesModelColor,
+                          row = row,col = col, rowSpan = rowSpan, colSpan = colSpan,
+                          scene = NULL,view = NULL,rootLayer = NULL, thisLayer = NULL,
+                          introns = introns, fiveUTR = fiveUTR, threeUTR = threeUTR,
+                          cds = cds,tx = tx)
 
-  obj <- TxdbView.gen$new(track=track, pars=pars,
-                          row=row,col=col, rowSpan=rowSpan, colSpan=colSpan,
-                          scene=NULL,view=NULL,rootLayer=NULL,
-                          introns=introns, fiveUTR=fiveUTR, threeUTR=threeUTR,
-                          cds=cds,tx=tx)
-
-  obj$pars$bgColorChanged$connect(function(){
-    bgcol <- obj@pars$bgColor
-    bgalpha <- obj@pars$alpha
-    qcol <- col2qcol(bgcol,bgalpha)
-    scene$setBackgroundBrush(qbrush(qcol))
-  })
-
-  obj$pars$seqnameChanged$connect(function(){
-    browser()
-    start <- 0
-    ## end <- max(end(ranges(obj$track[seqnames(obj$track)==obj$pars$seqname])))
-    end <- seqlengths(track)[[obj$pars$seqname]]
-    obj$pars$xlimZoom <- c(start,end)
-    obj$scene <- qscene()
-    layout <- obj$rootLayer
-    layout[obj$row,obj$col]$close()
-    ## obj$thisLayer$close()
-    ## obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600),row=obj$row)
-    ## obj$view$resetTransform()
-    obj$createView()
-  })
 
   ## add default attributes
   ## addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   message("Processing and creating view...")
   obj$createView()
-  obj$pars$geomChanged$connect(function(){
-    qupdate(obj$scene)
-  })
+  obj$regSignal()
   message("Ready")
   return(obj)
 }
@@ -135,7 +117,6 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
   tutr.l <- elementLengths(threeUTR.sub)
   cds.l <- elementLengths(cds.sub)
   ## exons.l <- elementLengths(exons.sub)
-
 
   int <- unlist(introns.sub)
   futr <- unlist(fiveUTR.sub)
@@ -210,7 +191,9 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
 
   ## canonical strucuture
   drawfun <- function(layer,painter,exposed){
-    xlimZoom <- as.matrix(exposed)[,1]
+    pars$xlimZoomChanged$block()
+    pars$xlimZoom <<- as.matrix(exposed)[,1]
+    pars$xlimZoomChanged$unblock()
     if(pars$geom=="full"){
       ## 5'UTR
       if(length(st.five)>0)
@@ -218,53 +201,117 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
                   10*lv.five+2,fill="black",stroke=NA)
       ## 3'
       if(length(st.three)>0)
-      qdrawRect(painter,st.three,10*lv.three-2,ed.three,
-                10*lv.three+2,fill="black",stroke=NA)
+        qdrawRect(painter,st.three,10*lv.three-2,ed.three,
+                  10*lv.three+2,fill="black",stroke=NA)
       ## cds
       if(length(st.cds)>0)
-      qdrawRect(painter,st.cds,10*lv.cds-4,ed.cds,10*lv.cds+4,
-                fill="black",stroke=NA)
+        qdrawRect(painter,st.cds,10*lv.cds-4,ed.cds,10*lv.cds+4,
+                  fill="black",stroke=NA)
       ## intron
       if(length(st.int)>0)
-      qdrawSegment(painter,st.int,10*lv.int,ed.int,10*lv.int,stroke="black")
-      ## when zoom-in show arrow
+        qdrawSegment(painter,st.int,10*lv.int,ed.int,10*lv.int,stroke="black")
+      ## FIXME: when zoom-in show arrow
       ## draw arrow to indicate direction
       ## qdrawSegment(painter,start(introns.pos),8,start(introns.pos)+,8)
+      ## draw selectedRangesModel
       pars$ylim <<- ylim
     }
     if(pars$geom=="dense"){
       ## reduced structure
       ## 5'UTR
       if(length(st.five.r)>0)
-      qdrawRect(painter,st.five.r,10-2,ed.five.r,
-                10+2,fill="black",stroke=NA)
+        qdrawRect(painter,st.five.r,10-2,ed.five.r,
+                  10+2,fill="black",stroke=NA)
       ## 3'UTR
       if(length(st.three.r)>0)
-      qdrawRect(painter,st.three.r,10-2,ed.three.r,
-                10+2,fill="black",stroke=NA)
+        qdrawRect(painter,st.three.r,10-2,ed.three.r,
+                  10+2,fill        
+                  ="black",stroke=NA)
       ## cds
       if(length(st.cds.r)>0)
-      qdrawRect(painter,st.cds.r,10-4,ed.cds.r,10+4,
-                fill="black",stroke=NA)
+        qdrawRect(painter,st.cds.r,10-4,ed.cds.r,10+4,
+                  fill="black",stroke=NA)
       if(length(st.int.r)>0)
         qdrawSegment(painter,st.int.r,10,ed.int.r,10,stroke="black")
       pars$ylim <<- c(-20,40)
     }
   }
-
-  thisLayer <- qlayer(rootLayer,drawfun,limits=qrect(pars$xlim[1],pars$ylim[1],
-                                       pars$xlim[2],pars$ylim[2]),
-                  wheelFun=  function(layer, event) {
-                    zoom_factor <- 2
-                    if (event$delta() < 0)
-                      zoom_factor <- 1/2
-                    view$scale(zoom_factor,1)
-                  })
-  
+  ## selectedRangesFun
+  selectedRangesFun <- function(layer, painter){
+    srm <- selectedRangesModel
+    if(length(srm)>0){
+    cols <- selectedRangesModelColor
+    if((as.character(cols) %in% names(elementMetadata(srm)))){
+      cols.value <- elementMetadata(srm)[[cols]]
+      if(is.numeric(cols.value)){
+        cols <- cscale(cols.value, pars$cpal)
+      }else{
+        cols <- dscale(factor(cols.value), pars$dpal)
+      }}else{
+        cols <- rep(cols,length(srm))
+      }
+    idx <- as.character(seqnames(selectedRangesModel)) == seqname
+    qdrawRect(painter, start(srm)[idx], 0,
+              end(srm)[idx], 10, stroke = NA, fill = cols[idx])
+  }
+  }
+  thisLayer <<- qlayer(rootLayer, col = col, row = row,
+                       rowSpan = rowSpan, colSpan = colSpan)
+  txLayer <- qlayer(thisLayer, drawfun,
+                       limits=qrect(pars$xlim[1],pars$ylim[1],
+                         pars$xlim[2],pars$ylim[2]),
+                       wheelFun= wheelEventZoom(view, sy = 1),
+                       keyPressFun = keyPressEventZoom(.self, view))
+  ## signal
   pars$ylimChanged$connect(function(){
-    thisLayer$setLimits(qrect(pars$xlim,pars$ylim))
+    txLayer$setLimits(qrect(pars$xlim,pars$ylim))
   })
+  selectedRangesModelLayer <- qlayer(thisLayer, selectedRangesFun, row=1,
+                           limits=qrect(pars$xlim[1],-5, pars$xlim[2],15))
+  layout <- thisLayer$gridLayout()
+  layout$setRowPreferredHeight(0,300)
+  layout$setRowPreferredHeight(1,50)
+  layout$setRowStretchFactor(0,1)
+  layout$setRowStretchFactor(1,0)
+})
 
+TxdbView.gen$methods(regSignal = function(){
+  ## geom
+  pars$geomChanged$connect(function(){
+    qupdate(scene)
+  })
+  ## signal when change xlimZoom
+  pars$xlimZoomChanged$connect(function(){
+    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    ## then scale view
+    view$resetTransform()
+    view$scale(1/zoom_factor, 1)
+    ## then center view
+    pos.x <- mean(pars$xlimZoom)
+    pos.y <- mean(pars$ylim)
+    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
+    view$centerOn(pos.scene[1], pos.scene[2])
+  })
+  ## seqname change should update view and update seqlength
+  pars$seqnameChanged$connect(function(){
+    start <- 0
+    ## end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
+    end <- seqlengths(track)[[pars$seqname]]
+    pars$seqlength <<- end-start
+    ## pars$xlimZoom <<- c(start,end)
+    thisLayer$close()
+    view$resetTransform()
+    .self$createView()
+  })
+  selectedRangesModelChanged$connect(function(){
+    qupdate(scene)
+  })
+  pars$bgColorChanged$connect(function(){
+    bgcol <- pars$bgColor
+    bgalpha <- pars$alpha
+    qcol <- col2qcol(bgcol,bgalpha)
+    scene$setBackgroundBrush(qbrush(qcol))
+  })
 })
 
 TxdbView.gen$methods(show = function(){
@@ -275,7 +322,7 @@ setMethod("print","TxdbView",function(x,..){
   x$show()
 })
 
-## show supported geoms
+
 setMethod("geom","TxdbView",function(x,...){
   cat("Choosed geom: ",x$pars$geom,"\n")
   cat("---------------------\n")
@@ -288,12 +335,12 @@ setMethod("geom","TxdbView",function(x,...){
 })
 
 setReplaceMethod("geom","TxdbView", function(x,value){
-                   geoms <- getOption("BioC")$visnab$TxdbView$geom
-                   if(!(value %in% geoms))
-                     stop("Geom should be one of", geoms)
-                   else
-                     x$pars$geom <- value
-                   x
-                 })
+  geoms <- getOption("BioC")$visnab$TxdbView$geom
+  if(!(value %in% geoms))
+    stop("Geom should be one of", geoms)
+  else
+    x$pars$geom <- value
+  x
+})
 
 

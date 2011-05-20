@@ -14,9 +14,11 @@
                             xlimZoom = NULL,
                             ylimZoom = NULL,
                             seqname = NULL,
+                            seqlength = NULL,
                             geom = NULL,
-                            cpal = NULL,
-                            dpal = NULL)
+                            cpal = blackred_pal(),
+                            dpal = brewer_pal())
+
   CircularView <- def
   IntervalView <- update_opts(geom = c("full","dense"), data = def)
   CoverageView <- def
