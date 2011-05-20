@@ -10,11 +10,13 @@ exportMethods(removePrefix,
               print,
               viewInBrowser,
               visnabGUI,
-              "seqnames<-",
-              Aes,
-              Geom,
+              range,
+              "range<-",
+              selectedRangesModel,
+              "selectedRangesModel<-",
               geom,
-              "geom<-")
+              "geom<-",
+              aes)
 
 exportClasses(GraphicPars,
               VisnabView,
@@ -62,21 +64,21 @@ importFrom(scales, rescale, alpha, area_pal, brewer_pal,
 
 import(qtbase, qtpaint)
 
-## IRanges
+##IRanges
 importClassesFrom(IRanges,IRanges)
 importFrom(IRanges, IRanges, Rle,
-           "elementMetadata",
-           "elementMetadata<-",
+           "elementMetadata", "elementMetadata<-",
            "values","values<-", start, width, end,  mid, "start<-", "width<-", "end<-",
            ## ranges,
            "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
            viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
-importMethodsFrom(IRanges, unlist,"[","[<-","%in%",
+importMethodsFrom(IRanges, unlist,setdiff,
+                  "[","[<-","%in%", 
                   ## start, end,
                   show, aggregate, append)
 
-## GenomicRanges
+## ## GenomicRanges
 importFrom(GenomicRanges,
             "seqnames<-","strand<-",
            ## seqnames,strand , seqinfo,
@@ -86,20 +88,18 @@ importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   ## seqnames, strand, seqinfo,
                   show,
                    ## "seqnames<-", "seqinfo<-",
-                  "elementMetadata<-",
+                   "elementMetadata<-",
                   elementMetadata)
 importClassesFrom(GenomicRanges, GRanges, GenomicRanges)
 
 
-## MutableRanges
+## ## MutableRanges
 importClassesFrom(MutableRanges, MutableGRanges)
 importMethodsFrom(MutableRanges, coerce, update,
                   seqnames, strand, seqinfo,
-                  ranges, elementMetadata, metadata,
-                  "elementMetadata<-")
+                  ## "elementMetadata<-",
+                  ranges, elementMetadata, metadata)
 importFrom(MutableRanges,MutableGRanges)
-
-
 
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)

@@ -30,5 +30,5 @@ Collate: AllClasses.R
 	 TracksView-class.R
 	 theme.R
 	 theme-default.R
-	 GUI.R
+	 CircularView-GUI.R
 	 zzz.R
