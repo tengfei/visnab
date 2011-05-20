@@ -65,15 +65,15 @@ importFrom(scales, rescale, alpha, area_pal, brewer_pal,
 import(qtbase, qtpaint)
 
 ##IRanges
-importClassesFrom(IRanges,IRanges)
-importFrom(IRanges, IRanges, Rle,
+importClassesFrom(IRanges,IRanges, Rle)
+importFrom(IRanges, IRanges, 
            "elementMetadata", "elementMetadata<-",
            "values","values<-", start, width, end,  mid, "start<-", "width<-", "end<-",
-           ## ranges,
+           ranges,
            "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
            viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
-importMethodsFrom(IRanges, unlist,setdiff,
+importMethodsFrom(IRanges, unlist,setdiff, Rle,
                   "[","[<-","%in%", 
                   ## start, end,
                   show, aggregate, append)
@@ -85,7 +85,7 @@ importFrom(GenomicRanges,
             GRanges, GRangesList)
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   start, end, width, "start<-", "end<-", "width<-",
-                  ## seqnames, strand, seqinfo,
+                  seqnames, strand, seqinfo,
                   show,
                    ## "seqnames<-", "seqinfo<-",
                    "elementMetadata<-",
