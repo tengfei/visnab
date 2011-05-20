@@ -18,6 +18,7 @@ GraphicPars.gen <- setRefClass("GraphicPars",
                            signalingField("xlim","numericORNULL"),
                            signalingField("ylim","numericORNULL"),
                            signalingField("seqname","characterORNULL"),
+                           signalingField("seqlength","numericORNULL"),
                            signalingField("geom","characterORNULL"),
                            signalingField("cpal","functionORNULL"),
                            signalingField("dpal","functionORNULL")
