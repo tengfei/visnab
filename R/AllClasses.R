@@ -1,7 +1,9 @@
 setClassUnion("MutableGRangesORGRanges",c("MutableGRanges","GRanges"))
 
 setOldClass("QWidget")
+setOldClass("QMainWindow")
 setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
+setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 
 setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 

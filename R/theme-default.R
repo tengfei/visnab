@@ -1,7 +1,7 @@
 ## set default theme and load them to options
 ## refer to zzz.R
 .DefaultOpts <- function(){
-  def <- VisnabView <- list(bgColor = "gray80",
+  def <- VisnabView <- list(bgColor = "white",
                             fgColor = "black",
                             textColor = "black",
                             fill = "black",
@@ -17,15 +17,16 @@
                             seqlength = NULL,
                             geom = NULL,
                             cpal = blackred_pal(),
-                            dpal = brewer_pal())
+                            dpal = brewer_pal(),
+                            tipsID = NULL)
 
   CircularView <- def
   IntervalView <- update_opts(geom = c("full","dense"), data = def)
-  CoverageView <- def
+  CoverageView <- update_opts(geom = c("total"), data = def)
   AlignmentView <- update_opts(geom = c("oneside","twoside"), data = def)
   SeqView <- def
   ScaleView <- update_opts(geom = c("twoside"), data = def)
-  SingleChromView <- def
+  SingleChromView <- update_opts(geom = c("cytoband"), data = def)
   StackedView <- def
   TxdbView <- update_opts(geom = c("full","dense"), data = def)
   TracksView <- def

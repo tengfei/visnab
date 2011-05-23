@@ -14,46 +14,50 @@ SeqView <- function(track,
                     scene=NULL,
                     view = NULL,
                     rootLayer = NULL,
+                    thisLayer = NULL,
                     row=0L,
                     col=0L,
                     rowSpan=1L,
                     colSpan=1L,
-                    fill="black",
+                    rescale = "geometry",
                     ...){
 
 
-  if(is.null(seqname)){
+  if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
-    start <- 0
-    end <- length(track[[seqname]])
-  }
-  if(is.null(scene)){
-    scene <- qscene()
-    view <- qplotView(scene,rescale="none")
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    rootLayer <- qlayer(scene)
-  }
+  start <- 0
+  end <- length(track[[seqname]])
   xlimZoom <- c(start,end)
   if(extends(class(track),"GRanges"))
     track <- as(track,"MutableGRanges")
-  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname, fill = fill,
+  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname,
                       view = "SeqView")
-  obj <- SeqView.gen$new(track=track,pars=pars,
+  obj <- SeqView.gen$new(track=track,pars=pars, thisLayer = thisLayer,
                          row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                         scene=scene,view=view,rootLayer=rootLayer)
-  obj$createView()
+                         scene=scene,view=view,rootLayer=rootLayer, 
+                         outputRange = xlimZoom)
+  obj$createView(rescale = rescale)
+  obj$regSignal()
   obj
 }
-
 
 ##----------------------------------------------------------------------------##
 ##             print method
 ##----------------------------------------------------------------------------##
 
-SeqView.gen$methods(createView = function(seqname=NULL){
+SeqView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
+
+  if(is.null(scene)){
+    scene <<- qscene()
+    view <<- qplotView(scene,rescale = rescale)
+    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+    rootLayer <<- qlayer(scene)
+  }
+  
   if(!is.null(seqname))
     pars$seqname <<- seqname
   seqname <- pars$seqname
+  
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
@@ -66,6 +70,10 @@ SeqView.gen$methods(createView = function(seqname=NULL){
   ## Unfinished
   pfunSeq <- function(layer,painter,exposed){
     ## level1:draw gray bars
+    pars$xlimZoomChanged$block()
+    pars$xlimZoom <<- as.matrix(exposed)[,1]
+    outputRange <<- pars$xlimZoom 
+    pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
     if(diff(xlimZoom)>zoomLevels[1]){
       ## qdrawRect(painter,start,h/2,end,h/2+h/9,fill=pars$fill,stroke=NULL)
@@ -117,14 +125,47 @@ setMethod("print","SeqView",function(x,..){
 })
 
 
-## obj$pars$seqnameChanged$connect(function(){
-##   start <- 0
-##   end <- max(end(ranges(obj$track[seqnames(obj$track)==seqname])))
-##   obj$pars$xlimZoom <- c(start,end)
-##   ## obj$scene <- qscene()
-##   obj$rootLayer$close()
-##   obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600))
-##   obj$view$resetTransform()
-##   obj$createView()
-## })
+SeqView.gen$methods(regSignal = function(){
+  ## pars$geomChanged$connect(function(){
+  ##   qupdate(scene)
+  ## })
+  ##FIXME: need to be fixed
+  pars$seqnameChanged$connect(function(){
+    start <- 0
+    end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
+    pars$seqlength <<- end-start
+    thisLayer$close()
+    view$resetTransform()
+    .self$createView()
+    .self$regSignal()
+  })
+
+  pars$bgColorChanged$connect(function(){
+    bgcol <- pars$bgColor
+    bgalpha <- pars$alpha
+    qcol <- col2qcol(bgcol,bgalpha)
+    scene$setBackgroundBrush(qbrush(qcol))
+  })
+})
+
+
+setMethod("geom","SeqView",function(x,...){
+  cat("Choosed geom: ",x$pars$geom,"\n")
+  cat("---------------------\n")
+  cat("Supported geoms: \n")
+  geoms <- getOption("BioC")$visnab$TxdbView$geom
+  if(!is.null(geoms))
+    cat(geoms,"\n")
+  else
+    message("No supported geom is found for this object")
+})
+
+setReplaceMethod("geom","SeqView", function(x,value){
+  geoms <- getOption("BioC")$visnab$SeqView$geom
+  if(!(value %in% geoms))
+    stop("Geom should be one of", geoms)
+  else
+    x$pars$geom <- value
+  x
+})
 

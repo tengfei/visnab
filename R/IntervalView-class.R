@@ -143,11 +143,3 @@ setMethod("print","IntervalView",function(x,..){
   x$show()
 })
 
-## show supported geoms
-setMethod("Geom","IntervalView",function(x,...){
-  geoms <- getOption("BioC")$visnab$IntervalView$geom
-  if(!is.null(geoms))
-    cat("Supported Geoms: ",geoms, "\n")
-  else
-    cat("No supported geom is found for this object\n")
-})

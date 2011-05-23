@@ -66,7 +66,7 @@ import(qtbase, qtpaint)
 
 ##IRanges
 importClassesFrom(IRanges,IRanges, Rle)
-importFrom(IRanges, IRanges, 
+importFrom(IRanges, IRanges,  disjoin, disjointBins,
            "elementMetadata", "elementMetadata<-",
            "values","values<-", start, width, end,  mid, "start<-", "width<-", "end<-",
            ranges,
@@ -113,7 +113,7 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
            ucscGenomes, "tableName<-")
 
 ## Rsamtools
-importFrom(Rsamtools, ScanBamParam, scanBam)
+importFrom(Rsamtools, ScanBamParam, scanBam, scanBamHeader)
 ## for temporary
 exportPattern("^[^\\.]")
 

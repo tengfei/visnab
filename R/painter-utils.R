@@ -1,3 +1,14 @@
+qglyphArrow <- function(x = 6, direction = c("left", "right")){
+  dirs <- match.arg(direction)
+  if(direction == "right")
+    x = -x
+  glyph <- Qt$QPainterPath()
+  glyph$moveTo(0,x)
+  glyph$lineTo(-x,0)
+  glyph$lineTo(0,-x)
+  glyph
+}
+
 qglyphSector <- function(x,y,length,width,startAngle,sweepLength){
   len <- (length+width)*2
   r <- length+width

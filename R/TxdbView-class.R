@@ -10,25 +10,30 @@ TxdbView.gen <- setRefClass("TxdbView",contains="QtVisnabView",
                               tx="GRanges",
                               exons = "GRanges"))
 
-
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------##
 
 TxdbView <- function(track,
+                     genome=NULL,
                      seqname=NULL,
                      scene=NULL,
                      view = NULL,
                      rootLayer = NULL,
+                     thisLayer = NULL,
                      selectedRangesModel = NULL,
                      selectedRangesModelColor = "red", 
                      row=0L,
                      col=0L,
                      rowSpan=1L,
                      colSpan=1L,
-                     fill="black",
-                     geom=c("full","dense")){
-
+                     geom=c("full","dense"),
+                     rescale = "geometry",...){
+  if(is.null(genome)){
+    cat("Set genome to hg19 automatically, please make sure it's the one you want\n")
+    genome <- "hg19"
+  }
+    
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   if(is.null(selectedRangesModel))
@@ -39,7 +44,7 @@ TxdbView <- function(track,
   end <- seqlengths(track)[[seqname]]
   seqlength <- end
   xlimZoom <- c(start,end)
-  pars <- GraphicPars(fill=fill,xlimZoom = xlimZoom,
+  pars <- GraphicPars(xlimZoom = xlimZoom,
                       seqname=seqname, geom=geom[1],
                       seqlength = seqlength,
                       view = "TxdbView")
@@ -55,11 +60,14 @@ TxdbView <- function(track,
   message("Loading transcripts...")
   tx <- transcripts(track)
   ## loading exons?
-  obj <- TxdbView.gen$new(track = track, pars = pars,
+  ir <- IRanges(start, end)
+  obj <- TxdbView.gen$new(track = track, pars = pars, genome = genome,
                           selectedRangesModel = selectedRangesModel,
+                          outputRange = xlimZoom,
                           selectedRangesModelColor = selectedRangesModelColor,
                           row = row,col = col, rowSpan = rowSpan, colSpan = colSpan,
-                          scene = NULL,view = NULL,rootLayer = NULL, thisLayer = NULL,
+                          scene = scene,view = view,rootLayer = rootLayer,
+                          thisLayer = thisLayer, 
                           introns = introns, fiveUTR = fiveUTR, threeUTR = threeUTR,
                           cds = cds,tx = tx)
 
@@ -67,7 +75,7 @@ TxdbView <- function(track,
   ## add default attributes
   ## addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   message("Processing and creating view...")
-  obj$createView()
+  obj$createView(rescale = rescale)
   obj$regSignal()
   message("Ready")
   return(obj)
@@ -76,14 +84,15 @@ TxdbView <- function(track,
 ############################################################
 ## createview method
 ############################################################
-TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
+TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL,
+                       rescale = "geometry"){
   
   if(!is.null(geom))
     pars$geom <<-  geom
   
   if(is.null(scene)){
     scene <<- qscene()
-    view <<- qplotView(scene,rescale="none")
+    view <<- qplotView(scene,rescale = rescale)
     view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
     rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
   }
@@ -193,7 +202,9 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
   drawfun <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
+    outputRange <<- pars$xlimZoom 
     pars$xlimZoomChanged$unblock()
+
     if(pars$geom=="full"){
       ## 5'UTR
       if(length(st.five)>0)
@@ -256,12 +267,26 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL){
   }
   }
   thisLayer <<- qlayer(rootLayer, col = col, row = row,
-                       rowSpan = rowSpan, colSpan = colSpan)
-  txLayer <- qlayer(thisLayer, drawfun,
-                       limits=qrect(pars$xlim[1],pars$ylim[1],
-                         pars$xlim[2],pars$ylim[2]),
+                       rowSpan = rowSpan, colSpan = colSpan,
                        wheelFun= wheelEventZoom(view, sy = 1),
                        keyPressFun = keyPressEventZoom(.self, view))
+
+  txLayer <- qlayer(thisLayer, drawfun,
+                       limits=qrect(pars$xlim[1],pars$ylim[1],
+                         pars$xlim[2],pars$ylim[2]))
+  pars$xlimZoomChanged$connect(function(){
+    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    ## then scale view
+    view$resetTransform()
+    view$scale(1/zoom_factor, 1)
+    ## then center view
+    pos.x <- mean(pars$xlimZoom)
+    pos.y <- mean(pars$ylim)
+    pos.scene <- as.numeric(txLayer$mapToScene(pos.x, pos.y))
+    view$centerOn(pos.scene[1], pos.scene[2])
+  })
+
+
   ## signal
   pars$ylimChanged$connect(function(){
     txLayer$setLimits(qrect(pars$xlim,pars$ylim))
@@ -281,27 +306,17 @@ TxdbView.gen$methods(regSignal = function(){
     qupdate(scene)
   })
   ## signal when change xlimZoom
-  pars$xlimZoomChanged$connect(function(){
-    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
-    ## then scale view
-    view$resetTransform()
-    view$scale(1/zoom_factor, 1)
-    ## then center view
-    pos.x <- mean(pars$xlimZoom)
-    pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
-    view$centerOn(pos.scene[1], pos.scene[2])
-  })
   ## seqname change should update view and update seqlength
   pars$seqnameChanged$connect(function(){
     start <- 0
     ## end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
     end <- seqlengths(track)[[pars$seqname]]
     pars$seqlength <<- end-start
-    ## pars$xlimZoom <<- c(start,end)
+    ## selectedRange <<- c(start,end)
     thisLayer$close()
     view$resetTransform()
     .self$createView()
+    .self$regSignal()
   })
   selectedRangesModelChanged$connect(function(){
     qupdate(scene)

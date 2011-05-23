@@ -6,54 +6,52 @@
 ##                  FOR class 'StackedView'
 ##-----------------------------------------------------------------##
 
-StackedView.gen <- setRefClass("StackedView",contains="QtVisnabView",
-                               fields=c(track="MutableGRanges",
-                                 pos.hover="numericORNULL",
-                                 pos.press="numericORNULL",
-                                 pos.move="numericORNULL",
-                                 pos.right="numericORNULL",
-                                 pos.release="numericORNULL",
-                                 signalingField("hotspot",
-                                                "MutableGRanges"),
-                                 signalingField("hotspotColor","character")))
+StackedView.gen <- setRefClass("StackedView",contains = "QtVisnabView",
+                               fields=list(track = "MutableGRanges",
+                                 pos.hover = "numericORNULL",
+                                 pos.press = "numericORNULL",
+                                 pos.move = "numericORNULL",
+                                 pos.right = "numericORNULL",
+                                 pos.release = "numericORNULL",
+                                 selectedRange = "MutableGRanges"))
 
-StackedView <- function(track,species=NULL,cytoband=FALSE,subchr=NULL,
-                        scene=NULL,seqname=NULL,
-                        hotspot=NULL,hotspotColor="red",...){
+StackedView <- function(track,species = NULL, seqname = NULL, geom = "blank",
+                        scene=NULL, view = NULL, rootLayer = NULL, thisLayer = NULL,
+                        selectedRangesModel=NULL,selectedRangesModelColor="red",
+                        selectedRange = NULL,...){
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")
-  if(is.null(hotspot))
-    hotspot <- MutableGRanges()
-  if(is(hotspot,"GRanges"))
-    hotspot <- as(hotspot,"MutableGRanges")
-  if(is.null(scene)){
-    scene <- qscene()
-    view <- qplotView(scene,rescale="none")
-    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
+  if(is.null(selectedRangesModel))
+    selectedRangesModel <- MutableGRanges()
+  if(is(selectedRangesModel,"GRanges"))
+    selectedRangesModel <- as(selectedRangesModel,"MutableGRanges")
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
-  pars <- GraphicPars(seqname = seqname, cpal = blackred_pal(),
-                      dpal = brewer_pal(),
-                      view = "StackedView")
-  obj <- StackedView.gen$new(track=track,pars=pars,scene=scene,
-                             view=view,rootLayer=rootLayer,
-                             hotspot=hotspot,
-                             hotspotColor=hotspotColor)
-  ## connected events
-  obj$hotspotChanged$connect(function(){qupdate(obj$scene)})
-  obj$hotspotColorChanged$connect(function(){qupdate(obj$scene)})
-  obj$pars$seqnameChanged$connect(function(){qupdate(obj$scene)})
+  pars <- GraphicPars(seqname = seqname, geom = geom, view = "StackedView")
+  obj <- StackedView.gen$new(track = track,pars = pars,scene = scene,
+                             view = view,rootLayer = rootLayer,
+                             thisLayer = thisLayer,
+                             selectedRangesModel=selectedRangesModel,
+                             selectedRangesModelColor=selectedRangesModelColor,
+                             selectedRange = MutableGRanges())
   obj$createView()
+  obj$regSignal()
   obj
 }
 
 
 StackedView.gen$methods(createView = function(seqname=NULL){
+  if(is.null(scene)){
+    scene <<- qscene()
+    view <<- qplotView(scene,rescale="none")
+    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
+  }
+
   bgcol <- pars$bgColor
   bgalpha <- pars$alpha
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
+  
   mx <- max(end(track))
   width <- wids <- 12
   scale <- scs <- 400
@@ -110,30 +108,32 @@ StackedView.gen$methods(createView = function(seqname=NULL){
       qdrawRect(painter, refMap$x0, refMap$y0, refMap$x1, refMap$y1)
     }}
   ## hot spot pfun, could be replaced and defined by user
-  hotspotPfun <- function(layer,painter){
-    if(length(hotspot)>0){
-    sts <- start(hotspot)
+  selectedRangesModelPfun <- function(layer,painter){
+    if(length(selectedRangesModel)>0){
+    sts <- start(selectedRangesModel)
     sts <- chromToLayer(sts)
-    eds <- end(hotspot)
+    eds <- end(selectedRangesModel)
     eds <- chromToLayer(eds)
-    chrs <- as.character(seqnames(hotspot))
-    if((as.character(hotspotColor)%in% names(elementMetadata(hotspot)))){
-      cols.value <- elementMetadata(hotspot)[[hotspotColor]]
+    chrs <- as.character(seqnames(selectedRangesModel))
+    if((as.character(selectedRangesModelColor)%in%
+        names(elementMetadata(selectedRangesModel)))){
+      cols.value <- elementMetadata(selectedRangesModel)[[selectedRangesModelColor]]
       if(is.numeric(cols.value)){
         cols <- cscale(cols.value, pars$cpal)
       }else{
         cols <- dscale(factor(cols.value), pars$dpal)
       }}else{
-        cols <- hotspotColor
-        cols <- rep(cols,length(hotspot))
+        cols <- selectedRangesModelColor
+        cols <- rep(cols,length(selectedRangesModel))
       }
       idx <- match(chrs,as.character(refMap$seqname))
       idx.naomit <- na.omit(idx)
       idx.na <- is.na(idx)
     cols <- cols[!idx.na]
-    cat(unique(chrs[idx.na]),"cannot be mapped and ignored\n")
+    if(sum(idx.na)>0)
+      cat(unique(chrs[idx.na]),"cannot be mapped and ignored\n")
     qdrawRect(painter,sts[!idx.na],refMap[idx.naomit,'y0']-2,eds[!idx.na],
-              refMap[idx.naomit,'y1']+2,stroke=NA,fill=cols)
+              refMap[idx.naomit,'y1']+2,stroke=cols,fill=NULL)
   }
   }
   
@@ -142,8 +142,10 @@ StackedView.gen$methods(createView = function(seqname=NULL){
       isin <- isInsideChrom(pos.hover)
       if(isin$isin){
         idx <- isin$chrom
-        qdrawSegment(painter,pos.hover[1],refMap[idx,'y0'],pos.hover[1],refMap[idx,'y1'],stroke="red")
-        qdrawText(painter,as.integer(pos2gene(pos.hover[1])),pos.hover[1],refMap[idx,'y0'],valign="bottom")
+        qdrawSegment(painter,pos.hover[1],refMap[idx,'y0'],
+                     pos.hover[1],refMap[idx,'y1'],stroke="red")
+        qdrawText(painter,as.integer(pos2gene(pos.hover[1])),
+                  pos.hover[1],refMap[idx,'y0'],valign="bottom")
       }
     }
   }
@@ -194,7 +196,21 @@ StackedView.gen$methods(createView = function(seqname=NULL){
       }
     }
   }
-
+  ## double click on the hot range
+  dbclick <- function(layer, event){
+    pos <- event$pos()
+    rect <- qrect(0,0,2,2)
+    mat <- layer$deviceTransform(event)$inverted()
+    rect <- mat$mapRect(rect)
+    rect$moveCenter(pos)
+    hits <- layer$locate(rect)+1
+    if(length(hits)>0){
+      hits <- hits[1]
+      ## elementMetadata(selectedRangesModel)$.selected[hits] <- TRUE
+      ## print(selectedRangesModel[hits])
+      selectedRange <<- selectedRangesModel[hits]
+    }
+  }
   lmts <- qrect(0,0,mars[2]+chw+scs+mars[4],
                 mars[3]+mars[1]+
                 spf*length(seqnames(track))+wids)
@@ -207,21 +223,21 @@ StackedView.gen$methods(createView = function(seqname=NULL){
                          hoverMoveFun=mouseHover,cache=FALSE,limits=lmts)
 
 
+  ## selectedRangesModel
+  selectedRangesModelLayer <- qlayer(rootLayer,paintFun=selectedRangesModelPfun,
+                                     mouseDoubleClickFun = dbclick,
 
-    ## hotspot
-  hotspotLayer <- qlayer(rootLayer,paintFun=hotspotPfun,
-                         cache=FALSE,limits=lmts)
+                                     cache=FALSE,limits=lmts)
 
-  ## layer for range selection
-  hotRegionLayer <- qlayer(rootLayer,paintFun=hotRegionPfun,
-                           mouseMoveFun=hotRegionMove,
-                           mouseReleaseFun=hotRegionRelease,
-                           mousePressFun=rightSelectFun,
-                           cache=FALSE,limits=lmts)
+  ## ## layer for range selection
+  ## hotRegionLayer <- qlayer(rootLayer,paintFun=hotRegionPfun,
+  ##                          mouseMoveFun=hotRegionMove,
+  ##                          mouseReleaseFun=hotRegionRelease,
+  ##                          mousePressFun=rightSelectFun,
+  ##                          cache=FALSE,limits=lmts)
   ## layer for selected chromosome
-  selectedChromLayer <- qlayer(rootLayer,paintFun=selectedChromPfun,
-                               limits=lmts,cache=FALSE)
-
+  ## selectedChromLayer <- qlayer(rootLayer,paintFun=selectedChromPfun,
+  ##                              limits=lmts,cache=FALSE, mousePressFun=rightSelectFun)
 
 })
 
@@ -261,34 +277,18 @@ setReplaceMethod("geom","StackedView", function(x,value){
 
 ##
 StackedView.gen$methods(regSignal = function(){
-  pars$strokeChanged$connect(function(){
-    qupdate(scene)
-  })
-  pars$fillChanged$connect(function(){
-    values(.self@track)$.color <- .self@pars$fill
-  })
   pars$geomChanged$connect(function(){
     qupdate(scene)
   })
   pars$bgColorChanged$connect(function(){
-    bgcol <- .self@pars$bgColor
-    bgalpha <- .self@pars$alpha
+    bgcol <- pars$bgColor
+    bgalpha <- pars$alpha
     qcol <- col2qcol(bgcol,bgalpha)
     scene$setBackgroundBrush(qbrush(qcol))
   })
-  pars$ylimChanged$connect(function(){
-    rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
-                                   pars$xlim[2], pars$ylim[2]))
-  })
-  pars$seqnameChanged$connect(function(){
-    start <- 0
-    end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
-    pars$xlimZoom <<- c(start,end)
-    rootLayer$close()
-    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600),row=row)
-    view$resetTransform()
-    .self$createView()
-  })
+  selectedRangesModelChanged$connect(function(){qupdate(scene)})
+  selectedRangesModelColorChanged$connect(function(){qupdate(scene)})
+  pars$seqnameChanged$connect(function(){qupdate(scene)})
 })
 
 
