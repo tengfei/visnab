@@ -25,7 +25,7 @@ AlignmentView <- function(file = NULL,
                           rowSpan = 1L,
                           colSpan = 1L,
                           geom = c("oneside","twoside"),
-                          rescale = "geometry",
+                          rescale = "none",
                           ...){
 
   hd <- scanBamHeader(file)
@@ -34,8 +34,8 @@ AlignmentView <- function(file = NULL,
   pars <- GraphicPars(seqname = seqname, geom = geom[1],
                       seqlength = seqlength,
                       view = "AlignmentView")
-  obj <- AlignmentView.gen$new(track = NULL, file = file,
-                               row = row, col = col,
+  obj <- AlignmentView.gen$new(track = NULL, file = file, focusin = FALSE,
+                               row = row, col = col, selfSignal = FALSE,
                                rowSpan = rowSpan, colSpan = colSpan,
                                scene = scene, view = view,rootLayer = rootLayer,
                                thisLayer = thisLayer, outputRange = c(0, seqlength),
@@ -81,7 +81,15 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
   pfunAlign <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    outputRange <<- pars$xlimZoom 
+    ## outputRange <<- pars$xlimZoom 
+    if(!selfSignal){
+      outputRangeChanged$unblock()
+      outputRange <<- pars$xlimZoom 
+    }
+    if(selfSignal){
+      outputRangeChanged$block()
+      outputRange <<- pars$xlimZoom 
+    }
     pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
     if(diff(xlimZoom)>zoomLevel[1]){
@@ -202,6 +210,15 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
         }
         }
           }}
+keyOutFun <- function(layer, event){
+  focusin <<- FALSE
+}
+hoverEnterFun <- function(layer, event){
+  focusin <<- TRUE
+}
+hoverLeaveFun <- function(layer, event){
+  focusin <<- FALSE
+}
 
       thisLayer <<- qlayer(rootLayer,
                       paintFun = pfunAlign,
@@ -210,7 +227,11 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
                       rowSpan = rowSpan,
                       colSpan = colSpan,
                       wheelFun = wheelEventZoom(view),
-                      keyPressFun = keyPressEventZoom(.self, view, sy = 1))
+                      keyPressFun = keyPressEventZoom(.self, view, sy = 1,
+                        focusin = focusin),
+                           hoverEnterFun = hoverEnterFun,
+                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
+
       pars$ylim <<- c(-(cutbin*90+80),0)
       thisLayer$setLimits(qrect(pars$xlim, pars$ylim))
       pars$ylimChanged$connect(function(){
@@ -241,6 +262,7 @@ AlignmentView.gen$methods(regSignal = function(){
     pos.y <- mean(pars$ylim)
     pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
+    outputRange <<- pars$xlimZoom 
   })
   pars$geomChanged$connect(function(){
     qupdate(scene)

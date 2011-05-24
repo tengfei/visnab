@@ -28,7 +28,7 @@ TxdbView <- function(track,
                      rowSpan=1L,
                      colSpan=1L,
                      geom=c("full","dense"),
-                     rescale = "geometry",...){
+                     rescale = "none",...){
   if(is.null(genome)){
     cat("Set genome to hg19 automatically, please make sure it's the one you want\n")
     genome <- "hg19"
@@ -69,7 +69,7 @@ TxdbView <- function(track,
                           scene = scene,view = view,rootLayer = rootLayer,
                           thisLayer = thisLayer, 
                           introns = introns, fiveUTR = fiveUTR, threeUTR = threeUTR,
-                          cds = cds,tx = tx)
+                          cds = cds,tx = tx, selfSignal = FALSE, focusin = FALSE)
 
 
   ## add default attributes
@@ -108,6 +108,7 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL,
   
   start <- 0
   end <- seqlengths(track)[[seqname]]
+  pars$seqlength <<- end
   ## compute levels
   tx.sub <- tx[seqnames(tx)==seqname]
   tx_id <- values(tx.sub)$tx_id
@@ -202,7 +203,14 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL,
   drawfun <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    outputRange <<- pars$xlimZoom 
+    if(!selfSignal){
+      outputRangeChanged$unblock()
+      outputRange <<- pars$xlimZoom 
+    }
+    if(selfSignal){
+      outputRangeChanged$block()
+      outputRange <<- pars$xlimZoom 
+    }
     pars$xlimZoomChanged$unblock()
 
     if(pars$geom=="full"){
@@ -266,14 +274,44 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL,
               end(srm)[idx], 10, stroke = NA, fill = cols[idx])
   }
   }
-  thisLayer <<- qlayer(rootLayer, col = col, row = row,
+  keyOutFun <- function(layer, event){
+  focusin <<- FALSE
+}
+hoverEnterFun <- function(layer, event){
+  focusin <<- TRUE
+}
+hoverLeaveFun <- function(layer, event){
+  focusin <<- FALSE
+}
+
+  thisLayer <<- qlayer(rootLayer, drawfun, col = col, row = row,
                        rowSpan = rowSpan, colSpan = colSpan,
                        wheelFun= wheelEventZoom(view, sy = 1),
-                       keyPressFun = keyPressEventZoom(.self, view))
-
-  txLayer <- qlayer(thisLayer, drawfun,
-                       limits=qrect(pars$xlim[1],pars$ylim[1],
+                       keyPressFun = keyPressEventZoom(.self, view, focusin = focusin),
+                       hoverEnterFun = hoverEnterFun,
+                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
+  thisLayer$setLimits(qrect(pars$xlim[1],pars$ylim[1],
                          pars$xlim[2],pars$ylim[2]))
+  ## txLayer <- qlayer(thisLayer, drawfun,
+  ##                      limits=qrect(pars$xlim[1],pars$ylim[1],
+  ##                        pars$xlim[2],pars$ylim[2]))
+  
+
+
+  ## signal
+  pars$ylimChanged$connect(function(){
+    thisLayer$setLimits(qrect(pars$xlim,pars$ylim))
+  })
+  ## selectedRangesModelLayer <- qlayer(thisLayer, selectedRangesFun, row=1,
+  ##                          limits=qrect(pars$xlim[1],-5, pars$xlim[2],15))
+  ## layout <- thisLayer$gridLayout()
+  ## layout$setRowPreferredHeight(0,300)
+  ## layout$setRowPreferredHeight(1,50)
+  ## layout$setRowStretchFactor(0,1)
+  ## layout$setRowStretchFactor(1,0)
+})
+
+TxdbView.gen$methods(regSignal = function(){
   pars$xlimZoomChanged$connect(function(){
     zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
     ## then scale view
@@ -282,25 +320,9 @@ TxdbView.gen$methods(createView = function(seqname=NULL, geom=NULL,
     ## then center view
     pos.x <- mean(pars$xlimZoom)
     pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(txLayer$mapToScene(pos.x, pos.y))
+    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
   })
-
-
-  ## signal
-  pars$ylimChanged$connect(function(){
-    txLayer$setLimits(qrect(pars$xlim,pars$ylim))
-  })
-  selectedRangesModelLayer <- qlayer(thisLayer, selectedRangesFun, row=1,
-                           limits=qrect(pars$xlim[1],-5, pars$xlim[2],15))
-  layout <- thisLayer$gridLayout()
-  layout$setRowPreferredHeight(0,300)
-  layout$setRowPreferredHeight(1,50)
-  layout$setRowStretchFactor(0,1)
-  layout$setRowStretchFactor(1,0)
-})
-
-TxdbView.gen$methods(regSignal = function(){
   ## geom
   pars$geomChanged$connect(function(){
     qupdate(scene)
@@ -312,11 +334,12 @@ TxdbView.gen$methods(regSignal = function(){
     ## end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
     end <- seqlengths(track)[[pars$seqname]]
     pars$seqlength <<- end-start
+    ## pars$xlimZoom <<- c(0 ,end)
     ## selectedRange <<- c(start,end)
     thisLayer$close()
     view$resetTransform()
     .self$createView()
-    .self$regSignal()
+    ## .self$regSignal()
   })
   selectedRangesModelChanged$connect(function(){
     qupdate(scene)

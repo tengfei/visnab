@@ -37,7 +37,7 @@ SingleChromView <- function(track,  genome=NULL,
                       geom = geom[1], view = "SingleChromView")
   obj <- SingleChromView.gen$new(track = track,pars = pars,scene = scene,
                                  view = view,rootLayer = rootLayer,
-                                 thisLayer = thisLayer,
+                                 thisLayer = thisLayer,focusin = FALSE,
                                  row = row, col = col, outputRange = c(0, seqlength),
                                  rowSpan = rowSpan, colSpan = colSpan)
   ## connected events
@@ -129,11 +129,28 @@ SingleChromView.gen$methods(createView = function(seqname=NULL,
     outputRange <<- pars$xlimZoom
   }
   lth <- max(end(track[seqnames(track)==pars$seqname]))
+  keyOutFun <- function(layer, event){
+  focusin <<- FALSE
+}
+hoverEnterFun <- function(layer, event){
+  focusin <<- TRUE
+}
+hoverLeaveFun <- function(layer, event){
+  focusin <<- FALSE
+}
+
+ keyPressEvent <- function(layer, event){
+   focusin <<- TRUE
+ }
+  
   thisLayer <<- qlayer(rootLayer, pfunChrom,
                        limits=qrect(-0.1*lth,-35,1.1*lth,45),cache = TRUE,
                        ## geometry=qrect(0,0,600,100),
                        row = row, col = col,
-                       rowSpan = rowSpan, colSpan = colSpan) 
+                       rowSpan = rowSpan, colSpan = colSpan,
+                       keyPressFun = keyPressEvent,
+                       hoverEnterFun = hoverEnterFun,
+                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun) 
   ## thislayer$setAcceptedMouseButtons(0)
   ## thisLayer$setAcceptedHoverEvents(FALSE)
   rectLayer <- qlayer(rootLayer, pfunRect,

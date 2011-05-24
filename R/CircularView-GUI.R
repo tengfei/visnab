@@ -62,7 +62,7 @@ setMethod("visnabGUI","CircularView",function(obj,...){
   grandWidget <- Qt$QWidget()
   grandWidget$setLayout(layout)
   grandWidget$setGeometry(0,0,800,900)
-  ## obj$show()
+  obj$show()
   grandWidget$show()
 })
 

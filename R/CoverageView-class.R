@@ -25,7 +25,7 @@ CoverageView <- function(file = NULL,
                          rowSpan = 1L,
                          colSpan = 1L,
                          geom = c("total"),
-                         rescale = "geometry",
+                         rescale = "none",
                          ...){
 
 
@@ -38,8 +38,8 @@ CoverageView <- function(file = NULL,
                       seqlength = seqlength,
                       view = "AlignmentView")
 
-  obj <- CoverageView.gen$new(track = NULL, file = file,
-                               row = row, col = col,
+  obj <- CoverageView.gen$new(track = NULL, file = file, focusin = FALSE,
+                               row = row, col = col, selfSignal = FALSE,
                                rowSpan = rowSpan, colSpan = colSpan,
                                scene = scene, view = view,rootLayer = rootLayer,
                                thisLayer = thisLayer, outputRange = c(0, seqlength),
@@ -115,7 +115,16 @@ CoverageView.gen$methods(createView = function(seqname = NULL,
   pfunCov <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    outputRange <<- pars$xlimZoom 
+    ## outputRange <<- pars$xlimZoom 
+    if(!selfSignal){
+      outputRangeChanged$unblock()
+      outputRange <<- pars$xlimZoom 
+    }
+    if(selfSignal){
+      outputRangeChanged$block()
+      outputRange <<- pars$xlimZoom 
+    }
+      
     pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
 
@@ -166,11 +175,23 @@ CoverageView.gen$methods(createView = function(seqname = NULL,
       }}
       
   }
-  
+
+keyOutFun <- function(layer, event){
+  focusin <<- FALSE
+}
+hoverEnterFun <- function(layer, event){
+  focusin <<- TRUE
+}
+hoverLeaveFun <- function(layer, event){
+  focusin <<- FALSE
+}
   thisLayer <<- qlayer(rootLayer, paintFun=pfunCov,
                    row=row,  col=col, rowSpan=rowSpan, colSpan=colSpan,
                       wheelFun = wheelEventZoom(view),
-                      keyPressFun = keyPressEventZoom(.self, view, sy = 1))
+                      keyPressFun = keyPressEventZoom(.self, view, sy = 1,
+                        focusin = focusin),
+                       hoverEnterFun = hoverEnterFun,
+                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
     thisLayer$setLimits(qrect(pars$xlim, pars$ylim))
     pars$ylimChanged$connect(function(){
       thisLayer$setLimits(qrect(pars$xlim, pars$ylim))
@@ -197,6 +218,7 @@ CoverageView.gen$methods(regSignal = function(){
     pos.y <- mean(pars$ylim)
     pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
+    outputRange <<- pars$xlimZoom 
   })
   pars$geomChanged$connect(function(){
     qupdate(scene)

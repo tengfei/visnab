@@ -1,7 +1,10 @@
 ## keyPressEventZoom
-keyPressEventZoom <- function(obj, view, sx = 1.5, sy = 1.5, browser = TRUE){
+keyPressEventZoom <- function(obj, view, sx = 1.5, sy = 1.5,
+                              browser = TRUE, focusin = focusin){
+
   if(missing(obj)){
     function(layer, event){
+      focusin <<- TRUE
       if(event$modifiers() == Qt$Qt$ControlModifier){
         if(event$key() == Qt$Qt$Key_Equal)
           view$scale(sx, sy)
@@ -20,6 +23,7 @@ keyPressEventZoom <- function(obj, view, sx = 1.5, sy = 1.5, browser = TRUE){
       }
     }}else{
       function(layer, event){
+        focusin <<- TRUE
         if(event$modifiers() == Qt$Qt$ControlModifier){
           if(event$key() == Qt$Qt$Key_Equal)
             view$scale(sx, sy)
@@ -51,4 +55,6 @@ wheelEventZoom <- function(view, sx = 2, sy = 1){
     view$scale(sx, sy)
   }
 }
+
+
 

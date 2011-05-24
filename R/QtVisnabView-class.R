@@ -2,7 +2,7 @@
 ##             For class "QtVisnabView"
 ##----------------------------------------------------------##
 QtVisnabView.gen <- setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
-                                fields=list(
+                                fields=c(
                                   scene = "QGraphicsSceneORNULL",
                                   view = "Qanviz::PlotViewORNULL",
                                   rootLayer = "Qanviz::RLayerORNULL",
@@ -10,5 +10,6 @@ QtVisnabView.gen <- setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL
                                   row = "integer",
                                   col = "integer",
                                   rowSpan = "integer",
-                                  colSpan = "integer"))
+                                  colSpan = "integer",
+                                  signalingField("focusin","logicalORNULL")))
 

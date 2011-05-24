@@ -20,4 +20,5 @@ setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("characterORNULL", c("character", "NULL"))
 setClassUnion("vectorORNULL", c("vector","NULL"))
 setClassUnion("functionORNULL", c("function","NULL"))
+setClassUnion("logicalORNULL", c("logical","NULL"))
 

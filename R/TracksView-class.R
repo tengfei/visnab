@@ -4,9 +4,10 @@
 
 TracksView.gen <- setRefClass("TracksView",
                               contains="QtVisnabView",
-                              fields=list(track="list",
+                              fields=c(track="list",
                                win="QMainWindowORNULL",
-                                emit.id = "numericORNULL"))
+                                signalingField("emit.id" , "numericORNULL")))
+
 
 TracksView <- function(..., seqname="chr1"){
   track <- list(...)
@@ -15,7 +16,8 @@ TracksView <- function(..., seqname="chr1"){
   ## grand scene
   pars <- GraphicPars(seqname = seqname, xlimZoom = c(0, seqlength),
                       view = "TracksView")
-  obj <- TracksView.gen$new(track=track,pars=pars, win = NULL, emit.id = NULL)
+  obj <- TracksView.gen$new(track=track,pars=pars, win = NULL,
+                            selfSignal = TRUE, emit.id = 0)
 
   obj$createView()
   return(obj)
@@ -29,8 +31,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   win <<- Qt$QMainWindow()
   win$resize(size[1],size[2])
   lapply(1:length(lst),function(i){
-    objo <- lst[[i]]
-    cls <- class(objo)
+    cls <- class(lst[[i]])
     trackname <- cls
     ## track <- qplotView(scene,rescale="transform")
     ## track$setSceneRect(0,(i-1)*newh,xlim[1],newh*i)
@@ -43,39 +44,27 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     }
     dw$setAllowedAreas(Qt$Qt$LeftDockWidgetArea|
                        Qt$Qt$RightDockWidgetArea)
-    dw$setWidget(objo$view)
+    dw$setWidget(lst[[i]]$view)
     pars$seqnameChanged$connect(function(){
-      objo$pars$seqname <- pars$seqname
+      lst[[i]]$pars$seqname <- pars$seqname
     })
-
-    castup <- function(){
-      emit.id <<- i
+    lst[[i]]$focusinChanged$connect(function(){
       other.id <- setdiff(1:length(lst),i)
-      ## every time cast up, need to block other output
-      lapply(other.id,function(i) {
-        lst[[i]]$outputRangeChanged$block()
+      lst[[i]]$selfSignal <- FALSE
+      sapply(other.id, function(n){
+        lst[[n]]$selfSignal <- TRUE
       })
-      pars$xlimZoom <<- objo$outputRange
-      ## unblock
-      lapply(other.id,function(i) {
-        lst[[i]]$outputRangeChanged$unblock()
+    })
+    lst[[i]]$outputRangeChanged$connect(function(){
+      pars$xlimZoom <<- lst[[i]]$pars$xlimZoom
+    })
+    pars$xlimZoomChanged$connect(function(){
+      sapply(1:length(lst),function(n){
+        lst[[n]]$pars$xlimZoom <- pars$xlimZoom
       })
-    }
-    sig <- objo$outputRangeChanged$connect(castup)
+    })
     win$addDockWidget(Qt$Qt$RightDockWidgetArea,dw,Qt$Qt$Vertical)
   })
-  pars$xlimZoomChanged$connect(function(){
-    if(!is.null(emit.id)){
-    other.id <- setdiff(1:length(lst), emit.id)
-      ## only edit other xlimzoom
-      lapply(other.id,function(i) {
-        lst[[i]]$outputRangeChanged$block()
-        lst[[i]]$pars$xlimZoom <- pars$xlimZoom
-        lst[[i]]$outputRangeChanged$unblock()
-      })
-  }
-  })
-
 })
 
 

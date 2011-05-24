@@ -19,7 +19,7 @@ SeqView <- function(track,
                     col=0L,
                     rowSpan=1L,
                     colSpan=1L,
-                    rescale = "geometry",
+                    rescale = "none",
                     ...){
 
 
@@ -28,14 +28,16 @@ SeqView <- function(track,
   start <- 0
   end <- length(track[[seqname]])
   xlimZoom <- c(start,end)
+  seqlength <- end
   if(extends(class(track),"GRanges"))
     track <- as(track,"MutableGRanges")
   pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname,
+                      seqlength = seqlength,
                       view = "SeqView")
-  obj <- SeqView.gen$new(track=track,pars=pars, thisLayer = thisLayer,
+  obj <- SeqView.gen$new(track=track,pars=pars, thisLayer = thisLayer, focusin = FALSE,
                          row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
                          scene=scene,view=view,rootLayer=rootLayer, 
-                         outputRange = xlimZoom)
+                         outputRange = xlimZoom, selfSignal = FALSE)
   obj$createView(rescale = rescale)
   obj$regSignal()
   obj
@@ -63,16 +65,24 @@ SeqView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
   qcol <- col2qcol(bgcol,bgalpha)
   scene$setBackgroundBrush(qbrush(qcol))
   ## set zoomLevels, this is not exposed to users
-  zoomLevels <- c(5000,100,1)
+  zoomLevels <- c(10000,500,1)
   h <- 10
   lengths <- diff(pars$xlimZoom)
+  pars$seqlength <<- lengths
   dna <- track[[seqname]]
   ## Unfinished
   pfunSeq <- function(layer,painter,exposed){
     ## level1:draw gray bars
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    outputRange <<- pars$xlimZoom 
+    if(!selfSignal){
+      outputRangeChanged$unblock()
+      outputRange <<- pars$xlimZoom 
+    }
+    if(selfSignal){
+      outputRangeChanged$block()
+      outputRange <<- pars$xlimZoom 
+    }
     pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
     if(diff(xlimZoom)>zoomLevels[1]){
@@ -109,10 +119,24 @@ SeqView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
                 color=cols)
      }
   }
-  layer <- qlayer(rootLayer, pfunSeq, row=row, col=col, rowSpan=rowSpan, colSpan=colSpan,
-                   keyPressFun=keyPressEventZoom(track, view, sy = 1),
-                   wheelFun=wheelEventZoom(view))
-  layer$setLimits(qrect(pars$xlimZoom[1],0,pars$xlimZoom[2],h))
+  keyOutFun <- function(layer, event){
+  focusin <<- FALSE
+}
+hoverEnterFun <- function(layer, event){
+  focusin <<- TRUE
+}
+hoverLeaveFun <- function(layer, event){
+  focusin <<- FALSE
+}
+
+  thisLayer <<- qlayer(rootLayer, pfunSeq, row=row, col=col,
+                       rowSpan=rowSpan, colSpan=colSpan,
+                   keyPressFun=keyPressEventZoom(track, view, sy = 1,
+                     focusin = focusin),
+                   wheelFun=wheelEventZoom(view),
+                       hoverEnterFun = hoverEnterFun,
+                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
+  thisLayer$setLimits(qrect(pars$xlimZoom[1],0,pars$xlimZoom[2],h))
   ## layer$setGeometry(0,0,600,100)
 })
 
@@ -129,17 +153,27 @@ SeqView.gen$methods(regSignal = function(){
   ## pars$geomChanged$connect(function(){
   ##   qupdate(scene)
   ## })
-  ##FIXME: need to be fixed
   pars$seqnameChanged$connect(function(){
     start <- 0
-    end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
+    end <- length(track[[pars$seqname]])
     pars$seqlength <<- end-start
+    pars$xlimZoom <<- c(0, end)
     thisLayer$close()
     view$resetTransform()
     .self$createView()
-    .self$regSignal()
+    ## .self$regSignal()
   })
-
+  pars$xlimZoomChanged$connect(function(){
+    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    ## then scale view
+    view$resetTransform()
+    view$scale(1/zoom_factor, 1)
+    ## then center viewr
+    pos.x <- mean(pars$xlimZoom)
+    pos.y <- mean(pars$ylim)
+    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
+    view$centerOn(pos.scene[1], pos.scene[2])
+  })
   pars$bgColorChanged$connect(function(){
     bgcol <- pars$bgColor
     bgalpha <- pars$alpha

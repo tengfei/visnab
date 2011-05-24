@@ -7,11 +7,12 @@ VisnabView.gen <- setRefClass("VisnabView",contains="VIRTUAL",
                                 signalingField("selectedRangesModel", "MutableGRanges"),
                                 signalingField("selectedRangesModelColor", "character"),
                                 signalingField("genome", "character"),
-                                signalingField("outputRange", "numericORNULL")
+                                signalingField("outputRange", "numericORNULL"),
+                                signalingField("selfSignal", "logical")
                                 ))
 
 
-## return current graphics pars
+
 ## FIXME: This should return more defined fields
 setMethod("aes", "VisnabView", function(x){
   cat("Graphic Parameters:\n")
@@ -63,8 +64,11 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     if(substr(as.character(seqname),1,3) != "chr")
       stop("Please follow the routine when naming the seqnames,
             with prefix 'chr',such as chr1, chrX ...")
-    x$pars$seqname <- seqname
-    x$pars$xlimZoom <- c(start(value), end(value))
+    ## x$pars$xlimZoomChanged$block()
+    ## x$pars$seqname <- seqname
+    range(x) <- seqname
+    ## x$pars$xlimZoomChanged$unblock()
+    range(x) <- c(start(value), end(value))
   }
   x
 })
