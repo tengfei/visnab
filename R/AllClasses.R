@@ -7,6 +7,7 @@ setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 
 setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 
+setOldClass("mutalist")
 setOldClass("QGraphicsScene")
 setOldClass("QGraphicsView")
 setOldClass("Qanviz::RLayer")
