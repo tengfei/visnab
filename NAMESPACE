@@ -18,6 +18,7 @@ exportMethods(removePrefix,
               "geom<-",
               aes)
 
+
 exportClasses(GraphicPars,
               VisnabView,
               QtVisnabView,
@@ -34,7 +35,9 @@ exportClasses(GraphicPars,
               MutableGRangesORGRanges,
               characterORNULL,
               numericORNULL,
-              functionORNULL)
+              functionORNULL,
+              VisnabViewList,
+              VisnabProject)
 
 ## ## Constructor
 export(GraphicPars,
@@ -44,7 +47,9 @@ export(GraphicPars,
        SeqView,
        StackedView,
        TracksView,
-       TxdbView)
+       TxdbView,
+       VisnabViewList,
+       VisnabProject)
 
 ## ## utils method
 export("getIdeogram")
@@ -54,7 +59,7 @@ export("getIdeogram")
 ## import(methods)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
-importFrom(plumbr, signalingField, mutaframe, Signal)
+importFrom(plumbr, signalingField, mutaframe, Signal, mutalist)
 importClassesFrom(plumbr, Signal)
 ## scales
 importFrom(scales, rescale, alpha, area_pal, brewer_pal,

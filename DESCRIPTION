@@ -28,6 +28,9 @@ Collate: AllClasses.R
 	 StackedView-class.R
 	 TxdbView-class.R
 	 TracksView-class.R
+	 Painter-class.R
+	 VisnabViewList-class.R
+	 VisnabProject-class.R
 	 theme.R
 	 theme-default.R
 	 CircularView-GUI.R
