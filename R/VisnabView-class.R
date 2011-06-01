@@ -1,14 +1,12 @@
 ##------------------------------------------------------------##
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
-VisnabView.gen <- setRefClass("VisnabView",contains="VIRTUAL",
-                              fields=c(
-                                pars="GraphicPars",
-                                signalingField("selectedRangesModel", "MutableGRanges"),
-                                signalingField("selectedRangesModelColor", "character"),
-                                signalingField("genome", "character"),
-                                signalingField("outputRange", "numericORNULL"),
-                                signalingField("selfSignal", "logical")
+
+VisnabView.gen <- setRefClass("VisnabView",contains = "VIRTUAL",
+                              fields = c(
+                                pars = "GraphicPars",
+                                signalingField("focusin","logicalORNULL"),
+                                colorLegend = "ColorLegendList"
                                 ))
 
 
@@ -27,7 +25,11 @@ setMethod("aes", "VisnabView", function(x){
 
 
 setMethod("show","VisnabView",function(object){
-  show(object$pars)
+  cat("VisnabView object\n")
+  cat("-------------------------\n")
+  cat("Run show(object$pars) to read more details about graphic parameters
+       associated with this object\n")
+  ## show(object$pars)
 })
 
 setMethod("range", "VisnabView", function(x,...){
@@ -107,6 +109,9 @@ setReplaceMethod("range", "VisnabView", function(x, value){
 ##   x
 ## })
 
+## ----------------------------------------------------------------------
+## following stuff need to be changed and made more general
+## ----------------------------------------------------------------------
 
 setMethod("selectedRangesModel", "VisnabView", function(obj, ...){
   print(obj$selectedRangesModel)
@@ -142,7 +147,6 @@ setMethod("+", "VisnabView", function(e1, e2){
     invisible(e1)
   }
 })
-
 
 
 setMethod("viewInBrowser","VisnabView",function(obj, genome, browser = "UCSC"){
