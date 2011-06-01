@@ -20,6 +20,8 @@ exportMethods(removePrefix,
 
 
 exportClasses(GraphicPars,
+              ColorLegend,
+              ColorLegendList,
               VisnabView,
               QtVisnabView,
               CircularView,
