@@ -28,7 +28,8 @@ CircularView <- function(grl,
                          rootLayer=NULL,
                          row=0L,
                          col=0L,
-                         .sectorText=TRUE){
+                         .sectorText=TRUE,
+                         rescale = "none"){
   
   ## check if list element is MutableRanges
   pars <- GraphicPars(bgColor="black",fill="gray80",fgColor="gray80")
@@ -82,16 +83,16 @@ CircularView <- function(grl,
                               chrOrder=chro, scene=scene, row=row, col=col,
                               view=view, rootLayer=rootLayer,
                               .sectorText=.sectorText)
-  obj$createView()
+  obj$createView(rescale = rescale)
   obj
 }
 
 
-CircularView.gen$methods(createView = function(seqname=NULL){
+CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
   ## graphic device
   if(is.null(scene)){
     scene <<- qscene()
-    view <<- qplotView(scene,rescale="none")
+    view <<- qplotView(scene,rescale = rescale)
     view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
     rootLayer <<- qlayer(scene,
                   ## limits=qrect(c(-len,len),c(-len,len)),

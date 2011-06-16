@@ -2,73 +2,82 @@
 ## Utils for GenomicaRanges
 ## ------------------------------------------------------------
 
-setMethod('addLevels','MutableGRanges',function(mr,...){
-  gr <- as(mr,"GenomicRanges")
-  gr.lst <- split(gr,as.character(seqnames(gr)))
-  lv <- unname(lapply(gr.lst,function(x){
+## setMethod('addLevels','MutableGRanges',function(obj,...){
+##   gr <- as(obj,"GenomicRanges")
+##   gr.lst <- split(gr,as.character(seqnames(gr)))
+##   lv <- unname(lapply(gr.lst,function(x){
+##     values(x)$.level <- as.numeric(disjointBins(ranges(x)))
+##     x
+##   }))
+##   gr <- do.call("c",lv)
+##   obj <- as(gr,"MutableGRanges")
+## })
+
+setMethod('addLevels','GenomicRanges',function(obj,...){
+  obj.lst <- split(obj,as.character(seqnames(obj)))
+  lv <- unname(lapply(obj.lst,function(x){
     values(x)$.level <- as.numeric(disjointBins(ranges(x)))
     x
   }))
-  gr <- do.call("c",lv)
-  mr <- as(gr,"MutableGRanges")
+  obj <- do.call("c",lv)
 })
 
 
 
-setMethod('removePrefix','GenomicRanges',function(gr,rm.prefix){
-  seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
-  gr
+setMethod('removePrefix','GenomicRanges',function(obj,rm.prefix){
+  seqnames(obj) <- gsub(rm.prefix,'',as.character(seqnames(obj)))
+  obj
 })
 
-setMethod('removePrefix','MutableGRanges',function(gr,rm.prefix){
-  seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
-  gr
-})
+## setMethod('removePrefix','MutableGRanges',function(gr,rm.prefix){
+##   seqnames(gr) <- gsub(rm.prefix,'',as.character(seqnames(gr)))
+##   gr
+## })
 
 
 
 
-setMethod('addPrefix','GenomicRanges',function(gr,add.prefix){
-  seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
-  vl <- values(gr)
+setMethod('addPrefix','GenomicRanges',function(obj,add.prefix){
+  seqnames(obj) <- paste(add.prefix,as.character(seqnames(obj)),sep='')
+  vl <- values(obj)
   if('to.chr' %in% names(vl)){
-    values(gr)$to.chr <- paste(add.prefix,values(gr)$to.chr,sep='')
+    values(obj)$to.chr <- paste(add.prefix,values(obj)$to.chr,sep='')
   }
-  gr
+  obj
 })
 
-setMethod('addPrefix','MutableGRanges',function(gr,add.prefix){
-  seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
-  vl <- values(gr)
-  if('to.chr' %in% names(vl)){
-    values(gr)$to.chr <- paste(add.prefix,values(gr)$to.chr,sep='')
-  }
-  gr
-})
+## setMethod('addPrefix','MutableGRanges',function(gr,add.prefix){
+##   seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
+##   vl <- values(gr)
+##   if('to.chr' %in% names(vl)){
+##     values(gr)$to.chr <- paste(add.prefix,values(gr)$to.chr,sep='')
+##   }
+##   gr
+## })
 
 
 
 setMethod('validateChr',c('GenomicRanges'),
-          function(gr,model,...){
+          function(obj,model,...){
             if(inherits(class(model),'GenomicRanges'))
               chrset <- unique(as.character(seqnames(model)))
             else
               chrset <- model
-            chr <- as.character(seqnames(gr))
-            gr <- gr[chr %in% chrset]
-            return(gr)
+            chr <- as.character(seqnames(obj))
+            obj <- obj[chr %in% chrset]
+            return(obj)
           })
 
-setMethod('validateChr',c('MutableGRanges'),
-          function(gr,model,...){
-            if(inherits(class(model),'MutableGRanges'))
-              chrset <- unique(as.character(seqnames(model)))
-            else
-              chrset <- model
-            chr <- as.character(seqnames(gr))
-            gr <- gr[chr %in% chrset]
-            return(gr)
-          })
+## setMethod('validateChr',c('MutableGRanges'),
+##           function(gr,model,...){
+##             if(inherits(class(model),'MutableGRanges'))
+##               chrset <- unique(as.character(seqnames(model)))
+##             else
+##               chrset <- model
+##             chr <- as.character(seqnames(gr))
+##             gr <- gr[chr %in% chrset]
+##             return(gr)
+##           })
 
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
@@ -416,5 +425,86 @@ IMessage <- function(..., scene=.indicatorScene,
 }
 
 ## IMessage()
+
+
+## pileup function
+## this should be one of the filter function? or compute method for bam file?
+## A second take on the tally stuff using Rsamtools
+
+pileupAsGRanges <- function(bams, regions,
+                            samBases = c(A = 2, C = 3, G = 5, T = 9),...) {
+  pileupFiles <- PileupFiles(bams)
+  pileupParams <- PileupParam(which = regions, ...)
+
+  bamNames <- names(bams)
+  if (is.null(bamNames))
+    bamNames <- bams
+  pileupFun <- function(x) {
+    seq <- x$seq[samBases,,]
+    ## dim(seq) <- c(nrow(seq), ncol(seq) * dim(seq)[3])
+    rownames(seq) <- names(samBases)
+    GRanges(rep(names(x$seqnames), each = length(bams)),
+            IRanges(rep(x$pos, each = length(bams)), width = 1),
+            "+",
+            t(seq),
+            depth = colSums(seq), bam = bamNames)
+  }
+  gr <- do.call(c, applyPileups(pileupFiles, pileupFun, param = pileupParams))
+  ## strand(gr) <- rep(strand(regions), width(regions) * length(bams))
+  rc <- strand(gr) == "-"
+  if(sum(rc) > 0)
+    values(gr)[rc, DNA_BASES] <-
+      values(gr)[rc, as.character(complement(DNAStringSet(DNA_BASES)))]
+  gr
+}
+
+
+pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES) {
+  refBases <- unlist(as.character(getSeq(genome, gr)), use.names=FALSE)
+  ## df <- as.data.frame(values(gr))
+  if(missing(DNA_BASES)){
+    .reservedNames <- c("depth","bam")
+    DNA_BASES <- setdiff(colnames(gr), .reservedNames)
+  }
+  counts <- as.matrix(as.data.frame(values(gr)[,DNA_BASES]))
+  ## counts <- as.data.frame(values(gr)[,DNA_BASES])
+  refCounts <- counts[cbind(seq(nrow(counts)), match(refBases, DNA_BASES))]
+  ## if(type == "long"){
+    variantsForBase <- function(base) {
+      baseCounts <- counts[,base, drop=TRUE]
+      keep <- baseCounts > 0
+      count <- baseCounts[keep]
+      seqnames <- rep(seqnames(gr)[keep], times = count)
+      ## FIXME: this id should be id for single read
+      seqid <- do.call(c,lapply(count,function(x) 1:x))
+      starts <- rep(start(gr)[keep], times = count)
+      ends <- rep(end(gr)[keep], times = count)
+      ranges <- IRanges(starts, ends)
+      strand <- rep(strand(gr)[keep], times = count)
+      ref <- rep(refBases[keep], times = count)
+      ## values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)]
+      GRanges(seqnames, ranges, strand,
+              seqid = seqid,
+              ref = ref,
+              read = rep(base,length(seqnames)))
+     }
+    ## obj <- do.call(c, apply(counts, 2, variantsForBase))
+    return(do.call(c, lapply(colnames(counts), variantsForBase)))
+  ## }
+  ## if(type == "sumlong"){
+  ##   variantsForBase <- function(base) {
+  ##     baseCounts <- counts[,base, drop=TRUE]
+  ##     keep <- baseCounts > 0
+  ##     count <- baseCounts[keep]
+  ##     keep <- baseCounts > 0
+  ##     GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
+  ##             ref = refBases[keep], read = base, count = baseCounts[keep],
+  ##             count.ref = refCounts[keep],
+  ##             values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
+  ##   }
+  ##   return(do.call(c, lapply(colnames(counts), variantsForBase)))
+  ## }
+}
+
 
 

@@ -11,5 +11,9 @@ QtVisnabView.gen <- setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL
                                   col = "integer",
                                   rowSpan = "integer",
                                   colSpan = "integer",
-                                  signalingField("focusin","logicalORNULL")))
+                                  genome = "character",
+                                  signalingField("selectedRangesModel", "MutableGRanges"),
+                                  signalingField("selectedRangesModelColor", "character"),
+                                  signalingField("outputRange", "numericORNULL"),
+                                  signalingField("selfSignal", "logical")))
 

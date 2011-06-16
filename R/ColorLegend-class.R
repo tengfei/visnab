@@ -47,7 +47,7 @@ setMethod("print", "ColorLegend", function(x, graphics = FALSE){
 ## utils
 genLegend <- function(gr, color, title, 
                      cscale.pal = div_gradient_pal(),
-                     dscale.pal = brewer_pal(),
+                     dscale.pal = hue_pal(),
                      breaks = pretty_breaks(),
                      labels = scientific_format()){
   if(missing(title))

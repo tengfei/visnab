@@ -4,6 +4,7 @@
   def <- VisnabView <- list(bgColor = "white",
                             fgColor = "black",
                             textColor = "black",
+                            color = I("red"),
                             fill = "black",
                             stroke = "black",
                             alpha = 1,

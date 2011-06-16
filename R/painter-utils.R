@@ -1,3 +1,7 @@
+##----------------------------------------------------------------------
+##  These utils should be moved to qtpaint later
+##----------------------------------------------------------------------
+
 qglyphArrow <- function(x = 6, direction = c("left", "right")){
   dirs <- match.arg(direction)
   if(direction == "right")
@@ -58,6 +62,10 @@ qglyphCurveBundle <- function(startpoint1,controlpoint1,endpoint1,
   glyph
 }
 
+##----------------------------------------------------------------------
+##  own defined palletes
+##----------------------------------------------------------------------
+
 bluered_pal <- function(){
   function(x){
     x <- cscale(x,rescale_pal())
@@ -81,3 +89,5 @@ blackred_pal <- function(){
     col <- rgb(x,0,0)
   }
 }
+
+

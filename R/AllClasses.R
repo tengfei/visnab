@@ -1,11 +1,12 @@
-setClassUnion("MutableGRangesORGRanges",c("MutableGRanges","GRanges"))
+setOldClass("AsIs")
+setClassUnion("AsIsORcharacter", c("AsIs","character"))
 
 setOldClass("QWidget")
 setOldClass("QMainWindow")
 setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
 setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 
-setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
+## setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 
 setOldClass("mutalist")
 setOldClass("QGraphicsScene")
@@ -19,7 +20,6 @@ setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
 
 setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("characterORNULL", c("character", "NULL"))
-setClassUnion("vectorORNULL", c("vector","NULL"))
 setClassUnion("functionORNULL", c("function","NULL"))
 setClassUnion("logicalORNULL", c("logical","NULL"))
 

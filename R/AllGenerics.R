@@ -20,12 +20,12 @@ setGeneric("aes",function(x,...) standardGeneric("aes"))
 setGeneric("viewInBrowser",function(obj,...) standardGeneric("viewInBrowser"))
 
 
-setGeneric("addLevels",function(mr,...) standardGeneric("addLevels"))
+setGeneric("addLevels",function(obj,...) standardGeneric("addLevels"))
 
-setGeneric("removePrefix",function(gr,...) standardGeneric("removePrefix"))
-setGeneric("addPrefix",function(gr,...) standardGeneric("addPrefix"))
+setGeneric("removePrefix",function(obj,...) standardGeneric("removePrefix"))
+setGeneric("addPrefix",function(obj,...) standardGeneric("addPrefix"))
 
-setGeneric("validateChr",function(gr,...) standardGeneric("validateChr"))
+setGeneric("validateChr",function(obj,...) standardGeneric("validateChr"))
 setGeneric("sortChr",function(obj,...) standardGeneric("sortChr"))
 setGeneric("orderChr",function(obj,...) standardGeneric("orderChr"))
 setGeneric("replaceChr",function(obj,...) standardGeneric("replaceChr"))
