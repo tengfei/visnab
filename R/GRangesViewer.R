@@ -71,7 +71,7 @@ qsetClass("SearchBar", Qt$QLineEdit, function(gr, ref = NULL, parent = NULL)
   this$gr <- gr; this$ref <- ref
 
   names <- levels(seqnames(gr))
-  metadata <- unique(unlist(sapply(values(ref),as.character)))
+  metadata <- unique(unlist(sapply(values(gr),as.character)))
   namesRef <- NULL
   metadataRef <- NULL
   if(!is.null(ref)) {
@@ -145,6 +145,8 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
     in.names <- grep(text,grNames)
     metaData <- unlist(sapply(values(gr),as.character))
     in.metadata <- grep(text,metaData)
+    in.namesRef <- NULL
+    in.metadataRef <- NULL
     if(!is.null(ref)) {
       namesReference <- levels(seqnames(ref))
       in.namesRef <- grep(text,namesReference)
@@ -153,8 +155,8 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
     }
     if(length(in.names) > 0) {
       grSubset <- gr[seqnames(gr) == text]
-      minLoc <- min(start(grSubset))
-      maxLoc <- max(end(grSubset))
+      minLoc <- min(IRanges::start(grSubset))
+      maxLoc <- max(IRanges::end(grSubset))
 
       # return GRanges object with relevant sequence
       this$searchRange <- GRanges(seqnames =
@@ -206,7 +208,8 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
                           IRanges::start(grSubset),"-",
                           IRanges::end(grSubset),collapse="; ",sep=""))
     } else {
-      setText("Error: search string not recognized")
+      setText("")
+      setPlaceholderText("Error: search string not recognized")
       this$searchRange <- NULL
     }
   }
