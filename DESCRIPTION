@@ -36,4 +36,6 @@ Collate: AllClasses.R
 	 theme.R
 	 theme-default.R
 	 CircularView-GUI.R
+	 GRangesViewer-GUI.R
+	 SearchBar-GUI.R
 	 zzz.R
