@@ -7,7 +7,7 @@ Maintainer: Tengfei Yin <yintengfei@gmail.com>
 Depends: methods, utils, stats
 Imports: methods, utils, stats, IRanges, GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales, BSgenome, objectSignals
 License: GPL (>=2)
-LazyLoad: Yes
+LazyLoad: no
 Collate: AllClasses.R
 	 AllGenerics.R
 	 visnab.R
