@@ -9,7 +9,8 @@ importFrom(plumbr, mutaframe, mutalist)
 import(qtbase)
 import(qtpaint)
 import(scales)
-
+## Biobase
+importClassesFrom(Biobase, AssayData)
 
 ##IRanges
 ## importClassesFrom(IRanges, IRanges, Rle)
@@ -30,6 +31,8 @@ importMethodsFrom(IRanges,
                   aggregate, append,
                   colnames, "colnames<-", lapply)
 
+importClassesFrom(IRanges, AsIs)
+
 ## ## GenomicRanges
 importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList)
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
@@ -49,7 +52,7 @@ importClassesFrom(MutableRanges, MutableGRanges)
 
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
-## importMethodsFrom(BSgenome, getSeq)
+importMethodsFrom(BSgenome, getSeq)
 
 ## GenomicFeatures
 importClassesFrom(GenomicFeatures,TranscriptDb)
@@ -112,9 +115,12 @@ exportClasses(GraphicPars,
               VisnabViewList,
               VisnabProject)
 
-exportClasses(characterORNULL,
-              numericORNULL,
-              functionORNULL)
+## exportClasses(characterORNULL,
+##               numericORNULL,
+##               functionORNULL)
+
+
+
 
 
 
@@ -135,4 +141,4 @@ export(GraphicPars,
 export("getIdeogram")
 
 ## for temporary
-exportPattern("^[^\\.]")
+## exportPattern("^[^\\.]")

@@ -1,4 +1,3 @@
-setOldClass("AsIs")
 setClassUnion("AsIsORcharacter", c("AsIs","character"))
 
 setOldClass("QWidget")
@@ -6,7 +5,7 @@ setOldClass("QMainWindow")
 setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
 setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 
-## setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
+setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 
 setOldClass("mutalist")
 setOldClass("QGraphicsScene")
