@@ -5,9 +5,9 @@ Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which 
 Author: Tengfei Yin, Michael Lawrence, Jason Crowley, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
 Depends: methods, utils, stats
-Imports: methods, utils, stats, IRanges, GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase, qtpaint, plumbr, scales, BSgenome, objectSignals
+Imports: methods, utils, stats, IRanges, GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-16), qtpaint, plumbr, scales, BSgenome, objectSignals
 License: GPL (>=2)
-LazyLoad: no
+LazyLoad: Yes
 Collate: AllClasses.R
 	 AllGenerics.R
 	 visnab.R
