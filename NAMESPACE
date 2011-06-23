@@ -5,6 +5,7 @@
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
 importFrom(objectSignals, signalingField, Signal)
+importClassesFrom(objectSignals, Signal)
 importFrom(plumbr, mutaframe, mutalist)
 import(qtbase)
 import(qtpaint)
