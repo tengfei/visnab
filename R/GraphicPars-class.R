@@ -73,3 +73,22 @@ GraphicPars.gen$methods(
                   )
 
 
+## accessors
+## getPars or setPars just can use $field(name) and $field(name, value)
+## need a way to return valid pars, excluding function, and indicate signal or not
+GraphicPars.gen$methods(output = function(){
+  flds <- pars$getRefClass()$fields()
+  idx <- !(flds %in% c("activeBindingFunction","Signal","function",
+                       "functionORNULL"))
+  ## FIXME: probably the cpal and dpal should be names
+  flds <- flds[idx]
+  cls <- as.character(flds)
+  valnames <- gsub("\\.","",names(flds))
+  vals <- sapply(valnames, .self$field)
+  valschanged <- paste(valnames, "Changed", sep = "")
+  vsignal <- sapply(valschanged, pars$field)
+  sigs <- as.numeric(unlist(lapply(vsignal, length)))
+  lst <- list(pars = valnames, value = vals, listeners = sigs, class = cls)
+  return(lst)
+})
+
