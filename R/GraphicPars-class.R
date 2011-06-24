@@ -4,32 +4,61 @@
 ## FIXME: remove NULL as possible as I can
 GraphicPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
-                           signalingField("bgAlpha","numeric"),
+                           signalingField("bgAlpha","NumericWithRange"),
                            signalingField("fgColor","character"),
                            signalingField("color","AsIsORcharacter"),
                            signalingField("fill","character"),
                            signalingField("stroke","character"),
-                           signalingField("alpha","numeric"),
-                           signalingField("gridBgColor","character"),
-                           signalingField("gridColor","character"),
+                           signalingField("alpha","NumericWithRange"),
+                           ## signalingField("gridBgColor","character"),
+                           ## signalingField("gridColor","character"),
                            signalingField("hoverColor","character"),
                            signalingField("textColor","character"),
-                           signalingField("xlimZoom","numericORNULL"),
-                           signalingField("ylimZoom","numericORNULL"),
-                           signalingField("xlim","numericORNULL"),
-                           signalingField("ylim","numericORNULL"),
-                           signalingField("seqname","characterORNULL"),
-                           signalingField("seqlength","numericORNULL"),
-                           signalingField("geom","characterORNULL"),
-                           signalingField("cpal","functionORNULL"),
-                           signalingField("dpal","functionORNULL"),
-                           signalingField("tipsID","characterORNULL")
+                           signalingField("xlimZoom","NumericWithRange"),
+                           signalingField("ylimZoom","NumericWithRange"),
+                           signalingField("xlim","NumericWithRange"),
+                           signalingField("ylim","NumericWithRange"),
+                           signalingField("seqname","character"),
+                           signalingField("seqlength","numeric"),
+                           signalingField("geom","Enum"),
+                           signalingField("cpal","CPalEnum"),
+                           signalingField("dpal","DPalEnum"),
+                           signalingField("tipsID","character")
                            ))
 
 ##----------------------------------------------------------------##
 ##                Constructor for GraphicsPars
 ##----------------------------------------------------------------##
 
+
+##' GraphicPars is the constructor for generating a set of graphic parameters which
+##' could control specific view
+##'
+##' All the parameters stored in a GraphicPars object are signal objects, which listen
+##' to user's response, when the signal object is changed, it will emit certain binded
+##' function(s), for graphic parameters, it usually just update associated view(s) to
+##' make sure the color or other attributes changes on the fly.
+##'
+##' @title Graphic parameters constructor
+##' @param ... pass paramters to update the default list
+##' @param view specify a default graphic parameters set for particular View Class.
+##' @return a GrahpicPars object, which store all parameteres as fields.
+##' @examples pars <- GraphicPars()
+##' ## to return a parameters list
+##' pars$output()
+##' ## how to get field
+##' pars$field("bgColor")
+##' ## how to set field
+##' pars$field("bgColor", "black")
+##' pars$field("bgColor")
+##' ## or
+##' pars$bgColor <- "blue"
+##' pars$bgColor
+##' ## how to get default back
+##' pars$reset()
+##' pars$bgColor
+##' @seealso signalingField
+##' @author tengfei
 GraphicPars <- function(..., view = "VisnabView"){
   bioc <- options("BioC")
   lst.def <- bioc$BioC$visnab[[view]]
@@ -64,6 +93,8 @@ setMethod("show","GraphicPars",function(object){
 ## set back to default
 GraphicPars.gen$methods(
                   reset = function(view = "VisnabView"){
+                    'reset parameters to default
+                    '
                     dfs <- options("BioC")$BioC$visnab[[view]]
                     nms <- names(dfs)
                     for(nm in nms){
@@ -74,13 +105,17 @@ GraphicPars.gen$methods(
 
 
 ## accessors
-## getPars or setPars just can use $field(name) and $field(name, value)
-## need a way to return valid pars, excluding function, and indicate signal or not
 GraphicPars.gen$methods(output = function(){
+  'output a list of parameters, automatically remove signal function which
+   are just used for internal signal emit. This function return a list,
+   pars shows the names of parameters;
+   value shows value of parameters;
+   listeners shows how many signal function associagted with certain parameter;
+   class shows class of those parameters.
+   '
   flds <- pars$getRefClass()$fields()
   idx <- !(flds %in% c("activeBindingFunction","Signal","function",
                        "functionORNULL"))
-  ## FIXME: probably the cpal and dpal should be names
   flds <- flds[idx]
   cls <- as.character(flds)
   valnames <- gsub("\\.","",names(flds))

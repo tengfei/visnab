@@ -7,30 +7,34 @@
                             color = I("red"),
                             fill = "black",
                             stroke = "black",
-                            alpha = 1,
-                            bgAlpha = 1,
-                            gridBgColor = "gray80",
-                            gridColor = "white",
+                            alpha = new("NumericWithRange", min = 0, max = 1, 1),
+                            bgAlpha = new("NumericWithRange", min = 0, max = 1, 1),
+                            ## gridBgColor = "gray80",
+                            ## gridColor = "white",
                             hoverColor = "blue",
-                            xlimZoom = NULL,
-                            ylimZoom = NULL,
-                            seqname = NULL,
-                            seqlength = NULL,
-                            geom = NULL,
-                            cpal = blackred_pal(),
-                            dpal = brewer_pal(),
-                            tipsID = NULL)
+                            xlimZoom = new("NumericWithRange"),
+                            ylimZoom = new("NumericWithRange"),
+                            xlim = new("NumericWithRange"),
+                            ylim = new("NumericWithRange"),
+                            seqname = character(),
+                            seqlength = numeric(),
+                            geom = new("Enum"),
+                            cpal = new("CPalEnum", "identity"),
+                            dpal = new("DPalEnum", "brewer"),
+                            tipsID = character())
 
   CircularView <- def
-  IntervalView <- update_opts(geom = c("full","dense"), data = def)
-  CoverageView <- update_opts(geom = c("total"), data = def)
-  AlignmentView <- update_opts(geom = c("oneside","twoside"), data = def)
+  IntervalView <- update_opts(geom = new("IntervalViewGeomEnum", "full"), data = def)
+  CoverageView <- update_opts(geom = new("CoverageViewGeomEnum", "full"), data = def)
+  AlignmentView <- update_opts(geom = new("AlignmentViewGeomEnum", "full"), data = def)
   SeqView <- def
-  ScaleView <- update_opts(geom = c("twoside"), data = def)
-  SingleChromView <- update_opts(geom = c("cytoband"), data = def)
+  ScaleView <- update_opts(geom = new("ScaleViewGeomEnum", "full"), data = def)
+  SingleChromView <- update_opts(geom = new("SingleChromViewGeomEnum", "full"),
+                                 data = def)
   StackedView <- def
-  TxdbView <- update_opts(geom = c("full","dense"), data = def)
+  TxdbView <- update_opts(geom = new("TxdbViewGeomEnum", "full"), data = def)
   TracksView <- def
+  
   return(list(VisnabView = VisnabView,
               CircularView = CircularView,
               IntervalView = IntervalView,

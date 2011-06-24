@@ -46,12 +46,12 @@ importClassesFrom(GenomicRanges, GRanges, GenomicRanges)
 
 
 ## ## MutableRanges
-## importMethodsFrom(MutableRanges, coerce, update, seqnames, strand, seqinfo,
-##                   ranges, elementMetadata, metadata)
-## importFrom(MutableRanges, MutableGRanges)
-importClassesFrom(MutableRanges, MutableGRanges)
+importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
+                  PositiveInteger, NonnegativeInteger,
+                  NegativeInteger, NonpositiveInteger,
+                  IntegerWithRange, NumericWithRange)
 
-
+importFrom(MutableRanges, setEnum, setParameters)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)

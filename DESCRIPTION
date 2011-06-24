@@ -5,10 +5,11 @@ Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which 
 Author: Tengfei Yin, Michael Lawrence, Jason Crowley, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
 Depends: methods, utils, stats
-Imports: methods, utils, stats, IRanges(>= 1.11.10), GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-16), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals, Biobase
+Imports: methods, utils, stats, IRanges(>= 1.11.10), GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-16), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals(>= 0.5.1), Biobase
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: AllClasses.R
+	 Enums-All.R
 	 AllGenerics.R
 	 visnab.R
          painter-utils.R
@@ -33,9 +34,10 @@ Collate: AllClasses.R
 	 Painter-class.R
 	 VisnabViewList-class.R
 	 VisnabProject-class.R
-	 theme.R
-	 theme-default.R
 	 CircularView-GUI.R
 	 GRangesViewer-GUI.R
 	 SearchBar-GUI.R
+	 theme.R
+	 theme-default.R
 	 zzz.R
+

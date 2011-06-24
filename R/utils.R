@@ -242,7 +242,6 @@ col2qcol <- function(color,alpha=1){
 }
 
 
-
 splitDNA <- function(dna){
   dnas <- toString(dna)
   dnas.split <- unlist(strsplit(dnas,""))
@@ -458,53 +457,42 @@ pileupAsGRanges <- function(bams, regions,
   gr
 }
 
-
-pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES) {
-  refBases <- unlist(as.character(getSeq(genome, gr)), use.names=FALSE)
+pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FALSE) {
+  refBases <- unlist(as.character(BSgenome::getSeq(genome, gr)), use.names=FALSE)
   ## df <- as.data.frame(values(gr))
   if(missing(DNA_BASES)){
     .reservedNames <- c("depth","bam")
-    DNA_BASES <- setdiff(colnames(gr), .reservedNames)
+    DNA_BASES <- setdiff(colnames(elementMetadata(gr)), .reservedNames)
   }
   counts <- as.matrix(as.data.frame(values(gr)[,DNA_BASES]))
-  ## counts <- as.data.frame(values(gr)[,DNA_BASES])
   refCounts <- counts[cbind(seq(nrow(counts)), match(refBases, DNA_BASES))]
-  ## if(type == "long"){
-    variantsForBase <- function(base) {
+  variantsForBase <- function(base) {
       baseCounts <- counts[,base, drop=TRUE]
       keep <- baseCounts > 0
       count <- baseCounts[keep]
-      seqnames <- rep(seqnames(gr)[keep], times = count)
-      ## FIXME: this id should be id for single read
-      seqid <- do.call(c,lapply(count,function(x) 1:x))
-      starts <- rep(start(gr)[keep], times = count)
-      ends <- rep(end(gr)[keep], times = count)
-      ranges <- IRanges(starts, ends)
-      strand <- rep(strand(gr)[keep], times = count)
-      ref <- rep(refBases[keep], times = count)
-      ## values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)]
-      GRanges(seqnames, ranges, strand,
-              seqid = seqid,
-              ref = ref,
-              read = rep(base,length(seqnames)))
-     }
-    ## obj <- do.call(c, apply(counts, 2, variantsForBase))
-    return(do.call(c, lapply(colnames(counts), variantsForBase)))
-  ## }
-  ## if(type == "sumlong"){
-  ##   variantsForBase <- function(base) {
-  ##     baseCounts <- counts[,base, drop=TRUE]
-  ##     keep <- baseCounts > 0
-  ##     count <- baseCounts[keep]
-  ##     keep <- baseCounts > 0
-  ##     GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
-  ##             ref = refBases[keep], read = base, count = baseCounts[keep],
-  ##             count.ref = refCounts[keep],
-  ##             values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
-  ##   }
-  ##   return(do.call(c, lapply(colnames(counts), variantsForBase)))
-  ## }
+      gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
+                    ref = refBases[keep], read = base, count = baseCounts[keep],
+                    count.ref = refCounts[keep],
+                    values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
+      if(mismatchOnly)
+        gr <- gr[values(gr)$read != values(gr)$ref]
+      gr
+    }
+  lst <- lapply(colnames(counts), variantsForBase)
+  ## browser()
+  ## lens <- lapply(lst, length)
+  ## N <- sum(unlist(lens))
+  ## gr <- GRanges()
+  ## seqs <- Reduce("+", unlist(lens), acc = TRUE)
+  ## seqs
+  ## lapply(seq_along(seqs), function(i) {
+  ##   gr[]
+  ## })
+  res <- do.call("c", lst)  ## why this is slow
+  return(res)
 }
+
+
 
 
 
