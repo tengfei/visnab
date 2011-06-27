@@ -2,16 +2,16 @@
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
 
-VisnabView.gen <- setRefClass("VisnabView",contains = "VIRTUAL",
+VisnabView.gen <- setRefClass("VisnabView",
+                              contains = c("VIRTUAL", "Annotated"),
                               fields = c(
                                 pars = "GraphicPars",
                                 signalingField("focusin","logicalORNULL"),
-                                colorLegend = "ColorLegendList"
+                                signalingField("colorLegend", "ColorLegendList"),
+                                signalingField("seqinfo", "Seqinfo")
                                 ))
 
 
-
-## FIXME: This should return more defined fields
 setMethod("aes", "VisnabView", function(x){
   cat("Graphic Parameters:\n")
   cat("--------------------\n")
@@ -32,8 +32,17 @@ setMethod("show","VisnabView",function(object){
   ## show(object$pars)
 })
 
+##' \code{range} return a \code{GRanges} object that describe the
+##' visualized region and chromosome.
+##'
+##' range method for class \code{VisnabView}
+##' @title Range of viewed region
+##' @param x \code{VisnabView} object.
+##' @param ... 
+##' @return \code{GRanges} object which indicate the visualized region.
+##' @author tengfei
 setMethod("range", "VisnabView", function(x,...){
-  seqname <- x$pars$seqname
+  seqname <- seqnames(x$seqinfo)
   ir <- IRanges(start = x$pars$xlimZoom[1],
                 end = x$pars$xlimZoom[2])
   gr <- GRanges(seqnames=seqname, ir)
@@ -57,7 +66,8 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     if(substr(value,1,3) != "chr")
       stop("Please follow the routine when naming the seqnames,
             with prefix 'chr',such as chr1, chrX ...")
-    x$pars$seqname <- value
+    
+    seqnames(x$seqinfo) <- value
   }
   if(extends(class(value),"GenomicRanges")){
     if(length(value)>1)

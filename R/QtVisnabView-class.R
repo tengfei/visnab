@@ -3,17 +3,10 @@
 ##----------------------------------------------------------##
 QtVisnabView.gen <- setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                                 fields=c(
-                                  scene = "QGraphicsSceneORNULL",
-                                  view = "Qanviz::PlotViewORNULL",
-                                  rootLayer = "Qanviz::RLayerORNULL",
-                                  thisLayer = "Qanviz::RLayerORNULL",
-                                  row = "integer",
-                                  col = "integer",
-                                  rowSpan = "integer",
-                                  colSpan = "integer",
-                                  genome = "character",
-                                  signalingField("selectedRangesModel", "MutableGRanges"),
-                                  signalingField("selectedRangesModelColor", "character"),
-                                  signalingField("outputRange", "numericORNULL"),
+                                  scene = "QGraphicsScene",
+                                  view = "Qanviz::PlotView",
+                                  rootLayer = "Qanviz::RLayer",
+                                  rescale = "RescaleEnum",
+                                  signalingField("outputRange", "numeric"),
                                   signalingField("selfSignal", "logical")))
 

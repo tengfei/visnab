@@ -13,12 +13,11 @@ setOldClass("QGraphicsView")
 setOldClass("Qanviz::RLayer")
 setOldClass("Qanviz::PlotView")
 
-setClassUnion("QGraphicsSceneORNULL", c("QGraphicsScene","NULL"))
-setClassUnion("Qanviz::RLayerORNULL", c("Qanviz::RLayer","NULL"))
-setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
+## setClassUnion("QGraphicsSceneORNULL", c("QGraphicsScene","NULL"))
+## setClassUnion("Qanviz::RLayerORNULL", c("Qanviz::RLayer","NULL"))
+## setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
 
 setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("characterORNULL", c("character", "NULL"))
 setClassUnion("functionORNULL", c("function","NULL"))
 setClassUnion("logicalORNULL", c("logical","NULL"))
-
