@@ -2,16 +2,6 @@
 ## Utils for GenomicaRanges
 ## ------------------------------------------------------------
 
-## setMethod('addLevels','MutableGRanges',function(obj,...){
-##   gr <- as(obj,"GenomicRanges")
-##   gr.lst <- split(gr,as.character(seqnames(gr)))
-##   lv <- unname(lapply(gr.lst,function(x){
-##     values(x)$.level <- as.numeric(disjointBins(ranges(x)))
-##     x
-##   }))
-##   gr <- do.call("c",lv)
-##   obj <- as(gr,"MutableGRanges")
-## })
 
 setMethod('addLevels','GenomicRanges',function(obj,...){
   obj.lst <- split(obj,as.character(seqnames(obj)))
@@ -21,8 +11,6 @@ setMethod('addLevels','GenomicRanges',function(obj,...){
   }))
   obj <- do.call("c",lv)
 })
-
-
 
 setMethod('removePrefix','GenomicRanges',function(obj,rm.prefix){
   seqnames(obj) <- gsub(rm.prefix,'',as.character(seqnames(obj)))
@@ -35,8 +23,6 @@ setMethod('removePrefix','GenomicRanges',function(obj,rm.prefix){
 ## })
 
 
-
-
 setMethod('addPrefix','GenomicRanges',function(obj,add.prefix){
   seqnames(obj) <- paste(add.prefix,as.character(seqnames(obj)),sep='')
   vl <- values(obj)
@@ -45,16 +31,6 @@ setMethod('addPrefix','GenomicRanges',function(obj,add.prefix){
   }
   obj
 })
-
-## setMethod('addPrefix','MutableGRanges',function(gr,add.prefix){
-##   seqnames(gr) <- paste(add.prefix,as.character(seqnames(gr)),sep='')
-##   vl <- values(gr)
-##   if('to.chr' %in% names(vl)){
-##     values(gr)$to.chr <- paste(add.prefix,values(gr)$to.chr,sep='')
-##   }
-##   gr
-## })
-
 
 
 setMethod('validateChr',c('GenomicRanges'),
@@ -67,17 +43,6 @@ setMethod('validateChr',c('GenomicRanges'),
             obj <- obj[chr %in% chrset]
             return(obj)
           })
-
-## setMethod('validateChr',c('MutableGRanges'),
-##           function(gr,model,...){
-##             if(inherits(class(model),'MutableGRanges'))
-##               chrset <- unique(as.character(seqnames(model)))
-##             else
-##               chrset <- model
-##             chr <- as.character(seqnames(gr))
-##             gr <- gr[chr %in% chrset]
-##             return(gr)
-##           })
 
 isValidatedChr <- function(grl,model){
   if(is(grl,'list')){
@@ -241,16 +206,6 @@ col2qcol <- function(color,alpha=1){
          unname(cols[4,1]))
 }
 
-
-splitDNA <- function(dna){
-  dnas <- toString(dna)
-  dnas.split <- unlist(strsplit(dnas,""))
-  return(dnas.split)
-}
-
-
-
-
 baseColor <- function(base,pal=brewer_pal(pal="Set1")){
   cols <- dscale(base,brewer_pal(pal="Set1"))
   obj <- list()
@@ -333,20 +288,20 @@ getIdeogram <- function(species=NULL,subchr=NULL,cytobands=TRUE){
     species <- as.character(choices[res])
   }
   if(cytobands){
-  message("Loading...")
-  query <- ucscTableQuery(session,"cytoBand",species)
-  tableName(query) <- "cytoBand"
-  df <- getTable(query)
+    message("Loading...")
+    query <- ucscTableQuery(session,"cytoBand",species)
+    tableName(query) <- "cytoBand"
+    df <- getTable(query)
 
-  gr <- GRanges(seqnames=df$chrom,
+    gr <- GRanges(seqnames=df$chrom,
                   IRanges(start=df$chromStart,end=df$chromEnd))
 
-  values(gr) <- df[,c("name","gieStain")]
-  message("Done")
-  ## validate chr, keep less chromosomes, more useful for visualization.
-}else{
-  gr <- GRangesForUCSCGenome(species)
-}
+    values(gr) <- df[,c("name","gieStain")]
+    message("Done")
+    ## validate chr, keep less chromosomes, more useful for visualization.
+  }else{
+    gr <- GRangesForUCSCGenome(species)
+  }
   if(!is.null(subchr))
     gr <- validateChr(gr,subchr)
   ## better order them too.
@@ -362,7 +317,7 @@ chrAll <- function(...){
     if("to.chr" %in% names(values(gr))){
       chrs2 <- unique(as.character(values(gr)$to.chr))
       chrs <- unique(c(chrs,chrs2))
-      }
+    }
     chrs
   })
   chrs <- sortChr(unique(unlist(chr.lst)))
@@ -382,7 +337,7 @@ IMessageStart <- function(geometry=qrect(0,0,10,100),leaf=20,freq=0.05){
   },col=1,rowSpan=3)
   gr <- GRanges(seqnames=paste("chr",1:leaf),
                 ranges=IRanges(start=rep(1,leaf),
-                               end=rep(10,leaf)))
+                  end=rep(10,leaf)))
   obj <- CircularView(list(gr),tracksType="sector",model=gr,scene=.indicatorScene,
                       view=.indicatorView,rootLayer=.indicatorLayer,col=0,row=0,
                       .sectorText=FALSE,
@@ -467,17 +422,17 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
   counts <- as.matrix(as.data.frame(values(gr)[,DNA_BASES]))
   refCounts <- counts[cbind(seq(nrow(counts)), match(refBases, DNA_BASES))]
   variantsForBase <- function(base) {
-      baseCounts <- counts[,base, drop=TRUE]
-      keep <- baseCounts > 0
-      count <- baseCounts[keep]
-      gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
-                    ref = refBases[keep], read = base, count = baseCounts[keep],
-                    count.ref = refCounts[keep],
-                    values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
-      if(mismatchOnly)
-        gr <- gr[values(gr)$read != values(gr)$ref]
-      gr
-    }
+    baseCounts <- counts[,base, drop=TRUE]
+    keep <- baseCounts > 0
+    count <- baseCounts[keep]
+    gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
+                  ref = refBases[keep], read = base, count = baseCounts[keep],
+                  count.ref = refCounts[keep],
+                  values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
+    if(mismatchOnly)
+      gr <- gr[values(gr)$read != values(gr)$ref]
+    gr
+  }
   lst <- lapply(colnames(counts), variantsForBase)
   ## browser()
   ## lens <- lapply(lst, length)
@@ -495,4 +450,18 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
 
 
 
+
+## general utils used in createView function
+setDislayWidgets <- function(obj, dragMode = TRUE){
+  obj$scene <- qscene()
+  obj$view <- qplotView(obj$scene,rescale = obj$rescale)
+  obj$view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+  obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600))
+}
+setBgColor <- function(obj){
+  bgcol <- obj$pars$bgColor
+  bgalpha <- obj$pars$alpha
+  qcol <- col2qcol(bgcol,bgalpha)
+  obj$scene$setBackgroundBrush(qbrush(qcol))
+}
 
