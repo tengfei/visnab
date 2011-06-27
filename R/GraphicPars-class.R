@@ -1,7 +1,6 @@
 ##-----------------------------------------------------------------##
 ##                Class Union Used
 ##-----------------------------------------------------------------##
-## FIXME: remove NULL as possible as I can
 GraphicPars.gen <- setRefClass("GraphicPars",
                          fields=c(signalingField("bgColor","character"),
                            signalingField("bgAlpha","NumericWithRange"),
@@ -10,20 +9,16 @@ GraphicPars.gen <- setRefClass("GraphicPars",
                            signalingField("fill","character"),
                            signalingField("stroke","character"),
                            signalingField("alpha","NumericWithRange"),
-                           ## signalingField("gridBgColor","character"),
-                           ## signalingField("gridColor","character"),
                            signalingField("hoverColor","character"),
                            signalingField("textColor","character"),
-                           signalingField("xlimZoom","NumericWithRange"),
-                           signalingField("ylimZoom","NumericWithRange"),
-                           signalingField("xlim","NumericWithRange"),
-                           signalingField("ylim","NumericWithRange"),
-                           signalingField("seqname","character"),
-                           signalingField("seqlength","numeric"),
+                           signalingField("xlimZoom","numeric"),
+                           signalingField("ylimZoom","numeric"),
+                           signalingField("xlim","numeric"),
+                           signalingField("ylim","numeric"),
                            signalingField("geom","Enum"),
                            signalingField("cpal","CPalEnum"),
                            signalingField("dpal","DPalEnum"),
-                           signalingField("tipsID","character")
+                           view = "character"
                            ))
 
 ##----------------------------------------------------------------##
@@ -43,9 +38,12 @@ GraphicPars.gen <- setRefClass("GraphicPars",
 ##' @param ... pass paramters to update the default list
 ##' @param view specify a default graphic parameters set for particular View Class.
 ##' @return a GrahpicPars object, which store all parameteres as fields.
-##' @examples pars <- GraphicPars()
+##' @examples
+##' pars <- GraphicPars(view = "TxdbView")
+##' ## basic show method
+##' pars
 ##' ## to return a parameters list
-##' pars$output()
+##' ars$output()
 ##' ## how to get field
 ##' pars$field("bgColor")
 ##' ## how to set field
@@ -57,8 +55,30 @@ GraphicPars.gen <- setRefClass("GraphicPars",
 ##' ## how to get default back
 ##' pars$reset()
 ##' pars$bgColor
+##' ## IMPORTANT: change Enum and specific Numeric type class, need to use value()<-
+##' pars$geom
+##' ## show supported geoms
+##' levels(pars$geom)
+##' ## change
+##' ## to use values()<- you need to load MutableRanges
+##' library(MutableRanges)
+##' values(pars$geom) <- "dense"
+##' pars$geom
+##' ## change the value if it's not in the levels, will throw an error
+##' values(pars$geom) <- "notsupported"
+##' pars$reset()
+##' pars$geom
+##' ## do the same thing with NumericWithRange
+##' pars$alpha
+##' ## error when outside the range
+##' values(pars$alpha) <- 2
+##' values(pars$alpha) <- 0.5
+##' pars$alpha
+##' ## how to get min and max
+##' pars$alpha@min
+##' pars$alpha@max
 ##' @seealso signalingField
-##' @author tengfei
+##' @author Tengfei Yin <yintengfei@gmail.com>
 GraphicPars <- function(..., view = "VisnabView"){
   bioc <- options("BioC")
   lst.def <- bioc$BioC$visnab[[view]]
@@ -69,6 +89,7 @@ GraphicPars <- function(..., view = "VisnabView"){
     lst.new <- lst.def
   }
   gp <- do.call(GraphicPars.gen$new,lst.new)
+  gp$view <- view
   return(gp)
 }
 
@@ -92,7 +113,7 @@ setMethod("show","GraphicPars",function(object){
 
 ## set back to default
 GraphicPars.gen$methods(
-                  reset = function(view = "VisnabView"){
+                  reset = function(){
                     'reset parameters to default
                     '
                     dfs <- options("BioC")$BioC$visnab[[view]]
@@ -116,6 +137,8 @@ GraphicPars.gen$methods(output = function(){
   flds <- pars$getRefClass()$fields()
   idx <- !(flds %in% c("activeBindingFunction","Signal","function",
                        "functionORNULL"))
+  flds <- flds[idx]
+  idx <- names(flds) != "view"
   flds <- flds[idx]
   cls <- as.character(flds)
   valnames <- gsub("\\.","",names(flds))

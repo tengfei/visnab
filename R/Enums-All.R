@@ -28,4 +28,7 @@ CPalEnum <- setEnum("CPal", levels = c("area", "gradient", "grey",
 DPalEnum <- setEnum("DPal", levels = c("brewer", "dichromat", "hue",
                               "identity", "manual"))
 
-
+##-----------------------------------------------------------------##
+##                Class RescaleEnum
+##-----------------------------------------------------------------##
+RescaleEnum <- setEnum("Rescale", levels = c("geometry", "transform", "none"))

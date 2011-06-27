@@ -29,20 +29,21 @@ importMethodsFrom(IRanges,
                   as.data.frame,
                   "[","[<-",
                   "%in%", 
-                  show,
+                  show, 
                   aggregate, append,
                   colnames, "colnames<-", lapply)
 
-importClassesFrom(IRanges, AsIs)
+importClassesFrom(IRanges, AsIs, Annotated)
 
 ## ## GenomicRanges
-importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList)
+############################################################
+importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo)
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   start, end, width, "start<-", "end<-", "width<-",
                   seqnames, strand, seqinfo, show,
                    "elementMetadata<-", elementMetadata,
                   as.data.frame)
-importClassesFrom(GenomicRanges, GRanges, GenomicRanges)
+importClassesFrom(GenomicRanges, GRanges, GenomicRanges, Seqinfo)
 
 
 ## ## MutableRanges
@@ -52,6 +53,7 @@ importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
                   IntegerWithRange, NumericWithRange)
 
 importFrom(MutableRanges, setEnum, setParameters)
+importMethodsFrom(MutableRanges, values)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
@@ -99,23 +101,23 @@ exportMethods(
               aes)
 
 
-exportClasses(GraphicPars,
-              ColorLegend,
-              ColorLegendList,
-              VisnabView,
-              QtVisnabView,
-              CircularView,
-              IntervalView,
-              CoverageView,
-              AlignmentView,
-              SeqView,
-              ScaleView,
-              SingleChromView,
-              StackedView,
-              TxdbView,
-              TracksView,
-              VisnabViewList,
-              VisnabProject)
+## export(GraphicPars,
+##               ColorLegend,
+##               ColorLegendList,
+##               VisnabView,
+##               QtVisnabView,
+##               CircularView,
+##               IntervalView,
+##               CoverageView,
+##               AlignmentView,
+##               SeqView,
+##               ScaleView,
+##               SingleChromView,
+##               StackedView,
+##               TxdbView,
+##               TracksView,
+##               VisnabViewList,
+##               VisnabProject)
 
 ## exportClasses(characterORNULL,
 ##               numericORNULL,
@@ -143,4 +145,4 @@ export(GraphicPars,
 export("getIdeogram")
 
 ## for temporary
-## exportPattern("^[^\\.]")
+exportPattern("^[^\\.]")
