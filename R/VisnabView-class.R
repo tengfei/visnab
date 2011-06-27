@@ -8,7 +8,9 @@ VisnabView.gen <- setRefClass("VisnabView",
                                 pars = "GraphicPars",
                                 signalingField("focusin","logicalORNULL"),
                                 signalingField("colorLegend", "ColorLegendList"),
-                                signalingField("seqinfo", "Seqinfo")
+                                signalingField("seqinfo", "Seqinfo"),
+                                tootipinfo = "character",
+                                viewname = "character"
                                 ))
 
 
