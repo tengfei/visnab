@@ -18,7 +18,10 @@ GraphicPars.gen <- setRefClass("GraphicPars",
                            signalingField("geom","Enum"),
                            signalingField("cpal","CPalEnum"),
                            signalingField("dpal","DPalEnum"),
-                           view = "character"
+                           view = "character",
+                           parinfo = "list",
+                           tooltipinfo = "list",
+                           exposed = "list"
                            ))
 
 ##----------------------------------------------------------------##
@@ -134,19 +137,29 @@ GraphicPars.gen$methods(output = function(){
    listeners shows how many signal function associagted with certain parameter;
    class shows class of those parameters.
    '
+  ## need to make sure the order are the same
   flds <- pars$getRefClass()$fields()
   idx <- !(flds %in% c("activeBindingFunction","Signal","function",
                        "functionORNULL"))
   flds <- flds[idx]
-  idx <- names(flds) != "view"
+  idx <- !(names(flds) %in% c("view", "parinfo", "tooltipinfo", "exposed"))
   flds <- flds[idx]
   cls <- as.character(flds)
   valnames <- gsub("\\.","",names(flds))
+  names(cls) <- valnames
   vals <- sapply(valnames, .self$field)
+  parinfo2 <- sapply(valnames, function(nm) parinfo[[nm]])
+  tooltipinfo2 <- sapply(valnames, function(nm) tooltipinfo[[nm]])
+  exposed2 <- sapply(valnames, function(nm) exposed[[nm]])
   valschanged <- paste(valnames, "Changed", sep = "")
   vsignal <- sapply(valschanged, pars$field)
   sigs <- as.numeric(unlist(lapply(vsignal, length)))
-  lst <- list(pars = valnames, value = vals, listeners = sigs, class = cls)
+  names(sigs) <- valnames
+  lst <- list(pars = valnames, value = vals,
+              listeners = sigs, class = cls,
+              parinfo = parinfo2, tooltipinfo = tooltipinfo2,
+              exposed = exposed2
+              )
   return(lst)
 })
 

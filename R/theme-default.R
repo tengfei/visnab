@@ -1,6 +1,62 @@
 ## set default theme and load them to options
 ## refer to zzz.R
 .DefaultOpts <- function(){
+  ## create some list used for GUI
+  ## parinfo used for showing actual name, easy to read
+  parinfolst <- list(bgColor = "Background color",
+                     fgColor = "Frontground color",
+                     textColor = "Text color",
+                     color = "General color",
+                     fill = "Fill color",
+                     stroke = "Stroke color",
+                     alpha = "Alhpha blending(glyphs if any)",
+                     bgAlpha = "Alpha blending(Background)",
+                     hoverColor = "Color(when mouse hover)",
+                     xlimZoom = "Viewport Range(x-scale)",
+                     ylimZoom = "Viewport Range(y-scale)",
+                     xlim = "Limits on x-scale",
+                     ylim = "Limits on y-scale",
+                     geom = "Geometry",
+                     cpal = "Palletes(Continuous variables)",
+                     dpal = "Palletes(Continuous variables)")
+
+  ## tooltipinfo used for showing tooltip, wihch is descriptive
+  tooltipinfolst <- list(bgColor = "no tool tip defined yet",
+                         fgColor = "no tool tip defined yet",
+                         textColor = "no tool tip defined yet",
+                         color = "no tool tip defined yet",
+                         fill = "no tool tip defined yet",
+                         stroke = "no tool tip defined yet",
+                         alpha = "no tool tip defined yet",
+                         bgAlpha = "no tool tip defined yet",
+                         hoverColor = "no tool tip defined yet",
+                         xlimZoom = "no tool tip defined yet",
+                         ylimZoom = "no tool tip defined yet",
+                         xlim = "no tool tip defined yet",
+                         ylim = "no tool tip defined yet",
+                         geom = "no tool tip defined yet",
+                         cpal = "no tool tip defined yet",
+                         dpal = "no tool tip defined yet")
+
+  ## exposed decide which parameters exposed to users
+  exposedlst <- list(bgColor = TRUE,
+                     fgColor = TRUE,
+                     textColor = TRUE,
+                     color = TRUE,
+                     fill = TRUE,
+                     stroke = TRUE,
+                     alpha = TRUE,
+                     bgAlpha = TRUE,
+                     hoverColor = TRUE,
+                     xlimZoom = FALSE,
+                     ylimZoom = FALSE,
+                     xlim = FALSE,
+                     ylim = FALSE,
+                     geom = TRUE,
+                     cpal = TRUE,
+                     dpal = TRUE)
+
+
   def <- VisnabView <- list(bgColor = "white",
                             fgColor = "black",
                             textColor = "black",
@@ -9,8 +65,6 @@
                             stroke = "black",
                             alpha = new("NumericWithRange", min = 0, max = 1, 1),
                             bgAlpha = new("NumericWithRange", min = 0, max = 1, 1),
-                            ## gridBgColor = "gray80",
-                            ## gridColor = "white",
                             hoverColor = "blue",
                             xlimZoom = numeric(),
                             ylimZoom = numeric(),
@@ -18,7 +72,10 @@
                             ylim = numeric(),
                             geom = new("Enum"),
                             cpal = new("CPalEnum", "identity"),
-                            dpal = new("DPalEnum", "brewer"))
+                            dpal = new("DPalEnum", "brewer"),
+                            parinfo = parinfolst,
+                            tooltipinfo = tooltipinfolst,
+                            exposed = exposedlst)
 
 
   CircularView <- def
