@@ -12,16 +12,14 @@
                             ## gridBgColor = "gray80",
                             ## gridColor = "white",
                             hoverColor = "blue",
-                            xlimZoom = new("NumericWithRange"),
-                            ylimZoom = new("NumericWithRange"),
-                            xlim = new("NumericWithRange"),
-                            ylim = new("NumericWithRange"),
-                            seqname = character(),
-                            seqlength = numeric(),
+                            xlimZoom = numeric(),
+                            ylimZoom = numeric(),
+                            xlim = numeric(),
+                            ylim = numeric(),
                             geom = new("Enum"),
                             cpal = new("CPalEnum", "identity"),
-                            dpal = new("DPalEnum", "brewer"),
-                            tipsID = character())
+                            dpal = new("DPalEnum", "brewer"))
+
 
   CircularView <- def
   IntervalView <- update_opts(geom = new("IntervalViewGeomEnum", "full"), data = def)
