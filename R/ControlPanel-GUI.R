@@ -1,21 +1,22 @@
 # pass in GraphicPars() ??
 # should this inherit from QDialog?
+# submit button not currently necessary due to automatic updating
 qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   super(parent)
 
-  this$submit <- Qt$QPushButton("Submit")
+  #this$submit <- Qt$QPushButton("Submit")
   this$reset <- Qt$QPushButton("Reset to Defaults")
 
-  qconnect(submit, "clicked", function() {
-    sapply((l.col), function(i) {
-      eval(parse(text=paste("gp$",i$getPar()," <- i$getValue()",sep="")))
-    })
-
-    sapply(c(l.range,l.enum), function(i) {
-      eval(parse(text=paste("values(gp$",i$getPar(),") <- i$getValue()",
-                   sep="")))
-    })
-  })
+  #qconnect(submit, "clicked", function() {
+  #  sapply((l.col), function(i) {
+  #    eval(parse(text=paste("gp$",i$getPar()," <- i$getValue()",sep="")))
+  #  })
+  #
+  #  sapply(c(l.range,l.enum), function(i) {
+  #    eval(parse(text=paste("values(gp$",i$getPar(),") <- i$getValue()",
+  #                 sep="")))
+  #  })
+  #})
 
   qconnect(reset, "clicked", function() {
     gp$reset()
@@ -27,7 +28,7 @@ qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   blyt <- Qt$QHBoxLayout()
   blyt$insertStretch(0,1)
   blyt$addWidget(reset)
-  blyt$addWidget(submit)
+  #blyt$addWidget(submit)
 
   lyt <- Qt$QVBoxLayout()
 
@@ -84,15 +85,16 @@ qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   })
 
   qconnect(col, "accepted", function() {
-    parSwatch$setStyleSheet(paste("background-color:",
-      col$currentColor$name(),sep=""))
-    parEdit$setText(col$currentColor$name())
+    #parSwatch$setStyleSheet(paste("background-color:",
+    #  col$currentColor$name(),sep=""))
+    #parEdit$setText(col$currentColor$name())
+    setValue(col$currentColor$name())
   })
 
   qconnect(parEdit, "editingFinished", function() {
     setValue(parEdit$text)
   })
-  
+
   lyt <- Qt$QHBoxLayout()
   lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(parSwatch)
@@ -109,10 +111,12 @@ qsetMethod("getValue", ColorParWidget, function() {
   parEdit$text
 })
 
+# also updates the gp object with new color
 qsetMethod("setValue", ColorParWidget, function(clr) {
   if(Qt$QColor$isValidColor(clr)) {
     parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
     parEdit$setText(clr)
+    eval(parse(text=paste("gp$",par," <- parEdit$text",sep="")))
   } else {
     parEdit$setText("")
     parLabel$setFocus(Qt$Qt$OtherFocusReason)
@@ -148,15 +152,26 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   spin$setValue(initVal)
 
   # slider -- only supports integers, so need to adjust values
-  #this$sl <- Qt$QSlider(Qt$Qt$Horizontal)
-  #sl$setMinimum(0)
-  #sl$setMaximum(100)
-  #sl$setSingleStep(1)
-  
+  this$sl <- Qt$QSlider(Qt$Qt$Horizontal)
+  sl$setMinimum(0)
+  sl$setMaximum(100)
+  sl$setSingleStep(1)
+  sl$setValue(as.integer(100*initVal))
+
+  # update slider when spinbox changes
+  qconnect(spin, "valueChanged", function(val) {
+    sl$setValue(as.integer(100*val))
+  })
+  # update spinbox when slider changes, and update the gp
+  qconnect(sl, "valueChanged", function(val) {
+    spin$setValue(val/100)
+    eval(parse(text=paste("values(gp$",par,") <- spin$value",sep="")))
+  })
 
   lyt <- Qt$QHBoxLayout()
   lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(spin)
+  lyt$addWidget(sl)
 
   setLayout(lyt)
 })
@@ -194,7 +209,12 @@ qsetClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 
   this$dropList <- Qt$QComboBox()
   sapply(levels, dropList$addItem)
-  dropList$setCurrentIndex(which(levels == initLvl))
+  dropList$setCurrentIndex(which(levels == initLvl) - 1)
+
+  # change gp when user changes level
+  qconnect(dropList, "currentIndexChanged", function() {
+    eval(parse(text=paste("gp$",par," <- dropList$currentText",sep="")))
+  })
 
   lyt <- Qt$QHBoxLayout()
   lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
@@ -212,10 +232,10 @@ qsetMethod("getValue", EnumParWidget, function() {
 })
 
 qsetMethod("setValue", EnumParWidget, function(val) {
-  if(val %in% levels) dropList$setCurrentIndex(which(levels == val))
+  if(val %in% levels) dropList$setCurrentIndex(which(levels == val) - 1)
 })
 
 qsetMethod("setDefault", EnumParWidget, function() {
   val <- eval(parse(text=paste("gp$",par,sep="")))
-  dropList$setCurrentIndex(which(levels == val))
+  dropList$setCurrentIndex(which(levels == val) - 1)
 })
