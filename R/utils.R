@@ -451,17 +451,3 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
 
 
 
-## general utils used in createView function
-setDislayWidgets <- function(obj, dragMode = TRUE){
-  obj$scene <- qscene()
-  obj$view <- qplotView(obj$scene,rescale = obj$rescale)
-  obj$view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-  obj$rootLayer <- qlayer(obj$scene,geometry=qrect(0,0,800,600))
-}
-setBgColor <- function(obj){
-  bgcol <- obj$pars$bgColor
-  bgalpha <- obj$pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  obj$scene$setBackgroundBrush(qbrush(qcol))
-}
-

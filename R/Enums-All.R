@@ -4,11 +4,12 @@
 ##  lazily define Geoms here
 ## setEnum return class name not generator function
 setEnum("IntervalViewGeom", levels = c("full", "dense"))
-setEnum("TxdbViewGeom", levels = c("full", "dense"))
-setEnum("CoverageViewGeom", levels = c("full", "dense"))
+setEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
+setEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
 setEnum("AlignmentViewGeom", levels = c("full", "dense"))
-setEnum("ScaleViewGeom", levels = c("full", "dense"))
+setEnum("ScaleViewGeom", levels = c("twoside"))
 setEnum("SingleChromViewGeom", levels = c("full", "dense"))
+setEnum("SeqViewGeom", levels = c("default"))
 ## setEnum("CircularViewGeoms", levels = c("full", "dense"), contains = "Geoms")
 
 ## sapply(names(getOption("BioC")$visnab), function(nm){

@@ -29,7 +29,7 @@ importMethodsFrom(IRanges,
                   as.data.frame,
                   "[","[<-",
                   "%in%", 
-                  show, 
+                  show, as.list,
                   aggregate, append,
                   colnames, "colnames<-", lapply)
 
@@ -52,8 +52,8 @@ importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
                   NegativeInteger, NonpositiveInteger,
                   IntegerWithRange, NumericWithRange)
 
-importFrom(MutableRanges, setEnum, setParameters)
-importMethodsFrom(MutableRanges, values)
+importFrom(MutableRanges, setEnum, setParameters, MutableGRanges)
+importMethodsFrom(MutableRanges, values, seqnames)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
@@ -101,33 +101,6 @@ exportMethods(
               aes)
 
 
-## export(GraphicPars,
-##               ColorLegend,
-##               ColorLegendList,
-##               VisnabView,
-##               QtVisnabView,
-##               CircularView,
-##               IntervalView,
-##               CoverageView,
-##               AlignmentView,
-##               SeqView,
-##               ScaleView,
-##               SingleChromView,
-##               StackedView,
-##               TxdbView,
-##               TracksView,
-##               VisnabViewList,
-##               VisnabProject)
-
-## exportClasses(characterORNULL,
-##               numericORNULL,
-##               functionORNULL)
-
-
-
-
-
-
 ## ## Constructor
 export(GraphicPars,
        IntervalView,
@@ -141,8 +114,19 @@ export(GraphicPars,
        VisnabViewList,
        VisnabProject)
 
+exportClasses("numericORNULL",
+              "characterORNULL",
+              "functionORNULL", 
+              "logicalORNULL") 
+
+
+## GUI
+##exportClasses(SearchBar)
+## exportMethods(SearchBar)
+export(SearchBar)
+
 ## ## utils method
 export("getIdeogram")
 
 ## for temporary
-exportPattern("^[^\\.]")
+## exportPattern("^[^\\.]")

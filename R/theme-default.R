@@ -80,10 +80,10 @@
 
   CircularView <- def
   IntervalView <- update_opts(geom = new("IntervalViewGeomEnum", "full"), data = def)
-  CoverageView <- update_opts(geom = new("CoverageViewGeomEnum", "full"), data = def)
+  CoverageView <- update_opts(geom = new("CoverageViewGeomEnum", "total"), data = def)
   AlignmentView <- update_opts(geom = new("AlignmentViewGeomEnum", "full"), data = def)
-  SeqView <- def
-  ScaleView <- update_opts(geom = new("ScaleViewGeomEnum", "full"), data = def)
+  SeqView <- update_opts(geom = new("SeqViewGeomEnum", "default"), data = def)
+  ScaleView <- update_opts(geom = new("ScaleViewGeomEnum", "twoside"), data = def)
   SingleChromView <- update_opts(geom = new("SingleChromViewGeomEnum", "full"),
                                  data = def)
   StackedView <- def

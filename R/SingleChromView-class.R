@@ -11,61 +11,49 @@ SingleChromView.gen <- setRefClass("SingleChromView",contains="QtVisnabView",
 
 
 ## not support cytoband drawing temoprarily.
-SingleChromView <- function(track,  genome=NULL,              
-                            scene = NULL, view = NULL, rootLayer = NULL,
-                            thisLayer = NULL,
-                            selectedRangesModel = NULL,
-                            selectedRangesModelColor = "red", 
-                            seqname = NULL, row = 0L, col = 0L,
-                            rowSpan = 1L, colSpan = 1L,
+SingleChromView <- function(track,
+                            seqname,
                             geom = c("cytoband"),
-                            rescale = "geometry",...){
+                            rescale = c("geometry", "transform", "none"),...){
+
+  tooltips <- "not implemented yet"
+    
+  geom <- match.arg(geom)
+  geom <- new("TxdbViewGeomEnum", geom)
+
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleEnum", rescale)
+  
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
-  if(is.null(genome)){
-    cat("Set genome to hg19 automatically, please make sure it's the one you want\n")
-    genome <- "hg19"
-  }
+  
   seqlength <- max(end(ranges(track[seqnames(track)==seqname])))
-  if(is.null(selectedRangesModel))
-    selectedRangesModel <- MutableGRanges()
-  if(is(selectedRangesModel,"GRanges"))
-    selectedRangesModel <- as(selectedRangesModel,"MutableGRanges")
-  pars <- GraphicPars(seqname = seqname, seqlength = seqlength,
-                      geom = geom[1], view = "SingleChromView")
-  obj <- SingleChromView.gen$new(track = track,pars = pars,scene = scene,
-                                 view = view,rootLayer = rootLayer,
-                                 thisLayer = thisLayer,focusin = FALSE,
-                                 row = row, col = col, outputRange = c(0, seqlength),
-                                 rowSpan = rowSpan, colSpan = colSpan)
+  
+  pars <- GraphicPars(geom = geom, view = "SingleChromView",
+                      xlimZoom = c(0, seqlength))
+
+  viewrange <- MutableGRanges(seqname, IRanges(0, seqlength))
+  seqlengths(viewrange) <- seqlength
+
+  obj <- SingleChromView.gen$new(track = track,pars = pars,
+                                 viewrange = viewrange,
+                                 focusin = FALSE)
+
   ## connected events
-  obj$createView(rescale = rescale)
+  obj$createView()
   obj$regSignal()
   obj
 }
 
-SingleChromView.gen$methods(createView = function(seqname=NULL,
-                              rescale = "geometry"){
+SingleChromView.gen$methods(createView = function(){
 
-  if(is.null(scene)){
-    scene <<- qscene()
-    view <<- qplotView(scene, rescale = rescale)
-    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600), cache = FALSE)
-  }
+  seqname <- as.character(seqnames(viewrange))
+  .self$setDislayWidgets()
+  .self$setBgColor()
 
-  bgcol <- pars$bgColor
-  bgalpha <- pars$bgAlpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-  if(!is.null(seqname))
-    pars$seqname <<- seqname
-  seqname <- pars$seqname
-  start <- 0
-  end <- max(end(ranges(track[seqnames(track)==pars$seqname])))
-  pars$seqlength <<- end
-  pars$xlimZoom <<- c(start,end)
+  ## FIXME: need to move to options?
   col.lst <- list(gpos100 = "black",
                   gpos75 = "gray75",
                   gpos50 = "gray50",
@@ -124,9 +112,9 @@ SingleChromView.gen$methods(createView = function(seqname=NULL,
   ## event
   eventChrom <- function(layer,event){
     pos <- as.numeric(event$pos())
-    wid <- diff(outputRange)
+    wid <- diff(viewrange$ranges)
     pars$xlimZoom <<- c(pos[1]-wid/2, pos[1]+wid/2)
-    outputRange <<- pars$xlimZoom
+    viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
   }
   lth <- max(end(track[seqnames(track)==pars$seqname]))
   keyOutFun <- function(layer, event){
@@ -143,7 +131,7 @@ hoverLeaveFun <- function(layer, event){
    focusin <<- TRUE
  }
   
-  thisLayer <<- qlayer(rootLayer, pfunChrom,
+  rootLayer[0,0] <<- qlayer(scene, pfunChrom,
                        limits=qrect(-0.1*lth,-35,1.1*lth,45),cache = TRUE,
                        ## geometry=qrect(0,0,600,100),
                        row = row, col = col,
@@ -152,14 +140,13 @@ hoverLeaveFun <- function(layer, event){
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun) 
   ## thislayer$setAcceptedMouseButtons(0)
-  ## thisLayer$setAcceptedHoverEvents(FALSE)
+  ## rootLayer[0,0]$setAcceptedHoverEvents(FALSE)
   rectLayer <- qlayer(rootLayer, pfunRect,
                       limits=qrect(-0.1*lth,-35,1.1*lth,45),
-                      ## geometry=qrect(0,0,600,100),
                       mouseMoveFun=eventChrom, cache = FALSE)
   ## event
   pars$xlimZoomChanged$connect(function(){
-    outputRange <<- pars$xlimZoom
+    viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
     qupdate(rectLayer)
   })
   ## layout <- rootLayer$gridLayout()
@@ -186,11 +173,11 @@ SingleChromView.gen$methods(regSignal = function(){
   ##   qupdate(scene)
   ## })
   ## seqname change should update view and update seqlength
-  pars$seqnameChanged$connect(function(){
+  viewrange$seqnamesChanged$connect(function(){
     start <- 0
-    end <- seqlengths(track)[[pars$seqname]]
+    end <- seqlengths(track)[[as.character(viewrange$seqnames)]]
     pars$seqlength <<- end-start
-    thisLayer$close()
+    rootLayer[0,0]$close()
     view$resetTransform()
     .self$createView()
     .self$regSignal()

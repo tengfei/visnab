@@ -2,18 +2,35 @@
 ##  These utils should be moved to qtpaint later
 ##----------------------------------------------------------------------
 
-qglyphArrow <- function(x = 6, direction = c("left", "right")){
+
+##' .. content for \description{} (no empty lines) ..
+##'
+##' .. content for \details{} ..
+##' @title 
+##' @param x Size of the arrow
+##' @param direction Direction of the arrow
+##' @examples scene <- qscene()
+##' layer <- qlayer(scene, function(layer, painter){
+##' arr <- qglyphArrow()
+##' qdrawGlyph(painter, arr, 1:10, 10)
+##' }, limits = qrect(c(0, 15),c(0,20)))
+##' qplotView(scene)$show()
+##' @return A \code{QPainterPath} object
+##' @author tengfei
+qglyphArrow <- function(x = 5, direction = c("left", "right")){
   dirs <- match.arg(direction)
   if(direction == "right")
     x = -x
   glyph <- Qt$QPainterPath()
-  glyph$moveTo(0,x)
-  glyph$lineTo(-x,0)
-  glyph$lineTo(0,-x)
+  glyph$moveTo(x,x)
+  glyph$lineTo(0,0)
+  glyph$lineTo(x,-x)
   glyph
 }
 
-qglyphSector <- function(x,y,length,width,startAngle,sweepLength){
+
+
+qpathSector <- function(x,y,length,width,startAngle,sweepLength){
   len <- (length+width)*2
   r <- length+width
   x0 <- x-r
@@ -31,7 +48,7 @@ qglyphSector <- function(x,y,length,width,startAngle,sweepLength){
   glyph
 }
 
-qglyphArc <- function(x,y,r,startAngle,sweepLength){
+qpathArc <- function(x,y,r,startAngle,sweepLength){
   x0 <- x-r
   y0 <- y-r
   len <- 2*r
@@ -43,14 +60,14 @@ qglyphArc <- function(x,y,r,startAngle,sweepLength){
   glyph
 }
 
-qglyphQuadCurve <- function(startpoint,controlpoint,endpoint){
+qpathQuadCurve <- function(startpoint,controlpoint,endpoint){
   glyph <- Qt$QPainterPath()
   glyph$moveTo(startpoint[1],startpoint[2])
   glyph$quadTo(controlpoint[1],controlpoint[2],endpoint[1],endpoint[2])
   glyph
 }
 
-qglyphCurveBundle <- function(startpoint1,controlpoint1,endpoint1,
+qpathCurveBundle <- function(startpoint1,controlpoint1,endpoint1,
                               startpoint2,controlpoint2,endpoint2){
   glyph <- Qt$QPainterPath()
   glyph$moveTo(startpoint1[1],startpoint1[2])

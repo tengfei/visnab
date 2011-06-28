@@ -7,40 +7,41 @@ AlignmentView.gen <- setRefClass("AlignmentView",contains = "QtVisnabView",
                                    cutbin = "numeric",
                                    file = "character"))
 
-
 ##----------------------------------------------------------------------##
 ##             "AlignmentView" constructor
 ##----------------------------------------------------------------------##
 
-AlignmentView <- function(file = NULL,
-                          lower = 10L,
-                          cutbin = 20L,
-                          seqname = NULL,
-                          scene = NULL,
-                          view = NULL,
-                          rootLayer = NULL,
-                          thisLayer = NULL,
-                          row = 0L,
-                          col = 0L,
-                          rowSpan = 1L,
-                          colSpan = 1L,
-                          geom = c("oneside","twoside"),
-                          rescale = "none",
+AlignmentView <- function(file,
+                          seqname,
+                          geom = c("oneside","twoside","pairend"),
+                          rescale = c("none", "geometry","transform"),
+                          viewname = "Alignment",
                           ...){
 
+  geom <- match.arg(geom)
+  geom <- new("TxdbViewGeomEnum", geom)
+
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleEnum", rescale)
+
+  tooltips <- capture.output(print(track))
+
+  
+  ## read in header, to get seqnames
   hd <- scanBamHeader(file)
   seqname <- sort(names(hd[[1]]$targets))[1]
   seqlength <- hd[[1]]$targets[seqname]
-  pars <- GraphicPars(seqname = seqname, geom = geom[1],
-                      seqlength = seqlength,
-                      view = "AlignmentView")
-  obj <- AlignmentView.gen$new(track = NULL, file = file, focusin = FALSE,
-                               row = row, col = col, selfSignal = FALSE,
-                               rowSpan = rowSpan, colSpan = colSpan,
-                               scene = scene, view = view,rootLayer = rootLayer,
-                               thisLayer = thisLayer, outputRange = c(0, seqlength),
+  pars <- GraphicPars(geom = geom, view = "AlignmentView")
+
+  viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
+  seqlengths(viewrange) <- seqlength
+
+  
+  obj <- AlignmentView.gen$new(file = file, focusin = FALSE,
+                               selfSignal = FALSE, viewrange = viewrange,
+                               viewname = viewname, tooltipinfo = tooltips,
                                pars = pars, lower = lower, cutbin = cutbin)
-  obj$createView(rescale = rescale)
+  obj$createView()
   obj$regSignal()
   obj
 }
@@ -50,27 +51,12 @@ AlignmentView <- function(file = NULL,
 ##             print method
 ##---------------------------------------------------------##
 
-AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geometry"){
+AlignmentView.gen$methods(createView = function(){
 
-  if(is.null(scene)){
-    scene <<- qscene()
-    view <<- qplotView(scene,rescale = rescale)
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
-
-
-  bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-
-  if(!is.null(seqname))
-    pars$seqname <<- seqname
-  seqname <- pars$seqname
-  ## start <- 0
-  ## end <- max(end(model[seqnames(model)==seqname]))
-  ## pars$xlimZoom <<- c(start,end)
+  seqname <- as.character(seqnames(viewrange))
+  setDislayWidgets()
+  setBgColor()
+  
   hd <- scanBamHeader(file)
   pars$seqlength <<- hd[[1]]$targets[seqname]
   pars$xlim <<- c(0, pars$seqlength)
@@ -81,14 +67,14 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
   pfunAlign <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    ## outputRange <<- pars$xlimZoom 
+    ## viewrange$ranges <<- pars$xlimZoom 
     if(!selfSignal){
-      outputRangeChanged$unblock()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$unblock()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
     if(selfSignal){
-      outputRangeChanged$block()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$block()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
     pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
@@ -171,7 +157,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
           seqs <- bam$seq
           wd <- width(seqs)
           seqstrs <- lapply(seq_along(wd),function(i)
-                                   IRanges::safeExplode(toString(seqs[i])))
+                                   safeExplode(toString(seqs[i])))
           ## need to show short read string
           ## ir <- ir[idxs]
           binir <- disjointBins(ranges(ir))
@@ -181,7 +167,7 @@ AlignmentView.gen$methods(createView = function(seqname = NULL, rescale = "geome
           })
           idxp <- as.logical(strand(ir)=="+")
           idxn <- as.logical(strand(ir)=="-")
-          dnacol <- baseColor(IRanges:::safeExplode("ACTGN"))
+          dnacol <- baseColor(safeExplode("ACTGN"))
           if(sum(idxp)>0){
             x0p <- unlist(x0[idxp])
             y0p <- rep(-binir[idxp]*90, times = wd[idxp])
@@ -220,7 +206,7 @@ hoverLeaveFun <- function(layer, event){
   focusin <<- FALSE
 }
 
-      thisLayer <<- qlayer(rootLayer,
+      rootLayer[0,0] <<- qlayer(rootLayer,
                       paintFun = pfunAlign,
                       row = row,
                       col = col,
@@ -233,11 +219,11 @@ hoverLeaveFun <- function(layer, event){
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
 
       pars$ylim <<- c(-(cutbin*90+80),0)
-      thisLayer$setLimits(qrect(pars$xlim, pars$ylim))
+      rootLayer[0,0]$setLimits(qrect(pars$xlim, pars$ylim))
       pars$ylimChanged$connect(function(){
-        thisLayer$setLimits(qrect(pars$xlim, pars$ylim))
+        rootLayer[0,0]$setLimits(qrect(pars$xlim, pars$ylim))
       })
-      thisLayer$setGeometry(0,0,600,150)
+      rootLayer[0,0]$setGeometry(0,0,600,150)
     })
 
 
@@ -260,17 +246,17 @@ AlignmentView.gen$methods(regSignal = function(){
     ## then center viewr
     pos.x <- mean(pars$xlimZoom)
     pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
+    pos.scene <- as.numeric(rootLayer[0,0]$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
-    outputRange <<- pars$xlimZoom 
+    viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
   })
   pars$geomChanged$connect(function(){
     qupdate(scene)
   })
-  pars$seqnameChanged$connect(function(){
+  viewrange$seqnamesChanged$connect(function(){
     hd <- scanBamHeader(file)
-    pars$seqlength <<- hd[[1]]$targets[pars$seqname]
-    thisLayer$close()
+    pars$seqlength <<- hd[[1]]$targets[as.character(viewrange$seqnames)]
+    rootLayer[0,0]$close()
     view$resetTransform()
     .self$createView()
     .self$regSignal()

@@ -1,5 +1,7 @@
 ## TODO:
 ## 1. need a plot for IRanges which share the core code
+## 2. supported geom "midpoint", "rectangle", "line",
+## "interval" for IRanges, "histogram" and "barchart"
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
@@ -14,32 +16,35 @@ IntervalView.gen <- setRefClass("IntervalView",
 ##----------------------------------------------------------##
 
 IntervalView <- function(track,
-                         group,
                          seqname,
-                         scene,
-                         view,
-                         rootLayer,
-                         row = 0L,
-                         col = 0L,
-                         rowSpan = 1L,
-                         colSpan = 1L,
-                         fill = NULL,
-                         geom = c("full","dense"),
-                         color = I("red")){
-
+                         group,
+                         color,
+                         viewname = "Interval Data",
+                         geom = c("full", "reduce", "midpoint",
+                           "length", "barchart", "histogram",
+                           "segment"),
+                         rescale = c("geometry", "transform", "none")){
+  
+  ## 
+  tooltips <- "not implemented"
   ## if null, set first chromosome as viewed chromosome
   if(missing(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
+
+  if(missing(color))
+    color <- I("red")
+
   start <- 0
   end <- max(end(ranges(track[seqnames(track)==seqname])))
   seqlength <<- end
   xlimZoom <- c(start,end)
-  if(missing(scene)){
-    scene <- qscene()
-    view <- qplotView(scene,rescale="none")
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    rootLayer <- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
+
+  geom <- match.arg(geom)
+  geom <- new("IntervalViewGeomEnum", geom)
+
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleEnum", rescale)
+
   if(is(track, "GRanges"))
     track <- as(track,"MutableGRanges")
   ## need to make sure it's a long form
@@ -53,30 +58,25 @@ IntervalView <- function(track,
                       geom = geom[1], color = color, seqlength = seqlength,
                       view = "IntervalView")
   
-  obj <- IntervalView.gen$new(track=track,pars=pars, 
-                              row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                              scene=scene,view=view,rootLayer=rootLayer)
+  obj <- IntervalView.gen$new(track=track,pars=pars)
+
   ## event
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   ## obj$regSignal()
-  obj$createView(group = group, fill = fill, seqname = seqname)
+  obj$createView(group = group)
   return(obj)
 }
 
 ############################################################
 ## createview method
 ############################################################
-IntervalView.gen$methods(createView = function(group, fill, seqname){
-  if(!missing(seqname))
-    pars$seqname <<- seqname
-  seqname <- pars$seqname
-  
-  bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-  
+IntervalView.gen$methods(createView = function(group, fill){
+
+  seqname <- seqnames(seqinfo)
+  setDislayWidgets(.self)
+  setBgColor(.self)
+
   start <- min(start(ranges(track[seqnames(track)==seqname])))
   end <- max(end(ranges(track[seqnames(track)==seqname])))
   seqlength <- end

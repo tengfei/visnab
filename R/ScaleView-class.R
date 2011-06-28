@@ -3,72 +3,70 @@
 ##----------------------------------------------------------------------------##
 
 ScaleView.gen <- setRefClass("ScaleView",contains = "QtVisnabView",
-                             fields=list(track = "MutableGRanges"))
+                             fields=list(track = "SimpleMutableGRanges"))
 
 ##----------------------------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------------------------##
-
+##' .. content for \description{} (no empty lines) ..
+##'
+##' .. content for \details{} ..
+##' @title \code{ScaleView} object constructor
+##' @param track \code{GRanges} object 
+##' @param seqname 
+##' @param geom 
+##' @param rescale 
+##' @param viewname 
+##' @param ...
+##' @return 
+##' @author tengfei
 ScaleView <- function(track,
-                      seqname = NULL,
-                      scene = NULL,
-                      view = NULL,
-                      rootLayer = NULL,
-                      thisLayer = NULL,
-                      selectedRangesModel = NULL,
-                      selectedRangesModelColor = "red", 
-                      row = 0L,
-                      col = 0L,
-                      rowSpan = 1L,
-                      colSpan = 1L,
+                      seqname,
                       geom = c("twoside"),
-                      rescale = "none",
+                      rescale = c("geometry", "transform", "none"),
+                      viewname = "Scales",
                       ...){
+  
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")
-  if(is.null(seqname)){
+  if(missing(seqname)){
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   }
+
+  tooltips <- "not implemented yet"
+  
   start <- 0
-  end <- max(end(ranges(track[seqnames(track)==seqname])))
-  if(is.null(selectedRangesModel))
-    selectedRangesModel <- MutableGRanges()
-  if(is(selectedRangesModel,"GRanges"))
-    selectedRangesModel <- as(selectedRangesModel,"MutableGRanges")
+  end <- max(end(ranges(track[seqnames(track) == seqname])))
+
+  geom <- match.arg(geom)
+  geom <- new("ScaleViewGeomEnum", geom)
+
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleEnum", rescale)
+
   xlimZoom <- c(start,end)
-  seqlength <- end
-  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname,
-                      seqlength = seqlength, geom = geom, 
-                      view = "ScaleView")
-  obj <- ScaleView.gen$new(track=track,pars=pars, selfSignal = FALSE,
-                           selectedRangesModel = selectedRangesModel,
-                           selectedRangesModelColor = selectedRangesModelColor,
-                           row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                           scene=scene,view=view,rootLayer=rootLayer,
-                           outputRange = xlimZoom, focusin = FALSE,
-                           thisLayer = thisLayer)
-  obj$createView(rescale = rescale)
+
+  viewrange <- MutableGRanges(seqname, IRanges(start, end))
+  seqlengths(viewrange) <- end
+
+  pars <- GraphicPars(xlimZoom = xlimZoom,geom = geom, view = "ScaleView")
+  
+  obj <- ScaleView.gen$new(track = track, pars = pars, selfSignal = FALSE,
+                           viewrange = viewrange, focusin = FALSE,
+                           rescale = rescale, tooltipinfo = tooltips)
+
+  obj$createView()
   obj$regSignal()
   obj
 }
 
 
-ScaleView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
-  if(is.null(scene)){
-    scene <<- qscene()
-    ## view <<- qplotView(scene,rescale="none")
-    view <<- qplotView(scene, rescale = rescale)
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    rootLayer <<- qlayer(scene,geometry=qrect(0,0,800,600))
-  }
-  if(!is.null(seqname))
-    pars$seqname <<- seqname
-  
-  seqname <- pars$seqname
-  bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
+ScaleView.gen$methods(createView = function(){
+
+  seqname <- as.character(seqnames(viewrange))
+  .self$setDislayWidgets()
+  .self$setBgColor()
+
   ## set zoomLevels, this is not exposed to users
   zoomLevels <- c(500,50)
   h <- 10
@@ -76,20 +74,20 @@ ScaleView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
   start <- 0
   end <- max(end(ranges(track[seqnames(track)==seqname])))
 
-  lengths <- end
-  pars$seqlength <<- end
+  ## lengths <- end
+  ## pars$seqlength <<- end
 
   pfunScale <- function(layer,painter,exposed){
     if(pars$geom == "twoside"){
       pars$xlimZoomChanged$block()
       pars$xlimZoom <<- as.matrix(exposed)[,1]
           if(!selfSignal){
-      outputRangeChanged$unblock()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$unblock()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
     if(selfSignal){
-      outputRangeChanged$block()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$block()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
 
       pars$xlimZoomChanged$unblock()
@@ -139,7 +137,7 @@ hoverEnterFun <- function(layer, event){
 hoverLeaveFun <- function(layer, event){
   focusin <<- FALSE
 }
-  thisLayer <<- qlayer(rootLayer,paintFun=pfunScale,
+  rootLayer[0,0] <<- qlayer(scene,paintFun=pfunScale,
                   ## limits=qrect(pars$xlimZoom[1],h/2-h/9-3*h,
                   ##   pars$xlimZoom[2],h/2+h/9+h),
                   wheelFun=wheelEventZoom(view),
@@ -148,7 +146,8 @@ hoverLeaveFun <- function(layer, event){
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
  
-  thisLayer$setLimits(qrect(0, -h/2-h/9-h/2, pars$seqlength, -h/2+h/9+h))
+  rootLayer[0,0]$setLimits(qrect(0, -h/2-h/9-h/2,
+                                 as.numeric(seqlengths(viewrange)), -h/2+h/9+h))
   pars$ylim <<- c(-h/2-h/9-h/2, -h/2+h/9+h)
   ## not define selectedDataModel in this one, do we need it?
   ## layer$setGeometry(0,0,600,100)
@@ -168,28 +167,25 @@ ScaleView.gen$methods(regSignal = function(){
     qupdate(scene)
   })
 
-  pars$seqnameChanged$connect(function(){
-    start <- 0
-    end <- max(end(track[seqnames(track)==pars$seqname]))
-    ## pars$seqlength <<- end-start
-    ## pars$xlimZoomChanged$block()
-    ## pars$xlimZoom <<- c(0, end)
-    ## pars$xlimZoomChanged$unblock()
-    thisLayer$close()
-    view$resetTransform()               #this already fix xlim
-    .self$createView()
-    ## .self$regSignal()
+  viewrange$seqnamesChanged$connect(function(){
+    viewrange$seqnamesChanged$block()
+    seqlengths(viewrange) <<- max(end(track[seqnames(track)==viewrange$seqnames]))
+    viewrange$seqnamesChanged$unblock()
+    rootLayer[0,0]$close()
+    view$resetTransform()  
+    createView()
+    regSignal()
   })
 
   pars$xlimZoomChanged$connect(function(){
-    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    zoom_factor <- diff(pars$xlimZoom)/as.numeric(seqlengths(viewrange))
     ## then scale view
     view$resetTransform()
     view$scale(1/zoom_factor, 1)
     ## then center viewr
     pos.x <- mean(pars$xlimZoom)
     pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
+    pos.scene <- as.numeric(rootLayer[0,0]$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
   })
 

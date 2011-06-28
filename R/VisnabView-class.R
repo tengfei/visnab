@@ -5,11 +5,12 @@
 VisnabView.gen <- setRefClass("VisnabView",
                               contains = c("VIRTUAL", "Annotated"),
                               fields = c(
-                                pars = "GraphicPars",
                                 signalingField("focusin","logicalORNULL"),
                                 signalingField("colorLegend", "ColorLegendList"),
-                                signalingField("seqinfo", "Seqinfo"),
-                                tootipinfo = "character",
+                                signalingField("viewrange", "SimpleMutableGRanges"),
+                                signalingField("selfSignal", "logical"),
+                                pars = "GraphicPars",
+                                tooltipinfo = "character",
                                 viewname = "character"
                                 ))
 
@@ -44,11 +45,7 @@ setMethod("show","VisnabView",function(object){
 ##' @return \code{GRanges} object which indicate the visualized region.
 ##' @author tengfei
 setMethod("range", "VisnabView", function(x,...){
-  seqname <- seqnames(x$seqinfo)
-  ir <- IRanges(start = x$pars$xlimZoom[1],
-                end = x$pars$xlimZoom[2])
-  gr <- GRanges(seqnames=seqname, ir)
-  return(gr)
+  return(x$viewrange)
 })
 
 setReplaceMethod("range", "VisnabView", function(x, value){
@@ -56,6 +53,7 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     if(length(value)>1)
       stop("Viewed range can only be of length 1")
     x$pars$xlimZoom <- c(start(value), end(value))
+    ## ranges(x$viewrange) <- value
   }
   if(is(value, "numeric")){
     if(length(value)!=2)
@@ -63,13 +61,14 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     if(diff(value)<=0)
       stop("Viewed range cannot be less than 0")
     x$pars$xlimZoom <- value
+    ## ranges(x$viewrange) <- IRanges(value[1], value[2])
   }
   if(is(value, "character")){
     if(substr(value,1,3) != "chr")
       stop("Please follow the routine when naming the seqnames,
             with prefix 'chr',such as chr1, chrX ...")
-    
-    seqnames(x$seqinfo) <- value
+    ## seqnames(x$seqinfo) <- value
+    seqnames(x$viewrange) <- value
   }
   if(extends(class(value),"GenomicRanges")){
     if(length(value)>1)
@@ -80,9 +79,9 @@ setReplaceMethod("range", "VisnabView", function(x, value){
             with prefix 'chr',such as chr1, chrX ...")
     ## x$pars$xlimZoomChanged$block()
     ## x$pars$seqname <- seqname
-    range(x) <- seqname
+    ranges(x$viewrange) <- seqname
     ## x$pars$xlimZoomChanged$unblock()
-    range(x) <- c(start(value), end(value))
+    range(x$viewrange) <- c(start(value), end(value))
   }
   x
 })

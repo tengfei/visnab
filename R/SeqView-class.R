@@ -10,35 +10,38 @@ SeqView.gen <- setRefClass("SeqView",contains = "QtVisnabView",
 ##----------------------------------------------------------------------------##
 
 SeqView <- function(track,
-                    seqname=NULL,
-                    scene=NULL,
-                    view = NULL,
-                    rootLayer = NULL,
-                    thisLayer = NULL,
-                    row=0L,
-                    col=0L,
-                    rowSpan=1L,
-                    colSpan=1L,
-                    rescale = "none",
+                    seqname,
+                    geom=c("default"),
+                    rescale = c("geometry", "transform", "none"),
+                    viewname = "Reference Sequence",
                     ...){
 
+  geom <- match.arg(geom)
+  geom <- new("TxdbViewGeomEnum", geom)
 
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleEnum", rescale)
+
+  tooltips <- capture.output(print(track))
+  
   if(is.null(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
-  start <- 0
+  start <- 1
   end <- length(track[[seqname]])
   xlimZoom <- c(start,end)
-  seqlength <- end
+
+  viewrange <- MutableGRanges(seqname, IRanges(start, end))
+  seqlengths(viewrange) <- end
+
+  
   if(extends(class(track),"GRanges"))
     track <- as(track,"MutableGRanges")
-  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname,
-                      seqlength = seqlength,
-                      view = "SeqView")
-  obj <- SeqView.gen$new(track=track,pars=pars, thisLayer = thisLayer, focusin = FALSE,
-                         row=row,col=col, rowSpan = rowSpan, colSpan = colSpan,
-                         scene=scene,view=view,rootLayer=rootLayer, 
-                         outputRange = xlimZoom, selfSignal = FALSE)
-  obj$createView(rescale = rescale)
+  
+  pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "SeqView")
+  obj <- SeqView.gen$new(track=track,pars=pars, focusin = FALSE,
+                         viewrange = viewrange, rescale = rescale, 
+                         selfSignal = FALSE, tooltipinfo = tooltips)
+  obj$createView()
   obj$regSignal()
   obj
 }
@@ -47,23 +50,13 @@ SeqView <- function(track,
 ##             print method
 ##----------------------------------------------------------------------------##
 
-SeqView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
+SeqView.gen$methods(createView = function(){
 
-  if(is.null(scene)){
-    scene <<- qscene()
-    view <<- qplotView(scene,rescale = rescale)
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    rootLayer <<- qlayer(scene)
-  }
+
+  seqname <- as.character(seqnames(viewrange))
+  setDislayWidgets()
+  setBgColor()
   
-  if(!is.null(seqname))
-    pars$seqname <<- seqname
-  seqname <- pars$seqname
-  
-  bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
   ## set zoomLevels, this is not exposed to users
   zoomLevels <- c(10000,500,1)
   h <- 10
@@ -76,12 +69,12 @@ SeqView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
     if(!selfSignal){
-      outputRangeChanged$unblock()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$unblock()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1],pars$xlimZoom[2])  
     }
     if(selfSignal){
-      outputRangeChanged$block()
-      outputRange <<- pars$xlimZoom 
+      viewrange$rangesChanged$block()
+      viewrange$ranges <<- IRanges(pars$xlimZoom[1],pars$xlimZoom[2])  
     }
     pars$xlimZoomChanged$unblock()
     xlimZoom <- as.matrix(exposed)[,1]
@@ -129,14 +122,14 @@ hoverLeaveFun <- function(layer, event){
   focusin <<- FALSE
 }
 
-  thisLayer <<- qlayer(rootLayer, pfunSeq, row=row, col=col,
+  rootLayer[0,0] <<- qlayer(scene, pfunSeq, row=row, col=col,
                        rowSpan=rowSpan, colSpan=colSpan,
                    keyPressFun=keyPressEventZoom(track, view, sy = 1,
                      focusin = focusin),
                    wheelFun=wheelEventZoom(view),
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
-  thisLayer$setLimits(qrect(pars$xlimZoom[1],0,pars$xlimZoom[2],h))
+  rootLayer[0,0]$setLimits(qrect(pars$xlimZoom[1],0,pars$xlimZoom[2],h))
   ## layer$setGeometry(0,0,600,100)
 })
 
@@ -153,12 +146,12 @@ SeqView.gen$methods(regSignal = function(){
   ## pars$geomChanged$connect(function(){
   ##   qupdate(scene)
   ## })
-  pars$seqnameChanged$connect(function(){
+  viewrange$seqnamesChanged$connect(function(){
     start <- 0
-    end <- length(track[[pars$seqname]])
+    end <- length(track[[as.character(viewrange$seqnames)]])
     pars$seqlength <<- end-start
     pars$xlimZoom <<- c(0, end)
-    thisLayer$close()
+    rootLayer[0,0]$close()
     view$resetTransform()
     .self$createView()
     ## .self$regSignal()
@@ -171,7 +164,7 @@ SeqView.gen$methods(regSignal = function(){
     ## then center viewr
     pos.x <- mean(pars$xlimZoom)
     pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(thisLayer$mapToScene(pos.x, pos.y))
+    pos.scene <- as.numeric(rootLayer[0,0]$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
   })
   pars$bgColorChanged$connect(function(){
