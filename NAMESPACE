@@ -123,7 +123,7 @@ exportClasses("numericORNULL",
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)
-export(SearchBar)
+export(SearchBar, ParControlPanel, GRangesViewer)
 
 ## ## utils method
 export("getIdeogram")
