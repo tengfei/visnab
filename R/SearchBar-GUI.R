@@ -1,25 +1,34 @@
-qsetClass("SearchBar", Qt$QLineEdit, function(gr, ref = NULL, parent = NULL)
+qsetClass("SearchBar", Qt$QLineEdit, function(gr = NULL, ref = NULL, parent = NULL)
 {
   super(parent)
   this$gr <- gr; this$ref <- ref
-
-  names <- levels(seqnames(gr))
-  metadata <- unique(unlist(sapply(values(gr),as.character)))
+  names <- NULL
+  metadata <- NULL
+  if(!is.null(gr)) {
+    names <- levels(seqnames(gr))
+    metadata <- unique(unlist(sapply(values(gr),as.character)))
+  }
   namesRef <- NULL
   metadataRef <- NULL
   if(!is.null(ref)) {
     namesRef <- levels(seqnames(ref))
     metadataRef <- unique(unlist(sapply(values(ref),as.character)))
   }
-  compVec <- sort(unique(c(names,metadata,namesRef,metadataRef)))
-  comp <- Qt$QCompleter(compVec)
-  this$setCompleter(comp)
+  compVec <- c(names,metadata,namesRef,metadataRef)
+  if(!is.null(compVec)) {
+    compVec <- sort(unique(compVec))
+    comp <- Qt$QCompleter(compVec)
+    this$setCompleter(comp)
+  }
 
   # initialize the GRanges object containing the search range
   searchRange <- NULL
 
   # parse the text and update GRanges object when return pressed
-  qconnect(this, "returnPressed", function() parseSearchString(this$text, gr, ref))
+  qconnect(this, "returnPressed", function() {
+    parseSearchString(this$text, gr, ref)
+  })
+
 })
 
 qsetSignal("rangeChanged", SearchBar)
@@ -32,7 +41,7 @@ qsetMethod("setSearchRange", SearchBar, function(newRange) {
   this$searchRange <- newRange
 })
 
-qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
+qsetMethod("parseSearchString", SearchBar, function(text, gr = NULL, ref = NULL) {
   colon <- grepl(":",text,fixed=TRUE)
   minus <- grepl("-",text,fixed=TRUE)
   plus <- grepl("+",text,fixed=TRUE)
@@ -74,10 +83,14 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
     this$rangeChanged()
     
   } else {
-    grNames <- levels(seqnames(gr))
-    in.names <- grep(text,grNames)
-    metaData <- unlist(sapply(values(gr),as.character))
-    in.metadata <- grep(text,metaData)
+    in.names <- NULL
+    in.metadata <- NULL
+    if(!is.null(gr)) {
+      grNames <- levels(seqnames(gr))
+      in.names <- grep(text,grNames)
+      metaData <- unlist(sapply(values(gr),as.character))
+      in.metadata <- grep(text,metaData)
+    }
     in.namesRef <- NULL
     in.metadataRef <- NULL
     if(!is.null(ref)) {
@@ -99,7 +112,7 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr, ref = NULL) {
                      )
 
       this$rangeChanged()
-    } else if (length(in.metadataRef) > 0 & (!is.null(ref))) {
+    } else if (length(in.metadataRef) > 0) {
       matchRows <- in.metadataRef %% dim(values(ref))[1]
       matchRows[matchRows == 0] <- dim(values(ref))[1]
       
