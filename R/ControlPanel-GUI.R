@@ -212,8 +212,9 @@ qsetClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   dropList$setCurrentIndex(which(levels == initLvl) - 1)
 
   # change gp when user changes level
-  qconnect(dropList, "currentIndexChanged", function() {
-    eval(parse(text=paste("gp$",par," <- dropList$currentText",sep="")))
+  qconnect(dropList, "currentIndexChanged", function(idx) {
+    eval(parse(text=paste("values(gp$",par,
+                 ") <- dropList$currentText",sep="")))
   })
 
   lyt <- Qt$QHBoxLayout()
