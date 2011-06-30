@@ -124,10 +124,11 @@ exportClasses("numericORNULL",
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)
-export(SearchBar, ParControlPanel, GRangesViewer)
+export(SearchBar, ControlPanel, GRangesViewer)
 
 ## ## utils method
 export("getIdeogram")
 
 ## for temporary
 ## exportPattern("^[^\\.]")
+exportPattern(".+")

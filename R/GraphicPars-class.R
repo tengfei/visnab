@@ -12,7 +12,7 @@
 ##                                  ),
 ##                                contains = "DefaultTheme")
 ## setOldClass("RQtObject")
-setOldClass("R::visnab::ParControlPanel")
+setOldClass("R::visnab::ControlPanel")
 
 gparslst <- list(xlimZoom = "numeric",
                 ylimZoom= "numeric",
@@ -20,7 +20,7 @@ gparslst <- list(xlimZoom = "numeric",
                 ylim = "numeric",
                 view = "character",
                  geom = "Enum",
-                 cpanel = "R::visnab::ParControlPanel")
+                 cpanel = "R::visnab::ControlPanel")
 
 GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme")
 
@@ -49,7 +49,11 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- GraphicPars.gen$new(geom = geom)
   gp$setTheme(theme)
   gp$update(...)
-  gp$cpanel <- ParControlPanel(gp)
+  gp$cpanel <- ControlPanel(gp)
+  gp$changed$connect(function(name){
+    vals <-gp$field(name)
+    gp$cpanel$setValue(name, vals)
+  })
   return(gp)
 }
 
