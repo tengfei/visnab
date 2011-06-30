@@ -106,5 +106,11 @@ blackred_pal <- function(){
     col <- rgb(x,0,0)
   }
 }
+## used for heatmap
+blue_white_red <- function(){
+  function(x){
+    
+  }
+}
 
 

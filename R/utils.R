@@ -232,7 +232,7 @@ reduceChr <- function(obj){
 ## Specific signal should be bound to MR object.
 setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
 
-setMethod("addAttr","MutableGRanges",function(obj,...){
+setMethod("addAttr","SimpleMutableGRanges",function(obj,...){
   lst <- list(...)
   nms <- names(lst)
   df <- elementMetadata(obj)
@@ -434,15 +434,6 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
     gr
   }
   lst <- lapply(colnames(counts), variantsForBase)
-  ## browser()
-  ## lens <- lapply(lst, length)
-  ## N <- sum(unlist(lens))
-  ## gr <- GRanges()
-  ## seqs <- Reduce("+", unlist(lens), acc = TRUE)
-  ## seqs
-  ## lapply(seq_along(seqs), function(i) {
-  ##   gr[]
-  ## })
   res <- do.call("c", lst)  ## why this is slow
   return(res)
 }

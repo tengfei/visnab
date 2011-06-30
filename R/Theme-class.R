@@ -59,7 +59,7 @@ setTheme <- function(prefix, pars=list(),
                      ## ylimZoom = "Viewport Range(y-scale)",
                      ## xlim = "Limits on x-scale",
                      ## ylim = "Limits on y-scale",
-                     ## geom = "Geometry",
+                     geom = "Geometry",
                      cpal = "Palletes(Continuous variables)",
                      dpal = "Palletes(Continuous variables)")
 
@@ -77,7 +77,7 @@ setTheme <- function(prefix, pars=list(),
                          ## ylimZoom = "no tool tip defined yet",
                          ## xlim = "no tool tip defined yet",
                          ## ylim = "no tool tip defined yet",
-                         ## geom = "no tool tip defined yet",
+                         geom = "no tool tip defined yet",
                          cpal = "no tool tip defined yet",
                          dpal = "no tool tip defined yet")
 
@@ -95,7 +95,7 @@ setTheme <- function(prefix, pars=list(),
                      ## ylimZoom = FALSE,
                      ## xlim = FALSE,
                      ## ylim = FALSE,
-                     ## geom = TRUE,
+                     geom = TRUE,
                      cpal = TRUE,
                      dpal = TRUE)
 
@@ -135,6 +135,7 @@ setTheme <- function(prefix, pars=list(),
                     dpal = "DPalEnum",
                     parinfo = "list",
                     tooltipinfo = "list",
+                    ## geom = "enum",
                     exposed = "list")
 }
 

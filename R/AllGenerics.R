@@ -19,7 +19,6 @@ setGeneric("aes",function(x,...) standardGeneric("aes"))
 
 setGeneric("viewInBrowser",function(obj,...) standardGeneric("viewInBrowser"))
 
-
 setGeneric("addLevels",function(obj,...) standardGeneric("addLevels"))
 
 setGeneric("removePrefix",function(obj,...) standardGeneric("removePrefix"))

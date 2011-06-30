@@ -3,8 +3,10 @@
 ##-----------------------------------------------------------------##
 ##  lazily define Geoms here
 ## setEnum return class name not generator function
+.IntervalViewGeom <- c("full", "reduce", "midpoint", "length",
+                       "barchart", "heatmap", "segment")
 setEnum("VisnabViewGeom", levels = character())
-setEnum("IntervalViewGeom", levels = c("full", "dense"))
+setEnum("IntervalViewGeom", levels = .IntervalViewGeom)
 setEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
 setEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
 setEnum("AlignmentViewGeom", levels = c("full", "dense"))

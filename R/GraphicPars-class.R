@@ -11,13 +11,16 @@
 ##                                  view = "character"
 ##                                  ),
 ##                                contains = "DefaultTheme")
+## setOldClass("RQtObject")
+setOldClass("R::visnab::ParControlPanel")
 
 gparslst <- list(xlimZoom = "numeric",
                 ylimZoom= "numeric",
                 xlim = "numeric",
                 ylim = "numeric",
-                geom = "Enum",
-                view = "character")
+                view = "character",
+                 geom = "Enum",
+                 cpanel = "R::visnab::ParControlPanel")
 
 GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme")
 
@@ -46,6 +49,7 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- GraphicPars.gen$new(geom = geom)
   gp$setTheme(theme)
   gp$update(...)
+  gp$cpanel <- ParControlPanel(gp)
   return(gp)
 }
 
@@ -99,7 +103,11 @@ GraphicPars.gen$methods(output = function(){
   idx <- !(flds %in% c("activeBindingFunction","Signal","function",
                        "functionORNULL"))
   flds <- flds[idx]
-  idx <- !(names(flds) %in% c("view", "parinfo", "tooltipinfo", "exposed", "theme"))
+  ## hard coded exclued variables
+  idx <- !(names(flds) %in% paste(".",
+                                  c("view", "parinfo", "tooltipinfo",
+                                    "exposed", "theme", "xlim", "ylim" ,
+                                    "xlimZoom", "ylimZoom", "cpanel", "view"), sep = ""))
   flds <- flds[idx]
   idx <- !grepl("^\\.init.", names(flds))
   flds <- flds[idx]
@@ -132,3 +140,16 @@ GraphicPars.gen$methods(setTheme = function(themeName){
 
 ## .GraphicPars.DefaultTheme <- .DefaultTheme
 ## .GraphicPars.DarkTheme <- .DarkTheme
+## GUI
+GraphicPars.gen$methods(cp = function(show = TRUE){
+  ## if(length(cpanel)){
+  ##   print("cpa")
+
+   ## }
+     if(show){
+       cpanel$show()
+     }else{
+       cpanel$hide()
+     }
+})
+
