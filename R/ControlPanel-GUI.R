@@ -1,7 +1,7 @@
 # pass in GraphicPars() ??
 # should this inherit from QDialog?
 # submit button not currently necessary due to automatic updating
-qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
+qsetRefClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   super(parent)
 
   #this$submit <- Qt$QPushButton("Submit")
@@ -63,7 +63,7 @@ qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 })
 
 # widget to handle changing colors
-qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
+qsetRefClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   super(parent)
   this$gp <- gp; this$par <- par
 
@@ -131,7 +131,7 @@ qsetMethod("setDefault", ColorParWidget, function() {
 })
 
 # widget for changing numeric values
-qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, parent = NULL)
+qsetRefClass("RangeParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 {
   super(parent)
   this$gp <- gp; this$par <- par
@@ -194,7 +194,7 @@ qsetMethod("setDefault", RangeParWidget, function() {
 })
 
 # widget to change levels from a class extending Enum
-qsetClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
+qsetRefClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 {
   super(parent)
   this$gp <- gp; this$par <- par

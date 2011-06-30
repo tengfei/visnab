@@ -1,4 +1,4 @@
-qsetClass("SearchBar", Qt$QLineEdit, function(gr = NULL, ref = NULL, parent = NULL)
+qsetRefClass("SearchBar", Qt$QLineEdit, function(gr = NULL, ref = NULL, parent = NULL)
 {
   super(parent)
   this$gr <- gr; this$ref <- ref

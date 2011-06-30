@@ -14,7 +14,7 @@
 #          score = 1:10,
 #          GC = seq(1, 0, length=10))
 
-qsetClass("GRangesViewer", Qt$QWidget, function(gr, ref = NULL, parent = NULL)
+qsetRefClass("GRangesViewer", Qt$QWidget, function(gr, ref = NULL, parent = NULL)
 {
   super(parent)
 
