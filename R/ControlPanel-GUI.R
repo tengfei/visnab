@@ -1,7 +1,7 @@
 # pass in GraphicPars() ??
 # should this inherit from QDialog?
 # submit button not currently necessary due to automatic updating
-qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
+qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   super(parent)
 
   #this$submit <- Qt$QPushButton("Submit")
@@ -56,10 +56,13 @@ qsetClass("ParControlPanel", Qt$QWidget, function(gp, parent = NULL) {
     lyt$addWidget(l.enum[[i]])
   })  
 
-
   lyt$addLayout(blyt)
 
   setLayout(lyt)
+})
+
+qsetMethod("setValue", ControlPanel, function(par, val) {
+  c(l.col,l.range,l.enum)[[par]]$setValue(val)
 })
 
 # widget to handle changing colors
