@@ -39,10 +39,10 @@ ScaleView <- function(track,
   end <- max(end(ranges(track[seqnames(track) == seqname])))
 
   geom <- match.arg(geom)
-  geom <- new("ScaleViewGeomEnum", geom)
+  geom <- new("ScaleViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
-  rescale <- new("RescaleEnum", rescale)
+  rescale <- new("RescaleSingleEnum", rescale)
 
   xlimZoom <- c(start,end)
 

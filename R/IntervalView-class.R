@@ -7,22 +7,20 @@
 ##----------------------------------------------------------##
 IntervalView.gen <- setRefClass("IntervalView",
                                 contains = "QtVisnabView",
-                                fields = list(track = "MutableGRanges",
+                                fields = list(track = "SimpleMutableGRanges",
                                   flag = "logical"))
 
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
 ##----------------------------------------------------------##
-
 IntervalView <- function(track,
                          seqname,
                          group,
                          color,
                          viewname = "Interval Data",
-                         geom = c("full", "reduce", "midpoint",
-                           "length", "barchart", "histogram",
-                           "segment"),
+                         geom = c("full", "reduce", "midpoint", "length",
+                           "barchart", "heatmap", "segment"),
                          rescale = c("geometry", "transform", "none")){
   
   ## 
@@ -36,29 +34,36 @@ IntervalView <- function(track,
 
   start <- 0
   end <- max(end(ranges(track[seqnames(track)==seqname])))
-  seqlength <<- end
+  seqlength <- end
   xlimZoom <- c(start,end)
 
   geom <- match.arg(geom)
-  geom <- new("IntervalViewGeomEnum", geom)
+  geom <- new("IntervalViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
-  rescale <- new("RescaleEnum", rescale)
+  rescale <- new("RescaleSingleEnum", rescale)
+
+  viewrange <- MutableGRanges(seqname, IRanges(start, end))
+  seqlengths(viewrange) <- end
+
 
   if(is(track, "GRanges"))
     track <- as(track,"MutableGRanges")
   ## need to make sure it's a long form
   track <- addLevels(track)
   ## connect signal
+  ## FIXME:
   track$elementMetadataChanged$connect(function() {
     qupdate(scene)
   })
   
-  pars <- GraphicPars(xlimZoom = xlimZoom, seqname = seqname,
-                      geom = geom[1], color = color, seqlength = seqlength,
+  pars <- GraphicPars(xlimZoom = xlimZoom, 
+                      geom = geom, color = color, 
                       view = "IntervalView")
   
-  obj <- IntervalView.gen$new(track=track,pars=pars)
+  obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
+                              tooltipinfo = tooltips, viewname = viewname,
+                              viewrange = viewrange)
 
   ## event
   ## add default attributes
@@ -73,9 +78,9 @@ IntervalView <- function(track,
 ############################################################
 IntervalView.gen$methods(createView = function(group, fill){
 
-  seqname <- seqnames(seqinfo)
-  setDislayWidgets(.self)
-  setBgColor(.self)
+  seqname <- as.character(seqnames(viewrange))
+  setDislayWidgets()
+  setBgColor()
 
   start <- min(start(ranges(track[seqnames(track)==seqname])))
   end <- max(end(ranges(track[seqnames(track)==seqname])))
@@ -141,6 +146,15 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
     geom <- "full"
   if(missing(color)&(!missing(obj)))
     color <- obj$pars$color
+  
+  ## assigne color
+  if(!missing(color)){
+    vals <- values(gr)[,color]
+    if(length(vals)>100)
+      vallen <- 100
+    values(gr)$.color <- cscale(vals, gradient_n_pal(c("blue", "white", "red"),
+                                               values = seq(0, 1, length = vallen)))
+  }
   if(!missing(group)){
     vs <- eval(as.symbol(group), elementMetadata(gr))
     grl <- split(gr, vs)
@@ -149,6 +163,9 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
     group <- NULL
     grl <- list(gr)
   }
+
+
+  ## not used for every case
   ts <- lapply(grl, function(gr){
     mr <- gr
     ir <- ranges(gr)
@@ -272,8 +289,15 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
     if(geom == "seqlogo"){
       
     }
-    if(geom == "histogram"){
-      
+    if(geom == "heatmap"){
+      # use gr
+      # use group
+      N <- length(grl)
+      sapply(seq_len(N), function(i){
+        gr <- grl[[1]]
+        qdrawSegment(painter, start(gr), 10*(i-1), end(gr), 10*i, str,
+                     stroke = values(gr)$.color)
+      })
     }
     if(geom == "line"){
       

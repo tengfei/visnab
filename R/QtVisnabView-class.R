@@ -6,7 +6,7 @@ QtVisnabView.gen <- setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL
                                   scene = "QGraphicsSceneORNULL",
                                   view = "Qanviz::PlotViewORNULL",
                                   rootLayer = "Qanviz::RLayerORNULL",
-                                  rescale = "RescaleEnum"))
+                                  rescale = "RescaleSingleEnum"))
 
 ## general utils used in createView function
 QtVisnabView.gen$methods(
@@ -30,4 +30,14 @@ QtVisnabView.gen$methods(
                          }
                          )
 
+
+
+QtVisnabView.gen$methods(GUI = function(){
+  sv <- SimpleViewer(view = view)
+  qconnect(sv, "rangeChanged", function(){
+    gr <- sv$getSearchRange()
+    values(viewrange) <<- gr
+  })
+  sv$show()
+})
 

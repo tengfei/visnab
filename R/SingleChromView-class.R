@@ -19,10 +19,10 @@ SingleChromView <- function(track,
   tooltips <- "not implemented yet"
     
   geom <- match.arg(geom)
-  geom <- new("TxdbViewGeomEnum", geom)
+  geom <- new("TxdbViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
-  rescale <- new("RescaleEnum", rescale)
+  rescale <- new("RescaleSingleEnum", rescale)
   
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")

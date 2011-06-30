@@ -50,9 +50,11 @@ importClassesFrom(GenomicRanges, GRanges, GenomicRanges, Seqinfo)
 importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
                   PositiveInteger, NonnegativeInteger,
                   NegativeInteger, NonpositiveInteger,
-                  IntegerWithRange, NumericWithRange)
+                  IntegerWithRange, NumericWithRange,
+                  SingleEnum, MultipleEnum, Color)
 
-importFrom(MutableRanges, setEnum, setParameters, MutableGRanges)
+importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
+           setParameters, MutableGRanges)
 importMethodsFrom(MutableRanges, values, seqnames)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
@@ -124,7 +126,7 @@ exportClasses("numericORNULL",
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)
-export(SearchBar, ControlPanel, GRangesViewer)
+export(SearchBar, ControlPanel, SimpleViewer)
 
 ## ## utils method
 export("getIdeogram")

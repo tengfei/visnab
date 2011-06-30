@@ -37,7 +37,7 @@ Collate: AllClasses.R
 	 VisnabProject-class.R
 	 QtVisnabView-GUI.R
 	 CircularView-GUI.R
-	 GRangesViewer-GUI.R
+	 SimpleViewer-GUI.R
 	 SearchBar-GUI.R
 	 ControlPanel-GUI.R
 

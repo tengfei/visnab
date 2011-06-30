@@ -49,7 +49,7 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- GraphicPars.gen$new(geom = geom)
   gp$setTheme(theme)
   gp$update(...)
-  gp$cpanel <- ControlPanel(gp)
+  ## gp$cpanel <- ControlPanel(gp)
   gp$changed$connect(function(name){
     vals <-gp$field(name)
     gp$cpanel$setValue(name, vals)
@@ -110,7 +110,7 @@ GraphicPars.gen$methods(output = function(){
   ## hard coded exclued variables
   idx <- !(names(flds) %in% paste(".",
                                   c("view", "parinfo", "tooltipinfo",
-                                    "exposed", "theme", "xlim", "ylim" ,
+                                    "exposed", "xlim", "ylim" ,
                                     "xlimZoom", "ylimZoom", "cpanel", "view"), sep = ""))
   flds <- flds[idx]
   idx <- !grepl("^\\.init.", names(flds))

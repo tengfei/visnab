@@ -1,8 +1,8 @@
 ## new theme class
 ## theme doesn't specify any signal events,
 ## use GraphicPars to decide which to emit signals
-ThemeEnum <- setEnum("Theme", levels = c("default", "dark"))
-setRefClass("Theme", fields = signalingField("theme", "ThemeEnum"),
+ThemeSingleEnum <- setSingleEnum("Theme", levels = c("default", "dark"))
+setRefClass("Theme", fields = signalingField("theme", "ThemeSingleEnum"),
             contains = "VIRTUAL")
 
 
@@ -59,9 +59,18 @@ setTheme <- function(prefix, pars=list(),
                      ## ylimZoom = "Viewport Range(y-scale)",
                      ## xlim = "Limits on x-scale",
                      ## ylim = "Limits on y-scale",
+                     theme = "Theme",
                      geom = "Geometry",
                      cpal = "Palletes(Continuous variables)",
-                     dpal = "Palletes(Continuous variables)")
+                     dpal = "Palletes(Discrete variables)",
+                      ## fake for GUI test
+                     fake1 = "PositiveInteger",
+                     fake2 = "NonnegativeInteger",
+                     fake3 = "NegativeInteger",
+                     fake4 = "NonpositiveInteger",
+                     fake5 = "IntegerWithRange",
+                     fake6 = "MultipleEnum",
+                     fake7 = "character")
 
   ## tooltipinfo used for showing tooltip, wihch is descriptive
   tooltipinfolst <- list(bgColor = "no tool tip defined yet",
@@ -77,9 +86,20 @@ setTheme <- function(prefix, pars=list(),
                          ## ylimZoom = "no tool tip defined yet",
                          ## xlim = "no tool tip defined yet",
                          ## ylim = "no tool tip defined yet",
+                         theme = "no tool tip defined yet",
                          geom = "no tool tip defined yet",
                          cpal = "no tool tip defined yet",
-                         dpal = "no tool tip defined yet")
+                         dpal = "no tool tip defined yet",
+                         ## fake for GUI test
+                         ## fake for GUI test
+                         fake1 = "PositiveInteger",
+                         fake2 = "NonnegativeInteger",
+                         fake3 = "NegativeInteger",
+                         fake4 = "NonpositiveInteger",
+                         fake5 = "IntegerWithRange",
+                         fake6 = "MultipleEnum",
+                         fake7 = "character")
+
 
   ## exposed decide which parameters exposed to users
   exposedlst <- list(bgColor = TRUE,
@@ -95,9 +115,18 @@ setTheme <- function(prefix, pars=list(),
                      ## ylimZoom = FALSE,
                      ## xlim = FALSE,
                      ## ylim = FALSE,
+                     theme = TRUE,
                      geom = TRUE,
                      cpal = TRUE,
-                     dpal = TRUE)
+                     dpal = TRUE,
+                     ## fake for GUI test
+                     fake1 = TRUE,
+                     fake2 = TRUE,
+                     fake3 = TRUE,
+                     fake4 = TRUE,
+                     fake5 = TRUE,
+                     fake6 = TRUE,
+                     fake7 = TRUE)
 
   ## default is "white", light them
   def <- list(bgColor = "white",
@@ -114,29 +143,47 @@ setTheme <- function(prefix, pars=list(),
               ## xlim = numeric(),
               ## ylim = numeric(),
               ## geom = new("Enum"),
-              cpal = new("CPalEnum", "identity"),
-              dpal = new("DPalEnum", "brewer"),
+              theme = new("ThemeSingleEnum", "default"),
+              cpal = new("CPalSingleEnum", "identity"),
+              dpal = new("DPalSingleEnum", "brewer"),
               parinfo = parinfolst,
               tooltipinfo = tooltipinfolst,
-              exposed = exposedlst)
+              exposed = exposedlst,
+              ## fake for GUI test
+              fake1 = new("PositiveInteger", 1L),
+              fake2 = new("NonnegativeInteger", 0L),
+              fake3 = new("NegativeInteger", -1L),
+              fake4 = new("NonpositiveInteger", 0L),
+              fake5 = new("IntegerWithRange", min = 0L, max = 100L, 55L),
+              fake6 = new("MultipleEnum", levels = LETTERS[1:10], c("A", "B")),
+              fake7 = "input text")
 }
 
 .defFields <- function(){
-  defFields <- list(bgColor = "character",
+  defFields <- list(bgColor = "Color",
                     bgAlpha = "NumericWithRange",
-                    fgColor = "character",
+                    fgColor = "Color",
                     color = "AsIsORcharacter",
-                    fill = "character",
-                    stroke = "character",
+                    fill = "Color",
+                    stroke = "Color",
                     alpha = "NumericWithRange",
-                    hoverColor = "character",
-                    textColor = "character",
-                    cpal = "CPalEnum",
-                    dpal = "DPalEnum",
+                    hoverColor = "Color",
+                    textColor = "Color",
+                    cpal = "CPalSingleEnum",
+                    dpal = "DPalSingleEnum",
                     parinfo = "list",
                     tooltipinfo = "list",
                     ## geom = "enum",
-                    exposed = "list")
+                    ## theme = "ThemeEnum",
+                    exposed = "list",
+                    ## fake for GUI test
+                    fake1 = "PositiveInteger",
+                    fake2 = "NonnegativeInteger",
+                    fake3 = "NegativeInteger",
+                    fake4 = "NonpositiveInteger",
+                    fake5 = "IntegerWithRange",
+                    fake6 = "MultipleEnum",
+                    fake7 = "character")
 }
 
 

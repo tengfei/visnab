@@ -65,10 +65,10 @@ TxdbView <- function(track,
   xlimZoom <- c(start,end)
   
   geom <- match.arg(geom)
-  geom <- new("TxdbViewGeomEnum", geom)
+  geom <- new("TxdbViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
-  rescale <- new("RescaleEnum", rescale)
+  rescale <- new("RescaleSingleEnum", rescale)
   
   pars <- GraphicPars(xlimZoom = xlimZoom,
                       geom = geom,

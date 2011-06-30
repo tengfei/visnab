@@ -1,30 +1,30 @@
 ##-----------------------------------------------------------------##
-##                Class GeomEnum
+##                Class GeomSingleEnum
 ##-----------------------------------------------------------------##
 ##  lazily define Geoms here
 ## setEnum return class name not generator function
 .IntervalViewGeom <- c("full", "reduce", "midpoint", "length",
                        "barchart", "heatmap", "segment")
-setEnum("VisnabViewGeom", levels = character())
-setEnum("IntervalViewGeom", levels = .IntervalViewGeom)
-setEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
-setEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
-setEnum("AlignmentViewGeom", levels = c("full", "dense"))
-setEnum("ScaleViewGeom", levels = c("twoside"))
-setEnum("SingleChromViewGeom", levels = c("full", "dense"))
-setEnum("SeqViewGeom", levels = c("default"))
+setSingleEnum("VisnabViewGeom", levels = character())
+setSingleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
+setSingleEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
+setSingleEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
+setSingleEnum("AlignmentViewGeom", levels = c("full", "dense"))
+setSingleEnum("ScaleViewGeom", levels = c("twoside"))
+setSingleEnum("SingleChromViewGeom", levels = c("full", "dense"))
+setSingleEnum("SeqViewGeom", levels = c("default"))
 
 ## automatica constructor
 .Geoms <- function(view = "VisnabView"){
   geom <- switch(view,
-                 VisnabView = new("VisnabViewGeomEnum"),
-                 IntervalView = new("IntervalViewGeomEnum", "full"),
-                 TxdbView = new("TxdbViewGeomEnum", "full"),
-                 CoverageView = new("CoverageViewGeomEnum", "total"),
-                 AlignmentView = new("AlignmentViewGeomEnum", "full"),
-                 ScaleViewGeom = new("ScaleViewGeomEnum", "twoside"),
-                 SingleChromView = new("SingleChromViewGeomEnum", "full"),
-                 SeqViewGeom = new("SeqViewGeomEnum", "default")
+                 VisnabView = new("VisnabViewGeomSingleEnum"),
+                 IntervalView = new("IntervalViewGeomSingleEnum", "full"),
+                 TxdbView = new("TxdbViewGeomSingleEnum", "full"),
+                 CoverageView = new("CoverageViewGeomSingleEnum", "total"),
+                 AlignmentView = new("AlignmentViewGeomSingleEnum", "full"),
+                 ScaleViewGeom = new("ScaleViewGeomSingleEnum", "twoside"),
+                 SingleChromView = new("SingleChromViewGeomSingleEnum", "full"),
+                 SeqViewGeom = new("SeqViewGeomSingleEnum", "default")
                  ) 
 }
 
@@ -39,18 +39,19 @@ setEnum("SeqViewGeom", levels = c("default"))
 ##-----------------------------------------------------------------##
 ##                Class CPalEnum
 ##-----------------------------------------------------------------##
-CPalEnum <- setEnum("CPal", levels = c("area", "gradient", "grey",
+CPalSingleEnum <- setSingleEnum("CPal", levels = c("area", "gradient", "grey",
                               "identity", "manual", "rescales"))
 ##-----------------------------------------------------------------##
 ##                Class DPalEnum
 ##-----------------------------------------------------------------##
-DPalEnum <- setEnum("DPal", levels = c("brewer", "dichromat", "hue",
+DPalSingleEnum <- setSingleEnum("DPal", levels = c("brewer", "dichromat", "hue",
                               "identity", "manual"))
 
 ##-----------------------------------------------------------------##
-##                Class RescaleEnum
+##                Class RescaleSingleEnum
 ##-----------------------------------------------------------------##
-RescaleEnum <- setEnum("Rescale", levels = c("geometry", "transform", "none"))
+RescaleSingleEnum <- setSingleEnum("Rescale",
+                                   levels = c("geometry", "transform", "none"))
 
 
 ##-----------------------------------------------------------------##
