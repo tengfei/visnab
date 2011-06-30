@@ -4,8 +4,8 @@
 ## import(methods)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
-importFrom(objectSignals, signalingField, Signal)
-importMethodsFrom(objectSignals, length)
+importFrom(objectSignals, signalingField, signalingFields, Signal)
+importMethodsFrom(objectSignals, length, listeners)
 importClassesFrom(objectSignals, Signal)
 importFrom(plumbr, mutaframe, mutalist)
 import(qtbase)
@@ -31,7 +31,7 @@ importMethodsFrom(IRanges,
                   "%in%", 
                   show, as.list,
                   aggregate, append,
-                  colnames, "colnames<-", lapply)
+                  colnames, "colnames<-", lapply, sapply)
 
 importClassesFrom(IRanges, AsIs, Annotated)
 
@@ -117,7 +117,8 @@ export(GraphicPars,
 exportClasses("numericORNULL",
               "characterORNULL",
               "functionORNULL", 
-              "logicalORNULL") 
+              "logicalORNULL",
+              "Theme") 
 
 
 ## GUI

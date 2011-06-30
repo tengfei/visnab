@@ -9,7 +9,7 @@ VisnabView.gen <- setRefClass("VisnabView",
                                 signalingField("colorLegend", "ColorLegendList"),
                                 signalingField("viewrange", "SimpleMutableGRanges"),
                                 signalingField("selfSignal", "logical"),
-                                pars = "GraphicPars",
+                                pars = "GraphicParameters",
                                 tooltipinfo = "character",
                                 viewname = "character"
                                 ))

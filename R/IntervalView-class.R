@@ -1,7 +1,7 @@
 ## TODO:
 ## 1. need a plot for IRanges which share the core code
 ## 2. supported geom "midpoint", "rectangle", "line",
-## "interval" for IRanges, "histogram" and "barchart"
+## "interval" for IRanges, "heatmap" and "barchart"
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##

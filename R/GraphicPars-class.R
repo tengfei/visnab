@@ -1,28 +1,25 @@
 ##-----------------------------------------------------------------##
-##                Class Union Used
+##                Class GrahpicPars
 ##-----------------------------------------------------------------##
-GraphicPars.gen <- setRefClass("GraphicPars",
-                         fields=c(signalingField("bgColor","character"),
-                           signalingField("bgAlpha","NumericWithRange"),
-                           signalingField("fgColor","character"),
-                           signalingField("color","AsIsORcharacter"),
-                           signalingField("fill","character"),
-                           signalingField("stroke","character"),
-                           signalingField("alpha","NumericWithRange"),
-                           signalingField("hoverColor","character"),
-                           signalingField("textColor","character"),
-                           signalingField("xlimZoom","numeric"),
-                           signalingField("ylimZoom","numeric"),
-                           signalingField("xlim","numeric"),
-                           signalingField("ylim","numeric"),
-                           signalingField("geom","Enum"),
-                           signalingField("cpal","CPalEnum"),
-                           signalingField("dpal","DPalEnum"),
-                           view = "character",
-                           parinfo = "list",
-                           tooltipinfo = "list",
-                           exposed = "list"
-                           ))
+## GraphicPars is associated with each view
+## GraphicPars.gen <- setRefClass("GraphicPars",
+##                                fields=c(signalingFields(list(xlimZoom = "numeric",
+##                                  ylimZoom= "numeric",
+##                                  xlim = "numeric",
+##                                  ylim = "numeric",
+##                                  geom = "Enum")),
+##                                  view = "character"
+##                                  ),
+##                                contains = "DefaultTheme")
+
+gparslst <- list(xlimZoom = "numeric",
+                ylimZoom= "numeric",
+                xlim = "numeric",
+                ylim = "numeric",
+                geom = "Enum",
+                view = "character")
+
+GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme")
 
 ##----------------------------------------------------------------##
 ##                Constructor for GraphicsPars
@@ -41,62 +38,18 @@ GraphicPars.gen <- setRefClass("GraphicPars",
 ##' @param ... pass paramters to update the default list
 ##' @param view specify a default graphic parameters set for particular View Class.
 ##' @return a GrahpicPars object, which store all parameteres as fields.
-##' @examples
-##' pars <- GraphicPars(view = "TxdbView")
-##' ## basic show method
-##' pars
-##' ## to return a parameters list
-##' ars$output()
-##' ## how to get field
-##' pars$field("bgColor")
-##' ## how to set field
-##' pars$field("bgColor", "black")
-##' pars$field("bgColor")
-##' ## or
-##' pars$bgColor <- "blue"
-##' pars$bgColor
-##' ## how to get default back
-##' pars$reset()
-##' pars$bgColor
-##' ## IMPORTANT: change Enum and specific Numeric type class, need to use value()<-
-##' pars$geom
-##' ## show supported geoms
-##' levels(pars$geom)
-##' ## change
-##' ## to use values()<- you need to load MutableRanges
-##' library(MutableRanges)
-##' values(pars$geom) <- "dense"
-##' pars$geom
-##' ## change the value if it's not in the levels, will throw an error
-##' values(pars$geom) <- "notsupported"
-##' pars$reset()
-##' pars$geom
-##' ## do the same thing with NumericWithRange
-##' pars$alpha
-##' ## error when outside the range
-##' values(pars$alpha) <- 2
-##' values(pars$alpha) <- 0.5
-##' pars$alpha
-##' ## how to get min and max
-##' pars$alpha@min
-##' pars$alpha@max
 ##' @seealso signalingField
 ##' @author Tengfei Yin <yintengfei@gmail.com>
-GraphicPars <- function(..., view = "VisnabView"){
-  bioc <- options("BioC")
-  lst.def <- bioc$BioC$visnab[[view]]
-  lst <- list(...)
-  if(length(lst)>0){
-    lst.new <- update_opts(lst, data=lst.def)
-  }else{
-    lst.new <- lst.def
-  }
-  gp <- do.call(GraphicPars.gen$new,lst.new)
-  gp$view <- view
+GraphicPars <- function(..., view = "VisnabView", theme = "default"){
+  ## switch geom
+  geom <- .Geoms(view)
+  gp <- GraphicPars.gen$new(geom = geom)
+  gp$setTheme(theme)
+  gp$update(...)
   return(gp)
 }
 
-setMethod("show","GraphicPars",function(object){
+setMethod("show","GraphicParameters",function(object){
   cat("Parameters stored in pars\n")
   for(nm in ls(object@.xData)){
     y <- get(nm,env=object@.xData)
@@ -116,16 +69,20 @@ setMethod("show","GraphicPars",function(object){
 
 ## set back to default
 GraphicPars.gen$methods(
-                  reset = function(){
+                  reset = function(themeName){
                     'reset parameters to default
                     '
-                    dfs <- options("BioC")$BioC$visnab[[view]]
-                    nms <- names(dfs)
-                    for(nm in nms){
-                      assign(nm,dfs[[nm]],env=.self@.xData)
-                    }
-                  }
-                  )
+                    ## do some thing first
+                    callSuper(themeName)
+                  })
+
+GraphicPars.gen$methods(
+                  update = function(...){
+                    'reset parameters to default
+                    '
+                    ## do some thing first
+                    callSuper(...)
+                  })
 
 
 ## accessors
@@ -138,12 +95,15 @@ GraphicPars.gen$methods(output = function(){
    class shows class of those parameters.
    '
   ## need to make sure the order are the same
-  flds <- pars$getRefClass()$fields()
+  flds <- getRefClass()$fields()
   idx <- !(flds %in% c("activeBindingFunction","Signal","function",
                        "functionORNULL"))
   flds <- flds[idx]
-  idx <- !(names(flds) %in% c("view", "parinfo", "tooltipinfo", "exposed"))
+  idx <- !(names(flds) %in% c("view", "parinfo", "tooltipinfo", "exposed", "theme"))
   flds <- flds[idx]
+  idx <- !grepl("^\\.init.", names(flds))
+  flds <- flds[idx]
+  ## move .init
   cls <- as.character(flds)
   valnames <- gsub("\\.","",names(flds))
   names(cls) <- valnames
@@ -152,7 +112,8 @@ GraphicPars.gen$methods(output = function(){
   tooltipinfo2 <- sapply(valnames, function(nm) tooltipinfo[[nm]])
   exposed2 <- sapply(valnames, function(nm) exposed[[nm]])
   valschanged <- paste(valnames, "Changed", sep = "")
-  vsignal <- sapply(valschanged, pars$field)
+
+  vsignal <- sapply(valschanged, .self$field)
   sigs <- as.numeric(unlist(lapply(vsignal, length)))
   names(sigs) <- valnames
   lst <- list(pars = valnames, value = vals,
@@ -163,3 +124,11 @@ GraphicPars.gen$methods(output = function(){
   return(lst)
 })
 
+GraphicPars.gen$methods(setTheme = function(themeName){
+  "set parameters based on theme name
+  "
+  .self$reset(themeName)
+})
+
+## .GraphicPars.DefaultTheme <- .DefaultTheme
+## .GraphicPars.DarkTheme <- .DarkTheme
