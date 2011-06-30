@@ -19,7 +19,7 @@ gparslst <- list(xlimZoom = "numeric",
                 xlim = "numeric",
                 ylim = "numeric",
                 view = "character",
-                 geom = "Enum",
+                 geom = "SingleEnumORMultipleEnum",
                  cpanel = "R::visnab::ControlPanel")
 
 GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme")
@@ -49,11 +49,12 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- GraphicPars.gen$new(geom = geom)
   gp$setTheme(theme)
   gp$update(...)
+  ## FIXME: check if the widget is shown or not.
   ## gp$cpanel <- ControlPanel(gp)
-  gp$changed$connect(function(name){
-    vals <-gp$field(name)
-    gp$cpanel$setValue(name, vals)
-  })
+  ## gp$changed$connect(function(name){
+  ##   vals <-gp$field(name)
+  ##   gp$cpanel$setValue(name, vals)
+  ## })
   return(gp)
 }
 

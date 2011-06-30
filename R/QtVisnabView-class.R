@@ -30,10 +30,12 @@ QtVisnabView.gen$methods(
                          }
                          )
 
-
-
 QtVisnabView.gen$methods(GUI = function(){
-  sv <- SimpleViewer(view = view)
+  ## for temproary
+  ## FIXME: need to check the genome
+  if(TRUE)
+    data(genesymbol)
+  sv <- SimpleViewer(view = view, gr = genesymbol)
   qconnect(sv, "rangeChanged", function(){
     gr <- sv$getSearchRange()
     values(viewrange) <<- gr
