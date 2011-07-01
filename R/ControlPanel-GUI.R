@@ -20,7 +20,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   qconnect(reset, "clicked", function() {
     gp$reset()
-    sapply(c(l.col,l.range,l.enum,l.int), function(i) {
+    sapply(c(l.col,l.char,l.range,l.enum,l.int), function(i) {
       i$setDefault()
     })
   })
@@ -32,17 +32,28 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   lyt <- Qt$QVBoxLayout()
 
-  this$l.col <- list()
-
   # best way to check for a particular class
   #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
+
   # color widgets
+  this$l.col <- list()
+
   sapply(gp$output()$pars[gp$output()$exposed &
                           (gp$output()$class == "QColor")], function(i) {
     l.col[[i]] <<- ColorParWidget(gp, i)
     lyt$addWidget(l.col[[i]])
   })
 
+  # character widgets
+  this$l.char <- list()
+
+  sapply(gp$output()$pars[gp$output()$exposed &
+                          (gp$output()$class == "character")], function(i) {
+    l.char[[i]] <<- CharParWidget(gp, i)
+    lyt$addWidget(l.char[[i]])
+  })
+
+  
   # numeric with range widgets
   this$l.range <- list()
 
@@ -85,7 +96,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 })
 
 qsetMethod("setValue", ControlPanel, function(par, val) {
-  c(l.col,l.range,l.int,l.enum)[[par]]$setValue(val)
+  c(l.col,l.char,l.range,l.int,l.enum)[[par]]$setValue(val)
 })
 
 # widget to handle changing colors
@@ -340,4 +351,50 @@ qsetMethod("setValue", IntParWidget, function(val) {
 qsetMethod("setDefault", IntParWidget, function() {
   val <- eval(parse(text=paste("gp$",par,sep="")))
   spin$setValue(val)
+})
+
+
+
+# widget to handle changing character strings
+qsetClass("CharParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
+  super(parent)
+  this$gp <- gp; this$par <- par
+
+  initText <- eval(parse(text=paste("gp$",par,sep="")))
+
+  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  parLabel$setToolTip(
+    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+
+  this$parEdit <- Qt$QLineEdit(initText)
+
+  qconnect(parEdit, "editingFinished", function() {
+    setValue(parEdit$text)
+  })
+
+  lyt <- Qt$QHBoxLayout()
+  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  lyt$addWidget(parEdit)
+
+  setLayout(lyt)
+})
+
+qsetMethod("getPar", CharParWidget, function() {
+  par
+})
+
+qsetMethod("getValue", CharParWidget, function() {
+  parEdit$text
+})
+
+# also updates the gp object
+qsetMethod("setValue", CharParWidget, function(txt) {
+    parEdit$setText(txt)
+    eval(parse(text=paste("gp$",par," <- parEdit$text",sep="")))
+})
+
+qsetMethod("setDefault", CharParWidget, function() {
+  txt <- eval(parse(text=paste("gp$",par,sep="")))
+  parEdit$setText(txt)  
 })
