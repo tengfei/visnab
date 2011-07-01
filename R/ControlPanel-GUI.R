@@ -20,7 +20,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   qconnect(reset, "clicked", function() {
     gp$reset()
-    sapply(c(l.col,l.range,l.enum), function(i) {
+    sapply(c(l.col,l.range,l.enum,l.int), function(i) {
       i$setDefault()
     })
   })
