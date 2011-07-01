@@ -1,17 +1,6 @@
 ##-----------------------------------------------------------------##
 ##                Class GrahpicPars
 ##-----------------------------------------------------------------##
-## GraphicPars is associated with each view
-## GraphicPars.gen <- setRefClass("GraphicPars",
-##                                fields=c(signalingFields(list(xlimZoom = "numeric",
-##                                  ylimZoom= "numeric",
-##                                  xlim = "numeric",
-##                                  ylim = "numeric",
-##                                  geom = "Enum")),
-##                                  view = "character"
-##                                  ),
-##                                contains = "DefaultTheme")
-## setOldClass("RQtObject")
 setOldClass("R::visnab::ControlPanel")
 
 gparslst <- list(xlimZoom = "numeric",

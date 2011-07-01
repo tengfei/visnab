@@ -19,7 +19,8 @@ QtVisnabView.gen$methods(
                            }
                            if(is.null(rootLayer))
                              rootLayer <<- qlayer(scene,
-                                                     geometry=qrect(0,0,800,600))
+                                                     geometry=qrect(0,0,800,600),
+                                                  cache = TRUE)
                          },
                          setBgColor = function(bgcol = NULL){
                            if(is.null(bgcol))

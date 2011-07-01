@@ -51,7 +51,7 @@ importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
                   PositiveInteger, NonnegativeInteger,
                   NegativeInteger, NonpositiveInteger,
                   IntegerWithRange, NumericWithRange,
-                  SingleEnum, MultipleEnum, Color)
+                  SingleEnum, MultipleEnum, OverlapTypeSingleEnum)
 
 importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
            setParameters, MutableGRanges)

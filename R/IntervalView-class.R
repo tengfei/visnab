@@ -7,8 +7,10 @@
 ##----------------------------------------------------------##
 IntervalView.gen <- setRefClass("IntervalView",
                                 contains = "QtVisnabView",
-                                fields = list(track = "SimpleMutableGRanges",
-                                  flag = "logical"))
+                                fields = c(track = "SimpleMutableGRanges",
+                                  flag = "logical",
+                                  signalingField("group", "character")))
+
 
 
 ##----------------------------------------------------------##
@@ -23,7 +25,7 @@ IntervalView <- function(track,
                            "barchart", "heatmap", "segment"),
                          rescale = c("geometry", "transform", "none")){
   
-  ## 
+  ##
   tooltips <- "not implemented"
   ## if null, set first chromosome as viewed chromosome
   if(missing(seqname))
@@ -50,6 +52,7 @@ IntervalView <- function(track,
   if(is(track, "GRanges"))
     track <- as(track,"MutableGRanges")
   ## need to make sure it's a long form
+  ## FIXME:
   track <- addLevels(track)
   ## connect signal
   ## FIXME:
@@ -58,26 +61,25 @@ IntervalView <- function(track,
   })
   
   pars <- GraphicPars(xlimZoom = xlimZoom, 
-                      geom = geom, color = color, 
+                      geom = geom, color = color,
                       view = "IntervalView")
-  
+
   obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
                               tooltipinfo = tooltips, viewname = viewname,
+                              group = group,
                               viewrange = viewrange)
-
   ## event
   ## add default attributes
   addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
   ## obj$regSignal()
-  obj$createView(group = group)
+  obj$createView()
   return(obj)
 }
 
 ############################################################
 ## createview method
 ############################################################
-IntervalView.gen$methods(createView = function(group, fill){
-
+IntervalView.gen$methods(createView = function(){
   seqname <- as.character(seqnames(viewrange))
   setDislayWidgets()
   setBgColor()
@@ -92,8 +94,71 @@ IntervalView.gen$methods(createView = function(group, fill){
   ##                     ranges(mr))@matchMatrix[,2]
   ## mr <- mr[idx]
   ## return a painter function
-  lvpainter <- IntervalPainter(mr, obj = .self, group = group, fill = fill,
-                               geom = obj$pars$geom)
+  ## lvpainter <- IntervalPainter(mr, obj = .self,      geom = pars$geom)
+  ## if(sing(geom)&!(missing(obj)))
+  ##   geom <- pars$geom
+  ## if(missing(geom)&missing(obj))
+  ##   geom <- "full"
+  ## if(length(color))
+    color <- pars$color
+  ## assigne color
+  if(length(color)){
+    vals <- values(mr)[,color]
+    if(length(vals)>100)
+      vallen <- 100
+    testpal <- function(to = c(0, 1), vallen = vallen){
+      function(x){
+        vals <- x
+        to = c(0, 1)
+        vals <- rescale_mid(vals, to = to, mid = 0)
+        ## cols <- cscale(vals, div_gradient_pal("blue", "white", "red"))
+        bks <- seq(0, 1, length = vallen)
+        ints <- as.character(cut(vals, bks))
+        lvs <- as.list(by(vals, ints, mean))
+        vls <- unname(unlist(lvs))
+        cols <- cscale(vls, div_gradient_pal("blue", "white", "red"))
+        colss <- cols[match(ints, names(lvs))]
+      }
+    }
+    cols <- cscale(vals, testpal(vallen = vallen))
+    values(mr)$.color <- cols
+  }
+                                        # Can use with gradient_n to create a continous gradient
+
+  ## if(!missing(group)){
+  ##   vs <- eval(as.symbol(group), elementMetadata(gr))
+  ##   grl <- split(gr, vs)
+  ##   group <- as.symbol(group)
+  ## }else{
+  ##   group <- NULL
+  ##   grl <- list(gr)
+  ## }
+
+  ## ## not used for every case
+  ## ts <- lapply(grl, function(gr){
+  ##   mr <- gr
+  ##   ir <- ranges(gr)
+  ##   bins <- disjointBins(ir)
+  ##   binmx <- max(bins*10+5)
+  ##   mr.r <- reduce(mr)
+  ##   sts <- start(gr)
+  ##   wds <- width(gr)
+  ##   ptx <- sts+wds/2
+  ##   cov <- coverage(gr)
+  ##   list(bins = bins, binmx = binmx,  mr = mr,
+  ##        mr.r = mr.r, sts = sts, wds = wds, ptx = ptx, cov = cov)
+  ## })
+  ## mrl <- split(mr, values(mr)[,group])
+  ## mrl <- lapply(mrl, function(mr){
+  ##   st <- start(mr)
+  ##   ed <- end(mr)
+  ##   col <- values(mr)$.color
+  ##   data.frame(st = st, ed = ed, col = col)
+  ## })
+  lv <- as.numeric(as.factor(values(mr)[,group]))
+  st <- start(mr)
+  ed <- st
+  col <- values(mr)$.color
   hoverMoveEvent <- function(layer,event){
     rect <- qrect(0,0,1,1)
     mat <- layer$deviceTransform(event)$inverted()
@@ -114,83 +179,17 @@ IntervalView.gen$methods(createView = function(group, fill){
       }
     }
   }
-  ## used for hover
-  flag <<- FALSE
-  ## construct layer
-  layer <- qlayer(rootLayer,paintFun=lvpainter,
-                  wheelFun=  wheelEventZoom(view),
-                  keyPressFun = keyPressEventZoom(track, view = view, sy = 1),
-                  ## hoverMoveFun = hoverMoveEvent,
-                  row=row,col=col,
-                  rowSpan=rowSpan,colSpan=colSpan)
-  layer$setLimits(qrect(pars$xlim[1], pars$ylim[1], pars$xlim[2], pars$ylim[2]))
-  pars$ylimChanged$connect(function(){
-    layer$setLimits(qrect(pars$xlim[1], pars$ylim[1], pars$xlim[2], pars$ylim[2]))
-  })
-  layer$setGeometry(0,0,600,150)
-})
-
-
-IntervalView.gen$methods(show = function(){
-  view$show()
-})
-
-setMethod("print","IntervalView",function(x){
-  x$show()
-})
-
-IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
-  if(missing(geom)&!(missing(obj)))
-    geom <- obj$pars$geom
-  if(missing(geom)&missing(obj))
-    geom <- "full"
-  if(missing(color)&(!missing(obj)))
-    color <- obj$pars$color
-  
-  ## assigne color
-  if(!missing(color)){
-    vals <- values(gr)[,color]
-    if(length(vals)>100)
-      vallen <- 100
-    values(gr)$.color <- cscale(vals, gradient_n_pal(c("blue", "white", "red"),
-                                               values = seq(0, 1, length = vallen)))
-  }
-  if(!missing(group)){
-    vs <- eval(as.symbol(group), elementMetadata(gr))
-    grl <- split(gr, vs)
-    group <- as.symbol(group)
-  }else{
-    group <- NULL
-    grl <- list(gr)
-  }
-
-
-  ## not used for every case
-  ts <- lapply(grl, function(gr){
-    mr <- gr
-    ir <- ranges(gr)
-    bins <- disjointBins(ir)
-    binmx <- max(bins*10+5)
-    mr.r <- reduce(mr)
-    sts <- start(gr)
-    wds <- width(gr)
-    ptx <- sts+wds/2
-    cov <- coverage(gr)
-    list(bins = bins, binmx = binmx,  mr = mr,
-         mr.r = mr.r, sts = sts, wds = wds, ptx = ptx, cov = cov)
-  })
-
   lvpainter <- function(layer,painter,exposed){
     xlimZoom <- as.matrix(exposed)[,1]
     ylimZoom <- as.matrix(exposed)[,2]
-    obj$pars$xlimZoom <- xlimZoom
-    obj$pars$ylimZoom <- ylimZoom
+    pars$xlimZoom <<- xlimZoom
+    pars$ylimZoom <<- ylimZoom
     ## compute color on the fly
     ## Draw rectangle
     ##----------------------------------------------------------------------
-    ##  geom "full"
+    ##  pars$geom "full"
     ##----------------------------------------------------------------------
-    if(geom == "full"){
+    if(pars$geom == "full"){
       ## values(mr)$.color <- cols
       gps <- names(ts)
       if(!is.null(group)){
@@ -205,30 +204,30 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
             qdrawRect(painter,start(mr),gs+(bins*10)/binmx*5,end(mr),
                       gs+(bins*10+5)/binmx*5,
                       stroke=NA,fill=col)
-            qdrawRect(painter, 0, gs-2, obj$pars$seqlength, gs+5-2,
+            qdrawRect(painter, 0, gs-2, pars$seqlength, gs+5-2,
                       fill = NA, stroke = "gray80")
           })
         })
-        obj$pars$ylim <- c(0,5*(length(ts)))
+        pars$ylim <<- c(0,5*(length(ts)))
       }else{
         cols <- genLegend(gr, color = color)$color
         with(ts[[1]], 
              qdrawRect(painter,start(mr),(bins*10)/binmx*5,end(mr),
                        (bins*10+5)/binmx*5,
                        stroke=NA,fill=cols))
-      obj$pars$ylim <- expand_range(c(0, 5), mul = 0.05)
+        pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
+      }
     }
-    }
-    if(geom == "dense"){
+    if(pars$geom == "dense"){
       qdrawRect(painter,start(mr.r), 10, end(mr.r), 20,
                 stroke=NA,fill=values(mr.r)$.color)
-      obj$pars$ylim <<- c(0,30)
+      pars$ylim <<- c(0,30)
     }
-    if(geom == "segment"){
+    if(pars$geom == "segment"){
       qdrawSegment(painter, ptx, 10, ptx, 20, stroke = values(mr)$.color)
-      obj$pars$ylim <<- c(0,30)
+      pars$ylim <<- c(0,30)
     }
-    if(geom == "barchart"){
+    if(pars$geom == "barchart"){
       ## don't need gap in barchart
       ## single position first
       ## Ignore multiple sample or facets first
@@ -240,14 +239,14 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
       }else{
         cols <- "black"
       }
-        with(ts[[1]],{
-          qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
-                    ((bins-1)*10+10)/binmx*5,
-                    stroke=NA, fill = cols)}
-             )
-      obj$pars$ylim <- expand_range(c(0, 5), mul = 0.05)
+      with(ts[[1]],{
+        qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
+                  ((bins-1)*10+10)/binmx*5,
+                  stroke=NA, fill = cols)}
+           )
+      pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
     }
-    if(geom == "mismatch"){
+    if(pars$geom == "mismatch"){
       ## suppose we have "read" and "ref" column
       ## long form
       ## read: color(mismatched)
@@ -267,7 +266,7 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
                     ((bins-1)*10+10)/binmx*5,
                     stroke=NA, fill = cols)}
              )
-        obj$pars$ylim <- expand_range(c(0, 5), mul = 0.05)
+        pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
       }
       if(diff(xlimZoom)/600<1){
         ## show all the reference first
@@ -282,27 +281,51 @@ IntervalPainter <- function(gr, geom, color, group, facet, fill, obj){
                   start(sumlong), (values(sumlong)$.level-1)*10,
                   halign = "center", valign = "bottom",
                   vcex = values(sumlong)$count)
-        obj$pars$ylim <- expand_range(c(0, max(values(sumlong)$.level-1)), mul = 0.05)
+        pars$ylim <<- expand_range(c(0, max(values(sumlong)$.level-1)), mul = 0.05)
       }      
 
     }
-    if(geom == "seqlogo"){
+    if(pars$geom == "seqlogo"){
       
     }
-    if(geom == "heatmap"){
-      # use gr
-      # use group
-      N <- length(grl)
-      sapply(seq_len(N), function(i){
-        gr <- grl[[1]]
-        qdrawSegment(painter, start(gr), 10*(i-1), end(gr), 10*i, str,
-                     stroke = values(gr)$.color)
-      })
+    if(pars$geom == "heatmap"){
+      segs <- qglyphSegment(x = 30, dir = pi/2)
+      ## qdrawSegment(painter, st, 50*(lv-1), ed, 50*lv, 
+      ##                stroke = col)
+      qdrawGlyph(painter, segs, st, 10*(lv-1), stroke = col)
+      pars$ylim <<- c(-10, 10*max(lv))
     }
-    if(geom == "line"){
+    if(pars$geom == "line"){
       
     }
   }
-}
+  ## used for hover
+  flag <<- FALSE
+  ## construct layer
+  rootLayer[0,0] <<- qlayer(scene,paintFun=lvpainter,
+                            wheelFun=  wheelEventZoom(view),
+                            keyPressFun = keyPressEventZoom(track, view = view, sy = 1),
+                            cache = FALSE)
+  ## hoverMoveFun = hoverMoveEvent,
+
+
+  rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+                                 pars$xlim[2], pars$ylim[2]))
+  pars$ylimChanged$connect(function(){
+    rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+                                   pars$xlim[2], pars$ylim[2]))
+  })
+  ## rootLayer[0,0]$layer$setGeometry(0,0,600,150)
+})
+
+
+IntervalView.gen$methods(show = function(){
+  view$show()
+})
+
+setMethod("print","IntervalView",function(x){
+  x$show()
+})
+
 
 

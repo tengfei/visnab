@@ -107,10 +107,6 @@ blackred_pal <- function(){
   }
 }
 ## used for heatmap
-blue_white_red <- function(){
-  function(x){
-    
-  }
-}
+
 
 
