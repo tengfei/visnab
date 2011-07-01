@@ -34,26 +34,50 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   this$l.col <- list()
 
-  sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
-                                                 "character")], function(i) {
+  # best way to check for a particular class
+  #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
+
+  # color widgets
+  sapply(gp$output()$pars[gp$output()$exposed &
+                          (gp$output()$class == "Color")], function(i) {
     l.col[[i]] <<- ColorParWidget(gp, i)
     lyt$addWidget(l.col[[i]])
   })
 
+  # numeric with range widgets
   this$l.range <- list()
 
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
                                          "NumericWithRange")], function(i) {
-    l.range[[i]] <<- RangeParWidget(gp, i)
+    l.range[[i]] <<- RangeParWidget(gp, i, "double")
     lyt$addWidget(l.range[[i]])
   })
 
+  # integer with range widgets
+  sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
+                                         "IntegerWithRange")], function(i) {
+    l.range[[i]] <<- RangeParWidget(gp, i, "int")
+    lyt$addWidget(l.range[[i]])
+  })  
+
+  # integer widgets
+  this$l.int <- list()
+
+  sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class %in%
+    c("PositiveInteger","NonnegativeInteger","NegativeInteger",
+      "NonpositiveInteger"))], function(i) {
+    l.int[[i]] <<- IntParWidget(gp, i, substr(pars$output()$class[i],1,6))
+    lyt$addWidget(l.int[[i]])
+  })  
+  
+  # single enum widgets
   this$l.enum <- list()
 
-  sapply(gp$output()$pars[gp$output()$exposed & (grepl("Enum",
-                                         gp$output()$class))], function(i) {
-    l.enum[[i]] <<- EnumParWidget(gp, i)
-    lyt$addWidget(l.enum[[i]])
+  sapply(gp$output()$pars[gp$output()$exposed & 
+          (sapply(pars$output()$value, function(i) is(i,"SingleEnum")))],
+    function(i) {
+      l.enum[[i]] <<- SingleEnumParWidget(gp, i)
+      lyt$addWidget(l.enum[[i]])
   })  
 
   lyt$addLayout(blyt)
@@ -62,7 +86,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 })
 
 qsetMethod("setValue", ControlPanel, function(par, val) {
-  c(l.col,l.range,l.enum)[[par]]$setValue(val)
+  c(l.col,l.range,l.int,l.enum)[[par]]$setValue(val)
 })
 
 # widget to handle changing colors
@@ -119,7 +143,7 @@ qsetMethod("setValue", ColorParWidget, function(clr) {
   if(Qt$QColor$isValidColor(clr)) {
     parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
     parEdit$setText(clr)
-    eval(parse(text=paste("gp$",par," <- parEdit$text",sep="")))
+    eval(parse(text=paste("values(gp$",par,") <- parEdit$text",sep="")))
   } else {
     parEdit$setText("")
     parLabel$setFocus(Qt$Qt$OtherFocusReason)
@@ -134,10 +158,10 @@ qsetMethod("setDefault", ColorParWidget, function() {
 })
 
 # widget for changing numeric values
-qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, parent = NULL)
+qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
 {
   super(parent)
-  this$gp <- gp; this$par <- par
+  this$gp <- gp; this$par <- par; this$type <- type
 
   initVal <- eval(parse(text=paste("gp$",par,sep="")))
   this$minVal <- eval(parse(text=paste("gp$",par,"@min",sep="")))
@@ -148,26 +172,41 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   parLabel$setToolTip(
     gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
 
-  this$spin <- Qt$QDoubleSpinBox()
-  spin$setDecimals(3)
+  if(type == "double") {
+    this$spin <- Qt$QDoubleSpinBox()
+    spin$setDecimals(3)
+    spin$setSingleStep((maxVal - minVal)/100)
+  } else {
+    this$spin <- Qt$QSpinBox()
+  }
   spin$setRange(minVal, maxVal)
-  spin$setSingleStep((maxVal - minVal)/100)
   spin$setValue(initVal)
 
   # slider -- only supports integers, so need to adjust values
   this$sl <- Qt$QSlider(Qt$Qt$Horizontal)
-  sl$setMinimum(0)
-  sl$setMaximum(100)
-  sl$setSingleStep(1)
-  sl$setValue(as.integer(100*initVal))
+  if(type == "double") {
+    sl$setRange(0,100)
+    sl$setValue(as.integer(100*initVal))
+  } else {
+    sl$setRange(minVal,maxVal)
+    sl$setValue(initVal)
+  }
 
   # update slider when spinbox changes
   qconnect(spin, "valueChanged", function(val) {
-    sl$setValue(as.integer(100*val))
+    if(type == "double") {
+      sl$setValue(as.integer(100*val))
+    } else {
+      sl$setValue(val)
+    }
   })
   # update spinbox when slider changes, and update the gp
   qconnect(sl, "valueChanged", function(val) {
-    spin$setValue(val/100)
+    if(type == "double") {
+      spin$setValue(val/100)
+    } else {
+      spin$setValue(val)
+    }
     eval(parse(text=paste("values(gp$",par,") <- spin$value",sep="")))
   })
 
@@ -197,7 +236,7 @@ qsetMethod("setDefault", RangeParWidget, function() {
 })
 
 # widget to change levels from a class extending Enum
-qsetClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
+qsetClass("SingleEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 {
   super(parent)
   this$gp <- gp; this$par <- par
@@ -227,19 +266,79 @@ qsetClass("EnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   setLayout(lyt)
 })
 
-qsetMethod("getPar", EnumParWidget, function() {
+qsetMethod("getPar", SingleEnumParWidget, function() {
   par
 })
 
-qsetMethod("getValue", EnumParWidget, function() {
+qsetMethod("getValue", SingleEnumParWidget, function() {
   dropList$currentText
 })
 
-qsetMethod("setValue", EnumParWidget, function(val) {
+qsetMethod("setValue", SingleEnumParWidget, function(val) {
   if(val %in% levels) dropList$setCurrentIndex(which(levels == val) - 1)
 })
 
-qsetMethod("setDefault", EnumParWidget, function() {
+qsetMethod("setDefault", SingleEnumParWidget, function() {
   val <- eval(parse(text=paste("gp$",par,sep="")))
   dropList$setCurrentIndex(which(levels == val) - 1)
+})
+
+
+
+# widget for changing integer values
+qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
+{
+  super(parent)
+  this$gp <- gp; this$par <- par; this$type <- type
+
+  initVal <- eval(parse(text=paste("gp$",par,sep="")))
+
+  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  parLabel$setToolTip(
+    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+
+  this$spin <- Qt$QSpinBox()
+  if(type == "Negati") {
+    spin$setMinimum(-999999)
+    spin$setMaximum(-1)
+  } else if(type == "Positi") {
+    spin$setMinimum(1)
+    spin$setMaximum(999999)
+  } else if(type == "Nonneg") {
+    spin$setMinimum(0)
+    spin$setMaximum(999999)
+  } else {
+    spin$setMinimum(-999999)
+    spin$setMaximum(0)
+  }
+  spin$setValue(initVal)
+
+  # update gp when spinbox changes
+  qconnect(spin, "valueChanged", function(val) {
+    eval(parse(text=paste("values(gp$",par,") <- spin$value",sep="")))
+  })
+
+  lyt <- Qt$QHBoxLayout()
+  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  lyt$addWidget(spin)
+
+  setLayout(lyt)
+})
+
+qsetMethod("getPar", IntParWidget, function() {
+  par
+})
+
+qsetMethod("getValue", IntParWidget, function() {
+  spin$value
+})
+
+qsetMethod("setValue", IntParWidget, function(val) {
+  spin$setValue(val)
+})
+
+qsetMethod("setDefault", IntParWidget, function() {
+  val <- eval(parse(text=paste("gp$",par,sep="")))
+  spin$setValue(val)
 })
