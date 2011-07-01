@@ -30,18 +30,23 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   blyt$addWidget(reset)
   #blyt$addWidget(submit)
 
-  lyt <- Qt$QVBoxLayout()
+  olyt <- Qt$QVBoxLayout()
+  lyt <- Qt$QFormLayout()
+  lyt$setRowWrapPolicy(Qt$QFormLayout$WrapLongRows)
 
   # best way to check for a particular class
   #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
 
+  this$l.lab <- list()
+  
   # color widgets
   this$l.col <- list()
 
   sapply(gp$output()$pars[gp$output()$exposed &
                           (gp$output()$class == "QColor")], function(i) {
     l.col[[i]] <<- ColorParWidget(gp, i)
-    lyt$addWidget(l.col[[i]])
+    l.lab[[i]] <<- ParLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.col[[i]])
   })
 
   # character widgets
@@ -50,7 +55,8 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   sapply(gp$output()$pars[gp$output()$exposed &
                           (gp$output()$class == "character")], function(i) {
     l.char[[i]] <<- CharParWidget(gp, i)
-    lyt$addWidget(l.char[[i]])
+    l.lab[[i]] <<- ParLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.char[[i]])
   })
 
   
@@ -60,14 +66,16 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
                                          "NumericWithRange")], function(i) {
     l.range[[i]] <<- RangeParWidget(gp, i, "double")
-    lyt$addWidget(l.range[[i]])
+    l.lab[[i]] <<- ParLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.range[[i]])
   })
 
   # integer with range widgets
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
                                          "IntegerWithRange")], function(i) {
     l.range[[i]] <<- RangeParWidget(gp, i, "int")
-    lyt$addWidget(l.range[[i]])
+    l.lab[[i]] <<- ParLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.range[[i]])
   })  
 
   # integer widgets
@@ -77,7 +85,8 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
     c("PositiveInteger","NonnegativeInteger","NegativeInteger",
       "NonpositiveInteger"))], function(i) {
     l.int[[i]] <<- IntParWidget(gp, i, substr(pars$output()$class[i],1,6))
-    lyt$addWidget(l.int[[i]])
+    l.lab[[i]] <<- ParLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.int[[i]])
   })  
   
   # single enum widgets
@@ -87,12 +96,24 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
           (sapply(pars$output()$value, function(i) is(i,"SingleEnum")))],
     function(i) {
       l.enum[[i]] <<- SingleEnumParWidget(gp, i)
-      lyt$addWidget(l.enum[[i]])
+      l.lab[[i]] <<- ParLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.enum[[i]])
   })  
 
-  lyt$addLayout(blyt)
+  # multiple enum widgets
+  sapply(gp$output()$pars[gp$output()$exposed & 
+          (sapply(pars$output()$value, function(i) is(i,"MultipleEnum")))],
+    function(i) {
+      l.enum[[i]] <<- MultEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.enum[[i]])
+  })  
 
-  setLayout(lyt)
+  
+  olyt$addLayout(lyt)
+  olyt$addLayout(blyt)
+
+  setLayout(olyt)
 })
 
 qsetMethod("setValue", ControlPanel, function(par, val) {
@@ -106,10 +127,10 @@ qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
 
   initColor <- eval(parse(text=paste("gp$",par,"$name()",sep="")))
 
-  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
-  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
-  parLabel$setToolTip(
-    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
   this$parSwatch <- Qt$QPushButton()
   parSwatch$setAutoFillBackground(TRUE)
   parSwatch$setFocusPolicy(Qt$Qt$NoFocus)
@@ -133,7 +154,7 @@ qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   })
 
   lyt <- Qt$QHBoxLayout()
-  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(parSwatch)
   lyt$addWidget(parEdit)
 
@@ -177,10 +198,10 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
   this$minVal <- eval(parse(text=paste("gp$",par,"@min",sep="")))
   this$maxVal <- eval(parse(text=paste("gp$",par,"@max",sep="")))
 
-  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
-  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
-  parLabel$setToolTip(
-    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
 
   if(type == "double") {
     this$spin <- Qt$QDoubleSpinBox()
@@ -221,7 +242,7 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
   })
 
   lyt <- Qt$QHBoxLayout()
-  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(spin)
   lyt$addWidget(sl)
 
@@ -254,10 +275,10 @@ qsetClass("SingleEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   initLvl <- eval(parse(text=paste("gp$",par,sep="")))
   
   this$levels <- eval(parse(text=paste("levels(gp$",par,")",sep="")))
-  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
-  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
-  parLabel$setToolTip(
-    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
 
   this$dropList <- Qt$QComboBox()
   sapply(levels, dropList$addItem)
@@ -270,7 +291,7 @@ qsetClass("SingleEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   })
 
   lyt <- Qt$QHBoxLayout()
-  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(dropList)
 
   setLayout(lyt)
@@ -294,6 +315,78 @@ qsetMethod("setDefault", SingleEnumParWidget, function() {
 })
 
 
+# widget to change levels from a class extending Enum with ability to
+# select multiple levels
+qsetClass("MultEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
+{
+  super(parent)
+  this$gp <- gp; this$par <- par
+
+  initVal <- eval(parse(text=paste("gp$",par,sep="")))
+  
+  this$levels <- eval(parse(text=paste("levels(gp$",par,")",sep="")))
+  this$currentVal <- levels %in% initVal
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+
+  lyt <- Qt$QGridLayout()
+
+  this$bg <- Qt$QButtonGroup()
+  bg$setExclusive(FALSE)
+
+  # initiate buttons, and check those that are within the current value
+  sapply(seq_along(levels), function(i) {
+    button <- Qt$QCheckBox(levels[i])
+    lyt$addWidget(button, floor((i-1)/4), (i-1) %% 4)
+    bg$addButton(button, i)
+    bg$button(i)$setChecked(currentVal[i])
+  })
+
+  # change gp when user changes level
+  qconnect(bg, "buttonClicked(int)", function(id) {
+    currentVal[id] <- bg$button(id)$checked
+    eval(parse(text=paste("values(gp$",par,") <- levels[currentVal]",
+                   sep="")))
+  })
+
+  #lyt <- Qt$QHBoxLayout()
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(dropList)
+
+  setLayout(lyt)
+})
+
+qsetMethod("getPar", MultEnumParWidget, function() {
+  par
+})
+
+qsetMethod("getValue", MultEnumParWidget, function() {
+  levels[currentVal]
+})
+
+qsetMethod("setValue", MultEnumParWidget, function(val) {
+  if(all(val %in% levels)) {
+    currentVal <- levels %in% val
+    sapply(seq_along(levels), function(i) {
+      bg$button(i)$setChecked(currentVal[i])
+    })
+    eval(parse(text=paste("values(gp$",par,") <- levels[currentVal]",sep="")))
+  } else {
+    stop("Error: one or more levels specified are not valid")
+  }
+})
+
+qsetMethod("setDefault", MultEnumParWidget, function() {
+  val <- eval(parse(text=paste("gp$",par,sep="")))
+  currentVal <- levels %in% val
+  sapply(seq_along(levels), function(i) {
+    bg$button(i)$setChecked(currentVal[i])
+  })
+})
+
+
 
 # widget for changing integer values
 qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
@@ -303,10 +396,10 @@ qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
 
   initVal <- eval(parse(text=paste("gp$",par,sep="")))
 
-  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
-  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
-  parLabel$setToolTip(
-    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
 
   this$spin <- Qt$QSpinBox()
   if(type == "Negati") {
@@ -330,7 +423,7 @@ qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
   })
 
   lyt <- Qt$QHBoxLayout()
-  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(spin)
 
   setLayout(lyt)
@@ -362,10 +455,10 @@ qsetClass("CharParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
 
   initText <- eval(parse(text=paste("gp$",par,sep="")))
 
-  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
-  this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
-  parLabel$setToolTip(
-    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+  #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
+  #parLabel$setToolTip(
+  #  gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
 
   this$parEdit <- Qt$QLineEdit(initText)
 
@@ -374,7 +467,7 @@ qsetClass("CharParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   })
 
   lyt <- Qt$QHBoxLayout()
-  lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
+  #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(parEdit)
 
   setLayout(lyt)
@@ -398,3 +491,20 @@ qsetMethod("setDefault", CharParWidget, function() {
   txt <- eval(parse(text=paste("gp$",par,sep="")))
   parEdit$setText(txt)  
 })
+
+# label for a given parameter, with appropriate text and tooltip
+qsetClass("ParLabel", Qt$QLabel, function(gp, par, parent = NULL) {
+  super(parent)
+
+  this$gp <- gp; this$par <- par
+
+  parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  setText(paste(parInfo,":",sep=""))
+  setToolTip(
+    gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+    
+})
+
+
+
+
