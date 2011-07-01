@@ -11,6 +11,9 @@ setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 
 ## qsetRefClass(Qt$QColor)
 setOldClass("QColor")
+setMethod("values", "QColor", function(x, ...){
+  x$names()
+})
 ## suppose values only accepted characters
 setReplaceMethod("values", "QColor", function(x, value){
   if(is(value, "QColor"))
@@ -23,15 +26,18 @@ setReplaceMethod("values", "QColor", function(x, value){
   x
 })
 
-setClass("CColor", contains = c("character"))
-setReplaceMethod("values", "CColor", function(x, value){
-  if(!is.character(value))
-    stop("Values need to be a character")
-  x@.Data <- value
-  x
-})
+## setClass("CColor", contains = c("character"))
+## setReplaceMethod("values", "CColor", function(x, value){
+##   if(!is.character(value))
+##     stop("Values need to be a character")
+##   x@.Data <- value
+##   x
+## })
+## setMethod("values", "CColor", function(x, ...){
+##   x$names()
+## })
 
-setClassUnion("Color", c("QColor", "CColor"))
+## setClassUnion("Color", c("QColor", "CColor"))
 
 setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 

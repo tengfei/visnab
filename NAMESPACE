@@ -18,7 +18,7 @@ importClassesFrom(Biobase, AssayData)
 ## importClassesFrom(IRanges, IRanges, Rle)
 importFrom(IRanges, IRanges,  disjoin, disjointBins,
            "elementMetadata", "elementMetadata<-",
-           "values","values<-", start, width, end,  mid,
+           start, width, end,  mid, "values<-",
            "start<-", "width<-", "end<-",
            ranges, "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
@@ -28,8 +28,7 @@ importMethodsFrom(IRanges,
                   unlist,setdiff, Rle,
                   as.data.frame,
                   "[","[<-",
-                  "%in%", 
-                  show, as.list,
+                  "%in%", show, as.list,
                   aggregate, append,
                   colnames, "colnames<-", lapply, sapply)
 
@@ -55,7 +54,7 @@ importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
 
 importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
            setParameters, MutableGRanges)
-importMethodsFrom(MutableRanges, values, seqnames)
+importMethodsFrom(MutableRanges,  seqnames, "values")
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
@@ -100,6 +99,7 @@ exportMethods(
               ## "selectedRangesModel<-",
               geom,
               "geom<-",
+              "values",
               aes)
 
 
@@ -129,8 +129,8 @@ exportClasses("numericORNULL",
 export(SearchBar, ControlPanel, SimpleViewer)
 
 ## ## utils method
-export("getIdeogram")
+export("getIdeogram", "values<-")
 
 ## for temporary
-## exportPattern("^[^\\.]")
-exportPattern(".+")
+exportPattern("^[^\\.]")
+
