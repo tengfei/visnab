@@ -36,10 +36,9 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   # best way to check for a particular class
   #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
-
   # color widgets
   sapply(gp$output()$pars[gp$output()$exposed &
-                          (gp$output()$class == "Color")], function(i) {
+                          (gp$output()$class == "QColor")], function(i) {
     l.col[[i]] <<- ColorParWidget(gp, i)
     lyt$addWidget(l.col[[i]])
   })
@@ -94,7 +93,7 @@ qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   super(parent)
   this$gp <- gp; this$par <- par
 
-  initColor <- eval(parse(text=paste("gp$",par,sep="")))
+  initColor <- eval(parse(text=paste("gp$",par,"$name()",sep="")))
 
   parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
   this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
@@ -152,7 +151,7 @@ qsetMethod("setValue", ColorParWidget, function(clr) {
 })
 
 qsetMethod("setDefault", ColorParWidget, function() {
-  clr <- eval(parse(text=paste("gp$",par,sep="")))
+  clr <- eval(parse(text=paste("gp$",par,"$name()",sep="")))
   parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
   parEdit$setText(clr)  
 })
