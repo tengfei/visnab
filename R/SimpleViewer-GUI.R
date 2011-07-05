@@ -36,6 +36,8 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
     sb$parseSearchString(sb$text, gr, ref)
   })
 
+  qconnect(sb, "rangeChanged", this$rangeChanged)
+
   # update table when search range updates
   #qconnect(sb, "rangeChanged", function() {
   #  ret <- sb$getSearchRange()
@@ -64,6 +66,8 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
 #  tv$setModel(proxy)
 #  
 #})
+
+qsetSignal("rangeChanged", SimpleViewer)
 
 qsetMethod("getSearchRange", SimpleViewer, function() {
   sb$getSearchRange()
