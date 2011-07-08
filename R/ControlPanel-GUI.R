@@ -84,7 +84,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class %in%
     c("PositiveInteger","NonnegativeInteger","NegativeInteger",
       "NonpositiveInteger"))], function(i) {
-    l.int[[i]] <<- IntParWidget(gp, i, substr(pars$output()$class[i],1,6))
+    l.int[[i]] <<- IntParWidget(gp, i, substr(gp$output()$class[i],1,6))
     l.lab[[i]] <<- ParLabel(gp, i)
     lyt$addRow(l.lab[[i]], l.int[[i]])
   })  
@@ -93,7 +93,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   this$l.enum <- list()
 
   sapply(gp$output()$pars[gp$output()$exposed & 
-          (sapply(pars$output()$value, function(i) is(i,"SingleEnum")))],
+          (sapply(gp$output()$value, function(i) is(i,"SingleEnum")))],
     function(i) {
       l.enum[[i]] <<- SingleEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
@@ -102,7 +102,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   # multiple enum widgets
   sapply(gp$output()$pars[gp$output()$exposed & 
-          (sapply(pars$output()$value, function(i) is(i,"MultipleEnum")))],
+          (sapply(gp$output()$value, function(i) is(i,"MultipleEnum")))],
     function(i) {
       l.enum[[i]] <<- MultEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
