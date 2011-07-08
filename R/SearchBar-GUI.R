@@ -18,6 +18,7 @@ qsetClass("SearchBar", Qt$QLineEdit, function(gr = NULL, ref = NULL, parent = NU
   if(!is.null(compVec)) {
     compVec <- sort(unique(compVec))
     comp <- Qt$QCompleter(compVec)
+    comp$setCaseSensitivity(Qt$Qt$CaseInsensitive)
     this$setCompleter(comp)
   }
 
@@ -87,17 +88,17 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr = NULL, ref = NULL)
     in.metadata <- NULL
     if(!is.null(gr)) {
       grNames <- levels(seqnames(gr))
-      in.names <- grep(text,grNames)
+      in.names <- grep(text,grNames,ignore.case=TRUE)
       metaData <- unlist(sapply(values(gr),as.character))
-      in.metadata <- grep(text,metaData)
+      in.metadata <- grep(text,metaData,ignore.case=TRUE)
     }
     in.namesRef <- NULL
     in.metadataRef <- NULL
     if(!is.null(ref)) {
       namesReference <- levels(seqnames(ref))
-      in.namesRef <- grep(text,namesReference)
+      in.namesRef <- grep(text,namesReference,ignore.case=TRUE)
       metaDataReference <- unlist(sapply(values(ref),as.character))
-      in.metadataRef <- grep(text,metaDataReference)
+      in.metadataRef <- grep(text,metaDataReference,ignore.case=TRUE)
     }
     if(length(in.names) > 0) {
       grSubset <- gr[seqnames(gr) == text]
