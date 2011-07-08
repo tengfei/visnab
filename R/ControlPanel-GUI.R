@@ -13,7 +13,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   #  })
   #
   #  sapply(c(l.range,l.enum), function(i) {
-  #    eval(parse(text=paste("values(gp$",i$getPar(),") <- i$getValue()",
+  #    eval(parse(text=paste("gp$",i$getPar()," <- i$getValue()",
   #                 sep="")))
   #  })
   #})
@@ -43,7 +43,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   this$l.col <- list()
 
   sapply(gp$output()$pars[gp$output()$exposed &
-                          (gp$output()$class == "QColor")], function(i) {
+                          (gp$output()$class == "Color")], function(i) {
     l.col[[i]] <<- ColorParWidget(gp, i)
     l.lab[[i]] <<- ParLabel(gp, i)
     lyt$addRow(l.lab[[i]], l.col[[i]])
@@ -64,7 +64,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   this$l.range <- list()
 
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
-                                         "NumericWithRange")], function(i) {
+                                      "NumericWithMin0Max1")], function(i) {
     l.range[[i]] <<- RangeParWidget(gp, i, "double")
     l.lab[[i]] <<- ParLabel(gp, i)
     lyt$addRow(l.lab[[i]], l.range[[i]])
@@ -125,7 +125,7 @@ qsetClass("ColorParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   super(parent)
   this$gp <- gp; this$par <- par
 
-  initColor <- eval(parse(text=paste("gp$",par,"$name()",sep="")))
+  initColor <- eval(parse(text=paste("gp$",par,sep="")))
 
   #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
   #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
@@ -174,7 +174,7 @@ qsetMethod("setValue", ColorParWidget, function(clr) {
   if(Qt$QColor$isValidColor(clr)) {
     parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
     parEdit$setText(clr)
-    eval(parse(text=paste("values(gp$",par,") <- parEdit$text",sep="")))
+    eval(parse(text=paste("gp$",par," <- parEdit$text",sep="")))
   } else {
     parEdit$setText("")
     parLabel$setFocus(Qt$Qt$OtherFocusReason)
@@ -183,21 +183,24 @@ qsetMethod("setValue", ColorParWidget, function(clr) {
 })
 
 qsetMethod("setDefault", ColorParWidget, function() {
-  clr <- eval(parse(text=paste("gp$",par,"$name()",sep="")))
+  clr <- eval(parse(text=paste("gp$",par,sep="")))
   parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
   parEdit$setText(clr)  
 })
 
-# widget for changing numeric values
+# widget for changing numeric values (general for any numeric range, but
+# for now hard-coded for a 0-1 range)
 qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
 {
   super(parent)
   this$gp <- gp; this$par <- par; this$type <- type
 
   initVal <- eval(parse(text=paste("gp$",par,sep="")))
-  this$minVal <- eval(parse(text=paste("gp$",par,"@min",sep="")))
-  this$maxVal <- eval(parse(text=paste("gp$",par,"@max",sep="")))
-
+  #this$minVal <- eval(parse(text=paste("gp$",par,"@min",sep="")))
+  this$minVal <- 0
+  #this$maxVal <- eval(parse(text=paste("gp$",par,"@max",sep="")))
+  this$maxVal <- 1
+  
   #parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
   #this$parLabel <- Qt$QLabel(paste(parInfo,":",sep=""))
   #parLabel$setToolTip(
@@ -238,7 +241,7 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
     } else {
       spin$setValue(val)
     }
-    eval(parse(text=paste("values(gp$",par,") <- spin$value",sep="")))
+    eval(parse(text=paste("gp$",par," <- spin$value",sep="")))
   })
 
   lyt <- Qt$QHBoxLayout()
@@ -286,8 +289,8 @@ qsetClass("SingleEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 
   # change gp when user changes level
   qconnect(dropList, "currentIndexChanged", function(idx) {
-    eval(parse(text=paste("values(gp$",par,
-                 ") <- dropList$currentText",sep="")))
+    eval(parse(text=paste("gp$",par,
+                 " <- dropList$currentText",sep="")))
   })
 
   lyt <- Qt$QHBoxLayout()
@@ -347,7 +350,7 @@ qsetClass("MultEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   # change gp when user changes level
   qconnect(bg, "buttonClicked(int)", function(id) {
     currentVal[id] <- bg$button(id)$checked
-    eval(parse(text=paste("values(gp$",par,") <- levels[currentVal]",
+    eval(parse(text=paste("gp$",par," <- levels[currentVal]",
                    sep="")))
   })
 
@@ -372,7 +375,7 @@ qsetMethod("setValue", MultEnumParWidget, function(val) {
     sapply(seq_along(levels), function(i) {
       bg$button(i)$setChecked(currentVal[i])
     })
-    eval(parse(text=paste("values(gp$",par,") <- levels[currentVal]",sep="")))
+    eval(parse(text=paste("gp$",par," <- levels[currentVal]",sep="")))
   } else {
     stop("Error: one or more levels specified are not valid")
   }
@@ -388,7 +391,8 @@ qsetMethod("setDefault", MultEnumParWidget, function() {
 
 
 
-# widget for changing integer values
+# widget for changing integer values (obselete at this point since there
+# are not parameters of this type)
 qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
 {
   super(parent)
@@ -419,7 +423,7 @@ qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
 
   # update gp when spinbox changes
   qconnect(spin, "valueChanged", function(val) {
-    eval(parse(text=paste("values(gp$",par,") <- spin$value",sep="")))
+    eval(parse(text=paste("gp$",par," <- spin$value",sep="")))
   })
 
   lyt <- Qt$QHBoxLayout()
