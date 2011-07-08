@@ -127,7 +127,8 @@ export(GraphicPars,
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)
-export(SearchBar, ControlPanel, SimpleViewer)
+export(SearchBar, ControlPanel, SimpleViewer,
+       setGraphicPars)
 
 ## ## utils method
 export("getIdeogram")

@@ -3,69 +3,10 @@
 ##-----------------------------------------------------------------##
 setOldClass("R::visnab::ControlPanel")
 
-gparslst <- list(xlimZoom = "numeric",
-                ylimZoom= "numeric",
-                xlim = "numeric",
-                ylim = "numeric",
-                view = "character",
-                 geom = "Enum",
-                 cpanel = "R::visnab::ControlPanel")
-
-GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme",
-                                 signalName = "GParsChanged")
-
-##----------------------------------------------------------------##
-##                Constructor for GraphicsPars
-##----------------------------------------------------------------##
 
 
-##' GraphicPars is the constructor for generating a set of graphic parameters which
-##' could control specific view
-##'
-##' All the parameters stored in a GraphicPars object are signal objects, which listen
-##' to user's response, when the signal object is changed, it will emit certain binded
-##' function(s), for graphic parameters, it usually just update associated view(s) to
-##' make sure the color or other attributes changes on the fly.
-##'
-##' @title Graphic parameters constructor
-##' @param ... pass paramters to update the default list
-##' @param view specify a default graphic parameters set for particular View Class.
-##' @return a GrahpicPars object, which store all parameteres as fields.
-##' @seealso signalingField
-##' @author Tengfei Yin <yintengfei@gmail.com>
-GraphicPars <- function(..., view = "VisnabView", theme = "default"){
-  ## switch geom
-  geom <- .Geoms(view)
-  gp <- GraphicPars.gen$new(geom = geom)
-  gp$setTheme(theme)
-  gp$update(...)
-  ## gp$cpanel <- ControlPanel(gp)
-  ## gp$ThemeChanged$connect(function(name){
-  ##   vals <-gp$field(name)
-  ##   gp$cpanel$setValue(name, vals)
-  ## })
-  ## FIXME: check if the widget is shown or not.
-  return(gp)
-}
-
-
-setMethod("show","GraphicParameters",function(object){
-  cat("Parameters stored in pars\n")
-  for(nm in ls(object@.xData)){
-    y <- get(nm,env=object@.xData)
-    if((is(y,"character"))||(is(y,"numeric"))){
-      cat(nm, " = ", toString(y), "\n")
-    }
-    if(is(y,"Signal")){
-      cat(nm, " = ")
-      show(y)
-    }
-    if(is(y,"list")){
-      cat(nm, " = ", "\n")
-      str(y)
-    }
-  }
-})
+GraphicPars.gen <- setRefClass("GraphicParameters", contains = c("DefaultTheme",
+                                                      "VIRTUAL"))
 
 ## set back to default
 GraphicPars.gen$methods(
@@ -134,9 +75,6 @@ GraphicPars.gen$methods(setTheme = function(themeName){
   .self$reset(themeName)
 })
 
-## .GraphicPars.DefaultTheme <- .DefaultTheme
-## .GraphicPars.DarkTheme <- .DarkTheme
-## GUI
 GraphicPars.gen$methods(cp = function(show = TRUE){
   ## if(!length(cpanel)){
 
@@ -147,6 +85,96 @@ GraphicPars.gen$methods(cp = function(show = TRUE){
     cpanel$hide()
   }
 })
+
+
+setMethod("show","GraphicParameters",function(object){
+  cat("Parameters stored in pars\n")
+  for(nm in ls(object@.xData)){
+    y <- get(nm,env=object@.xData)
+    if((is(y,"character"))||(is(y,"numeric"))){
+      cat(nm, " = ", toString(y), "\n")
+    }
+    if(is(y,"Signal")){
+      cat(nm, " = ")
+      show(y)
+    }
+    if(is(y,"list")){
+      cat(nm, " = ", "\n")
+      str(y)
+    }
+  }
+})
+
+setGraphicPars <- function(viewname, gparslst,
+                           contains = c("GraphicParameters"),
+                           signalName = "GParsChanged",
+                           where = topenv(parent.frame())){
+  names <- paste(viewname, "Graphic", sep = "")
+  setParameters(names, gparslst,
+                contains = contains,
+                signalName = signalName)
+}
+
+.AllVisnabViews <- c("VisnabView",
+                     "IntervalView",
+                     "TxdbView",
+                     "CoverageView",
+                     "AlignmentView",
+                     "ScaleView",
+                     "SingleChromView",
+                     "SeqView")
+
+sapply(.AllVisnabViews, function(viewname){
+  gparslst <- list(xlimZoom = "numeric",
+                ylimZoom= "numeric",
+                xlim = "numeric",
+                ylim = "numeric",
+                view = "character",
+                   ## fix on active binding of this geom
+                 geom = .GeomName(viewname),
+                 cpanel = "R::visnab::ControlPanel")
+  setGraphicPars(viewname, gparslst)
+})
+
+.GParsName <- function(viewname){
+  paste(viewname, "GraphicParameters", sep = "")
+}
+
+##----------------------------------------------------------------##
+##                Constructor for GraphicsPars
+##----------------------------------------------------------------##
+
+
+##' GraphicPars is the constructor for generating a set of graphic parameters which
+##' could control specific view
+##'
+##' All the parameters stored in a GraphicPars object are signal objects, which listen
+##' to user's response, when the signal object is changed, it will emit certain binded
+##' function(s), for graphic parameters, it usually just update associated view(s) to
+##' make sure the color or other attributes changes on the fly.
+##'
+##' @title Graphic parameters constructor
+##' @param ... pass paramters to update the default list
+##' @param view specify a default graphic parameters set for particular View Class.
+##' @return a GrahpicPars object, which store all parameteres as fields.
+##' @seealso signalingField
+##' @author Tengfei Yin <yintengfei@gmail.com>
+GraphicPars <- function(..., view = "VisnabView", theme = "default"){
+  ## switch geom
+  geom <- .Geom(view)
+  cls <- .GParsName(view)
+  gp <- new(cls, geom = geom)
+  gp$setTheme(theme)
+  gp$update(...)
+  gp$cpanel <- ControlPanel(gp)
+  gp$ThemeChanged$connect(function(name){
+    vals <-gp$field(name)
+    gp$cpanel$setValue(name, vals)
+  })
+  ## FIXME: check if the widget is shown or not.
+  return(gp)
+}
+
 
 
 

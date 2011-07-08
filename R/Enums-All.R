@@ -15,7 +15,7 @@ setSingleEnum("SingleChromViewGeom", levels = c("full", "dense"))
 setSingleEnum("SeqViewGeom", levels = c("default"))
 
 ## automatica constructor
-.Geoms <- function(view = "VisnabView"){
+.Geom <- function(view = "VisnabView"){
   geom <- switch(view,
                  VisnabView = new("VisnabViewGeomSingleEnum"),
                  IntervalView = new("IntervalViewGeomSingleEnum", "full"),
@@ -24,8 +24,20 @@ setSingleEnum("SeqViewGeom", levels = c("default"))
                  AlignmentView = new("AlignmentViewGeomSingleEnum", "full"),
                  ScaleViewGeom = new("ScaleViewGeomSingleEnum", "twoside"),
                  SingleChromView = new("SingleChromViewGeomSingleEnum", "full"),
-                 SeqViewGeom = new("SeqViewGeomSingleEnum", "default")
-                 ) 
+                 SeqViewGeom = new("SeqViewGeomSingleEnum", "default"))
+
+}
+
+.GeomName <- function(view = "VisnabView"){
+  geom <- switch(view,
+                 VisnabView = "VisnabViewGeomSingleEnum",
+                 IntervalView = "IntervalViewGeomSingleEnum",
+                 TxdbView = "TxdbViewGeomSingleEnum",
+                 CoverageView = "CoverageViewGeomSingleEnum", 
+                 AlignmentView = "AlignmentViewGeomSingleEnum",
+                 ScaleView = "ScaleViewGeomSingleEnum", 
+                 SingleChromView = "SingleChromViewGeomSingleEnum",
+                 SeqView = "SeqViewGeomSingleEnum") 
 }
 
 ## setEnum("CircularViewGeoms", levels = c("full", "dense"), contains = "Geoms")

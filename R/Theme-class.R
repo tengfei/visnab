@@ -102,9 +102,9 @@ setTheme <- function(prefix, pars=list(),
 
   ## exposed decide which parameters exposed to users
   exposedlst <- list(bgColor = TRUE,
-                     fgColor = TRUE,
-                     textColor = TRUE,
-                     color = TRUE,
+                     fgColor = FALSE,
+                     textColor = FALSE,
+                     color = FALSE,
                      fill = TRUE,
                      stroke = TRUE,
                      alpha = TRUE,
@@ -120,10 +120,10 @@ setTheme <- function(prefix, pars=list(),
                      dpal = TRUE,
                      ## fake for GUI test
                      fake1 = TRUE,
-                     fake2 = TRUE,
-                     fake3 = TRUE,
-                     fake4 = TRUE,
-                     fake6 = TRUE,
+                     fake2 = FALSE,
+                     fake3 = FALSE,
+                     fake4 = FALSE,
+                     fake6 = FALSE,
                      fake7 = TRUE)
 
   ## default is "white", light them
