@@ -18,8 +18,8 @@ importClassesFrom(Biobase, AssayData)
 ## importClassesFrom(IRanges, IRanges, Rle)
 importFrom(IRanges, IRanges,  disjoin, disjointBins,
            "elementMetadata", "elementMetadata<-",
-           start, width, end,  mid, "values<-",
-           "start<-", "width<-", "end<-",
+           start, width, end,  mid, 
+           "start<-", "width<-", "end<-", 
            ranges, "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
            viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
@@ -46,15 +46,17 @@ importClassesFrom(GenomicRanges, GRanges, GenomicRanges, Seqinfo)
 
 
 ## ## MutableRanges
-importClassesFrom(MutableRanges, MutableGRanges,Parameters, Enum,
+importClassesFrom(MutableRanges, MutableGRanges,Parameters, 
                   PositiveInteger, NonnegativeInteger,
                   NegativeInteger, NonpositiveInteger,
-                  IntegerWithRange, NumericWithRange,
+                  NumericWithMin0Max1, Enum,
                   SingleEnum, MultipleEnum, OverlapTypeSingleEnum)
 
 importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
-           setParameters, MutableGRanges)
-importMethodsFrom(MutableRanges,  seqnames, "values")
+           setParameters, MutableGRanges, setNumericWithRange)
+
+importMethodsFrom(MutableRanges, seqnames,
+                  elementMetadataChanged, rangesChanged)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
@@ -99,7 +101,6 @@ exportMethods(
               ## "selectedRangesModel<-",
               geom,
               "geom<-",
-              "values",
               aes)
 
 
@@ -116,11 +117,11 @@ export(GraphicPars,
        VisnabViewList,
        VisnabProject)
 
-exportClasses("numericORNULL",
-              "characterORNULL",
-              "functionORNULL", 
-              "logicalORNULL",
-              "Theme") 
+## exportClasses("numericORNULL",
+##               "characterORNULL",
+##               "functionORNULL", 
+##               "logicalORNULL",
+##               "Theme") 
 
 
 ## GUI
@@ -129,7 +130,7 @@ exportClasses("numericORNULL",
 export(SearchBar, ControlPanel, SimpleViewer)
 
 ## ## utils method
-export("getIdeogram", "values<-")
+export("getIdeogram")
 
 ## for temporary
 exportPattern("^[^\\.]")

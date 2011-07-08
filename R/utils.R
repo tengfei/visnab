@@ -1,8 +1,6 @@
 ## ------------------------------------------------------------
 ## Utils for GenomicaRanges
 ## ------------------------------------------------------------
-
-
 setMethod('addLevels','GenomicRanges',function(obj,...){
   obj.lst <- split(obj,as.character(seqnames(obj)))
   lv <- unname(lapply(obj.lst,function(x){
@@ -231,6 +229,17 @@ reduceChr <- function(obj){
 ## This is going to be naming routines in visnab.
 ## Specific signal should be bound to MR object.
 setGeneric("addAttr",function(obj,...) standardGeneric("addAttr"))
+## genAttr <- function(N, ...){
+##     lst <- list(...)
+##     nms <- names(lst)
+##     lst <- lapply(nms, function(attr){
+##       val <- lst[[attr]]
+##       rep(val, N)
+##     })
+##     names(lst) <- nms
+##     do.call(data.frame, lst)
+##   }
+
 
 setMethod("addAttr","SimpleMutableGRanges",function(obj,...){
   lst <- list(...)
@@ -253,6 +262,24 @@ setMethod("addAttr","SimpleMutableGRanges",function(obj,...){
   ## elementMetadata(obj)  <- df
   obj
 })
+
+setMethod("addAttr","GRanges",function(obj,...){
+  lst <- list(...)
+  nms <- names(lst)
+  sapply(nms, function(nm){
+    elementMetadata(obj)[,nm] <<- lst[[nm]]
+  })
+  obj
+})
+
+## ## setMethod("addAttr","MutableGRanges",function(obj,...){
+## ##   lst <- list(...)
+## ##   nms <- names(lst)
+## ##   sapply(nms, function(nm){
+## ##     elementMetadata(obj)[,nm] <- lst[[nm]]
+## ##   })
+## ##   obj
+## ## })
 
 ## setGeneric("addDefAttr",function(obj,...) standardGeneric("addDefAttr"))
 
@@ -389,31 +416,40 @@ pileupAsGRanges <- function(bams, regions,
                             samBases = c(A = 2, C = 3, G = 5, T = 9),...) {
   pileupFiles <- PileupFiles(bams)
   pileupParams <- PileupParam(which = regions, ...)
-
+  ## what if it's multiple bam files
   bamNames <- names(bams)
   if (is.null(bamNames))
     bamNames <- bams
   pileupFun <- function(x) {
-    seq <- x$seq[samBases,,]
-    ## dim(seq) <- c(nrow(seq), ncol(seq) * dim(seq)[3])
-    rownames(seq) <- names(samBases)
-    GRanges(rep(names(x$seqnames), each = length(bams)),
-            IRanges(rep(x$pos, each = length(bams)), width = 1),
-            "+",
+    grl <- lapply(seq_len(length(bamNames)),function(i){
+    seq <- x$seq[names(samBases),i,]
+    if(length(seq)){
+    GRanges(seqnames = rep(names(x$seqnames), each = length(bams[i])),
+            ranges = IRanges(rep(x$pos, each = length(bams[i])), width = 1),
+            strand = "+",
             t(seq),
-            depth = colSums(seq), bam = bamNames)
+            depth = colSums(seq), bam = bamNames[i])
+    }else{
+    ## FIXME: a little hack if there is no reads, return a 0 gr
+    GRanges(
+         seqnames = rep(names(x$seqnames), each = length(bams)),
+            ranges = IRanges(0,0),
+            strand = "*",
+            A = 0, C = 0, G = 0, T = 0,
+            depth = 0, bam = bamNames)
+  }})
+    do.call(c, grl)
   }
   gr <- do.call(c, applyPileups(pileupFiles, pileupFun, param = pileupParams))
-  ## strand(gr) <- rep(strand(regions), width(regions) * length(bams))
   rc <- strand(gr) == "-"
   if(sum(rc) > 0)
     values(gr)[rc, DNA_BASES] <-
       values(gr)[rc, as.character(complement(DNAStringSet(DNA_BASES)))]
-  gr
+  split(test, values(test)$bam)
 }
 
 pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FALSE) {
-  refBases <- unlist(as.character(BSgenome::getSeq(genome, gr)), use.names=FALSE)
+  refBases <- unlist(as.character(BSgenome::getSeq(genome, gr, as.character = TRUE)), use.names=FALSE)
   ## df <- as.data.frame(values(gr))
   if(missing(DNA_BASES)){
     .reservedNames <- c("depth","bam")
@@ -438,7 +474,13 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
   return(res)
 }
 
+GCcontent <- function(files, regions){
+  grl <- pileupAsGRanges(files, regions)
+  if(sum(values(gr)$depth))
+      gcc <- (sum(values(gr)$G)+sum(values(gr)$C))/sum(values(gr)$depth)
+  values(region)$GCcontent <- gcc
+  region
+}
 
-
-
-
+## ## utils to generate pair-end
+## pairendGR <- function(file, region)

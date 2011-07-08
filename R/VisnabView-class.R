@@ -79,69 +79,29 @@ setReplaceMethod("range", "VisnabView", function(x, value){
             with prefix 'chr',such as chr1, chrX ...")
     ## x$pars$xlimZoomChanged$block()
     ## x$pars$seqname <- seqname
-    ranges(x$viewrange) <- seqname
+    seqnames(x$viewrange) <- seqname
+    x$pars$xlimZoom <- c(start(value), end(value))
     ## x$pars$xlimZoomChanged$unblock()
-    range(x$viewrange) <- c(start(value), end(value))
   }
   x
 })
 
 
 
-## setReplaceMethod("range", "VisnabView", function(x, value){
-##   if(is(value, "IRanges")){
-##     if(length(value)>1)
-##       stop("Viewed range can only be of length 1")
-##     x$selectedRange <- c(start(value), end(value))
-##   }
-##   if(is(value, "numeric")){
-##     if(length(value)!=2)
-##       stop("Please specify start and end value")
-##     if(diff(value)<=0)
-##       stop("Viewed range cannot be less than 0")
-##     x$selectedRange <- value
-##   }
-##   if(is(value, "character")){
-##     if(substr(value,1,3) != "chr")
-##       stop("Please follow the routine when naming the seqnames,
-##             with prefix 'chr',such as chr1, chrX ...")
-##     x$pars$seqname <- value
-##   }
-##   if(extends(class(value),"GenomicRanges")){
-##     if(length(value)>1)
-##       stop("Viewed range can only be of length 1")
-##     seqname <- as.character(seqnames(value))
-##     if(substr(as.character(seqname),1,3) != "chr")
-##       stop("Please follow the routine when naming the seqnames,
-##             with prefix 'chr',such as chr1, chrX ...")
-##     x$pars$seqname <- seqname
-##     x$selectedRange <- c(start(value), end(value))
-##   }
-##   x
+## setReplaceMethod("selectedRangesModel", "VisnabView", function(x,value){
+## if(is(value, "GRanges"))
+##   value <- as(value, "MutableGRanges")
+## if(is(value, "MutableGRanges"))
+##   x$selectedRangesModel <- value
+## x
 ## })
 
-## ----------------------------------------------------------------------
-## following stuff need to be changed and made more general
-## ----------------------------------------------------------------------
-
-setMethod("selectedRangesModel", "VisnabView", function(obj, ...){
-  print(obj$selectedRangesModel)
-})
-
-setReplaceMethod("selectedRangesModel", "VisnabView", function(x,value){
-if(is(value, "GRanges"))
-  value <- as(value, "MutableGRanges")
-if(is(value, "MutableGRanges"))
-  x$selectedRangesModel <- value
-x
-})
-
-setMethod("selectedRangesModel", "GenomicRanges", function(obj, color = "red"){
-  if(is(obj, "GRanges"))
-    data <- as(obj, "MutableGRanges")
-  x <- structure(list(data = data, color = color), class = "selectedRangesModel")
-  invisible(x)
-})
+## setMethod("selectedRangesModel", "GenomicRanges", function(obj, color = "red"){
+##   if(is(obj, "GRanges"))
+##     data <- as(obj, "MutableGRanges")
+##   x <- structure(list(data = data, color = color), class = "selectedRangesModel")
+##   invisible(x)
+## })
 
 ## selectedRangesModel <- function(data, color = "red"){
 ##   if(is(data, "GRanges"))
@@ -149,16 +109,15 @@ setMethod("selectedRangesModel", "GenomicRanges", function(obj, color = "red"){
 ##   structure(list(data = data, color = color), class = "selectedRangesModel")
 ## }
 
-setMethod("+", "VisnabView", function(e1, e2){
-  if(is(e2, "selectedRangesModel")){
-    e1$selectedRangesModel <- e2$data
-    e1$selectedRangesModelColor <- e2$color
-    invisible(e1)
-  }else{
-    invisible(e1)
-  }
-})
-
+## setMethod("+", "VisnabView", function(e1, e2){
+##   if(is(e2, "selectedRangesModel")){
+##     e1$selectedRangesModel <- e2$data
+##     e1$selectedRangesModelColor <- e2$color
+##     invisible(e1)
+##   }else{
+##     invisible(e1)
+##   }
+## })
 
 setMethod("viewInBrowser","VisnabView",function(obj, genome, browser = "UCSC"){
   if(browser == "UCSC"){
@@ -175,3 +134,18 @@ setMethod("viewInBrowser","VisnabView",function(obj, genome, browser = "UCSC"){
 
 
 
+setMethod("geom","VisnabView",function(x,...){
+  cat("Choosed geom: ",x$pars$geom,"\n")
+  cat("---------------------\n")
+  cat("Supported geoms: \n")
+  geoms <- levels(x$pars$geom)
+  if(!is.null(geoms))
+    cat(geoms,"\n")
+  else
+    message("No supported geom is found for this object")
+})
+
+setReplaceMethod("geom","VisnabView", function(x,value){
+  values(x$pars$geom) <- value
+  x
+})

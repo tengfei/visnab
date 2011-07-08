@@ -110,3 +110,18 @@ blackred_pal <- function(){
 
 
 
+div_prox_pal <- function(low = "blue", mid = "white", high = "red",
+                    to = c(0, 1), proxylen = 100){
+  function(x){
+    vals <- x
+    to = c(0, 1)
+    vals <- rescale_mid(vals, to = to, mid = 0)
+    ## cols <- cscale(vals, div_gradient_pal("blue", "white", "red"))
+    bks <- seq(0, 1, length = proxylen)
+    ints <- as.character(cut(vals, bks))
+    lvs <- as.list(by(vals, ints, mean))
+    vls <- unname(unlist(lvs))
+    cols <- cscale(vls, div_gradient_pal(low = low, mid = mid, high = high))
+    colss <- cols[match(ints, names(lvs))]
+  }
+}

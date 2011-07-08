@@ -3,7 +3,7 @@
 ##-----------------------------------------------------------------##
 ##  lazily define Geoms here
 ## setEnum return class name not generator function
-.IntervalViewGeom <- c("full", "reduce", "midpoint", "length",
+.IntervalViewGeom <- c("full", "reduce", "point", "length",
                        "barchart", "heatmap", "segment")
 setSingleEnum("VisnabViewGeom", levels = character())
 setSingleEnum("IntervalViewGeom", levels = .IntervalViewGeom)

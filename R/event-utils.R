@@ -57,4 +57,3 @@ wheelEventZoom <- function(view, sx = 2, sy = 1){
 }
 
 
-

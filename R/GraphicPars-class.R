@@ -8,10 +8,11 @@ gparslst <- list(xlimZoom = "numeric",
                 xlim = "numeric",
                 ylim = "numeric",
                 view = "character",
-                 geom = "SingleEnumORMultipleEnum",
+                 geom = "Enum",
                  cpanel = "R::visnab::ControlPanel")
 
-GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme")
+GraphicPars.gen <- setParameters("Graphic", gparslst, contains = "DefaultTheme",
+                                 signalName = "GParsChanged")
 
 ##----------------------------------------------------------------##
 ##                Constructor for GraphicsPars
@@ -38,14 +39,15 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- GraphicPars.gen$new(geom = geom)
   gp$setTheme(theme)
   gp$update(...)
-  ## FIXME: check if the widget is shown or not.
   ## gp$cpanel <- ControlPanel(gp)
-  ## gp$changed$connect(function(name){
+  ## gp$ThemeChanged$connect(function(name){
   ##   vals <-gp$field(name)
   ##   gp$cpanel$setValue(name, vals)
   ## })
+  ## FIXME: check if the widget is shown or not.
   return(gp)
 }
+
 
 setMethod("show","GraphicParameters",function(object){
   cat("Parameters stored in pars\n")
@@ -136,14 +138,15 @@ GraphicPars.gen$methods(setTheme = function(themeName){
 ## .GraphicPars.DarkTheme <- .DarkTheme
 ## GUI
 GraphicPars.gen$methods(cp = function(show = TRUE){
-  ## if(length(cpanel)){
-  ##   print("cpa")
+  ## if(!length(cpanel)){
 
-   ## }
-     if(show){
-       cpanel$show()
-     }else{
-       cpanel$hide()
-     }
+  ## }
+  if(show){
+    cpanel$show()
+  }else{
+    cpanel$hide()
+  }
 })
+
+
 

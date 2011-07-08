@@ -2,20 +2,21 @@
 ## theme doesn't specify any signal events,
 ## use GraphicPars to decide which to emit signals
 ThemeSingleEnum <- setSingleEnum("Theme", levels = c("default", "dark"))
-setRefClass("Theme", fields = signalingField("theme", "ThemeSingleEnum"),
+setRefClass("Theme", fields = signalingFields(list(theme = "ThemeSingleEnum")),
             contains = "VIRTUAL")
-
 
 ## setTheme gives no default
 ## use constructor to define default
 setTheme <- function(prefix, pars=list(),
-                     where = topenv(parent.frame())){
+                     where = topenv(parent.frame()),
+                     signalName = "ThemeChanged"){
   if(!is.list(pars))
     stop("Parameters passed must be list")
   themename <- paste(prefix, "Theme", sep = "")
   contains <- "Theme"
   if(length(pars))
-    pretheme.gen <- setRefClass(themename, fields = signalingFields(pars),
+    pretheme.gen <- setRefClass(themename, fields = signalingFields(pars,
+                                             signalName = signalName),
                                 contains = contains,
                                 where = where)
   else
@@ -35,7 +36,7 @@ setTheme <- function(prefix, pars=list(),
   
   pretheme.gen$methods(reset = function(themeName){
     if(!missing(themeName))
-      values(theme) <<- themeName
+      theme@.Data <<- themeName
     themelst <- switch(theme,
                       default = .DefaultTheme(),
                       dark = .DarkTheme())
@@ -68,7 +69,6 @@ setTheme <- function(prefix, pars=list(),
                      fake2 = "NonnegativeInteger",
                      fake3 = "NegativeInteger",
                      fake4 = "NonpositiveInteger",
-                     fake5 = "IntegerWithRange",
                      fake6 = "MultipleEnum",
                      fake7 = "character")
 
@@ -96,7 +96,6 @@ setTheme <- function(prefix, pars=list(),
                          fake2 = "NonnegativeInteger",
                          fake3 = "NegativeInteger",
                          fake4 = "NonpositiveInteger",
-                         fake5 = "IntegerWithRange",
                          fake6 = "MultipleEnum",
                          fake7 = "character")
 
@@ -124,20 +123,20 @@ setTheme <- function(prefix, pars=list(),
                      fake2 = TRUE,
                      fake3 = TRUE,
                      fake4 = TRUE,
-                     fake5 = TRUE,
                      fake6 = TRUE,
                      fake7 = TRUE)
 
   ## default is "white", light them
-  def <- list(bgColor = col2qcol("white"),
-              fgColor = col2qcol("black"),
-              textColor = col2qcol("black"),
+  
+  def <- list(bgColor = new("Color","white"),
+              fgColor = new("Color","black"),
+              textColor = new("Color","black"),
               color = I("red"),
-              fill = col2qcol("black"),
-              stroke = col2qcol("black"),
-              alpha = new("NumericWithRange", min = 0, max = 1, 1),
-              bgAlpha = new("NumericWithRange", min = 0, max = 1, 1),
-              hoverColor = col2qcol("blue"),
+              fill = new("Color","black"),
+              stroke = new("Color","black"),
+              alpha = new("NumericWithMin0Max1", 1),
+              bgAlpha = new("NumericWithMin0Max1", 1),
+              hoverColor = new("Color","blue"),
               ## xlimZoom = numeric(),
               ## ylimZoom = numeric(),
               ## xlim = numeric(),
@@ -154,21 +153,20 @@ setTheme <- function(prefix, pars=list(),
               fake2 = new("NonnegativeInteger", 0L),
               fake3 = new("NegativeInteger", -1L),
               fake4 = new("NonpositiveInteger", 0L),
-              fake5 = new("IntegerWithRange", min = 0L, max = 100L, 55L),
               fake6 = new("MultipleEnum", levels = LETTERS[1:10], c("A", "B")),
               fake7 = "input text")
 }
 
 .defFields <- function(){
-  defFields <- list(bgColor = "QColor",
-                    bgAlpha = "NumericWithRange",
-                    fgColor = "QColor",
+  defFields <- list(bgColor = "Color",
+                    bgAlpha = "NumericWithMin0Max1",
+                    fgColor = "Color",
                     color = "AsIsORcharacter",
-                    fill = "QColor",
-                    stroke = "QColor",
-                    alpha = "NumericWithRange",
-                    hoverColor = "QColor",
-                    textColor = "QColor",
+                    fill = "Color",
+                    stroke = "Color",
+                    alpha = "NumericWithMin0Max1",
+                    hoverColor = "Color",
+                    textColor = "Color",
                     cpal = "CPalSingleEnum",
                     dpal = "DPalSingleEnum",
                     parinfo = "list",
@@ -181,7 +179,6 @@ setTheme <- function(prefix, pars=list(),
                     fake2 = "NonnegativeInteger",
                     fake3 = "NegativeInteger",
                     fake4 = "NonpositiveInteger",
-                    fake5 = "IntegerWithRange",
                     fake6 = "MultipleEnum",
                     fake7 = "character")
 }
