@@ -26,13 +26,12 @@ ScaleView <- function(track,
                       rescale = c("geometry", "transform", "none"),
                       viewname = "Scales",
                       ...){
-  
+
   if(is(track,"GRanges"))
     track <- as(track,"MutableGRanges")
   if(missing(seqname)){
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   }
-
   tooltips <- "not implemented yet"
   
   start <- 0
@@ -40,7 +39,7 @@ ScaleView <- function(track,
 
   geom <- match.arg(geom)
   geom <- new("ScaleViewGeomSingleEnum", geom)
-
+  
   rescale <- match.arg(rescale)
   rescale <- new("RescaleSingleEnum", rescale)
 
@@ -49,12 +48,12 @@ ScaleView <- function(track,
   viewrange <- MutableGRanges(seqname, IRanges(start, end))
   seqlengths(viewrange) <- end
 
-  pars <- GraphicPars(xlimZoom = xlimZoom,geom = geom, view = "ScaleView")
-  
+  pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "ScaleView")
+  gp <- GraphicPars(view = "TxdbView")
+  gp$geom <- "dense"
   obj <- ScaleView.gen$new(track = track, pars = pars, selfSignal = FALSE,
                            viewrange = viewrange, focusin = FALSE,
                            rescale = rescale, tooltipinfo = tooltips)
-
   obj$createView()
   obj$regSignal()
   obj
@@ -196,30 +195,3 @@ ScaleView.gen$methods(regSignal = function(){
     scene$setBackgroundBrush(qbrush(qcol))
   })
 })
-
-
-setMethod("geom","ScaleView",function(x,...){
-  cat("Choosed geom: ",x$pars$geom,"\n")
-  cat("---------------------\n")
-  cat("Supported geoms: \n")
-  geoms <- getOption("BioC")$visnab$ScaleView$geom
-  if(!is.null(geoms))
-    cat(geoms,"\n")
-  else
-    message("No supported geom is found for this object")
-})
-
-setReplaceMethod("geom","ScaleView", function(x,value){
-  geoms <- getOption("BioC")$visnab$ScaleView$geom
-  if(!(value %in% geoms))
-    stop("Geom should be one of", geoms)
-  else
-    x$pars$geom <- value
-  x
-})
-
-
-
-
-
-

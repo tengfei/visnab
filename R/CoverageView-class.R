@@ -19,11 +19,13 @@ CoverageView <- function(file,
                          geom = c("total","mismatch","pairend","elength"),
                          rescale = c("geometry","transform" ,"none"),
                          viewname = "Coverage",
+                         lower = 10L,
+                         cutbin = 30L,
                          ...){
 
   ## get params
   geom <- match.arg(geom)
-  geom <- new("TxdbViewGeomSingleEnum", geom)
+  geom <- new("CoverageViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
   rescale <- new("RescaleSingleEnum", rescale)
@@ -36,14 +38,16 @@ CoverageView <- function(file,
     seqname <- sort(names(hd[[1]]$targets))[1]
   seqlength <- hd[[1]]$targets[seqname]
 
+  xlimZoom <- c(1, seqlength)
+
   viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
   seqlengths(viewrange) <- seqlength
   
-  pars <- GraphicPars(geom = geom, view = "AlignmentView")
+  pars <- GraphicPars(geom = geom, xlimZoom = xlimZoom, view = "CoverageView")
 
   obj <- CoverageView.gen$new(file = file, focusin = FALSE, BSgenome = BSgenome,
-                              selfSignal = FALSE,
-                              thisLayer = thisLayer, viewrange = viewrange,
+                              selfSignal = FALSE, rescale = rescale,
+                              viewrange = viewrange,
                               pars = pars, lower = lower, cutbin = cutbin)
 
   obj$createView()
@@ -62,16 +66,17 @@ CoverageView.gen$methods(createView = function(){
   setBgColor()
 
   hd <- scanBamHeader(file)
-  seqname <- sort(names(hd[[1]]$targets))[1]
-  pars$seqlength <<- hd[[1]]$targets[seqname]
-  pars$xlim <<- c(1, pars$seqlength)
-  pars$xlimZoom <<- c(1, pars$seqlength)
+  ## seqname <- sort(names(hd[[1]]$targets))[1]
+  ## pars$seqlength <<- hd[[1]]$targets[seqname]
+  pars$xlim <<- c(1, seqlengths(viewrange))
+  ## pars$xlimZoom <<- c(1, pars$seqlength)
+  seqname <- seqnames(viewrange)
 
   ## preset the level
   zoomLevel <- c(1e4, 1000,0)
   ## FIXME: make it flexible
   bam <- scanBam(file, param = ScanBamParam(which = GRanges(seqnames = seqname,
-                                              IRanges(1, pars$seqlength)),
+                                              IRanges(1, seqlengths(viewrange))),
                          what = c("pos", "qwidth")))
   bam <- bam[[1]]
   ir <- GRanges(seqnames=seqname,
@@ -106,101 +111,39 @@ CoverageView.gen$methods(createView = function(){
     if(pars$geom == "total"){
       ## level 1
       if(diff(xlimZoom)>zoomLevel[1]){
-        qdrawSegment(painter,xpos,0, xpos, log(ypos),stroke="gray50")
+        .self$paintCovSeg(painter, xpos, ypos)
       }
       ## level 2&3
       if(diff(xlimZoom)<=zoomLevel[1] &
          diff(xlimZoom)>zoomLevel[3]){
-        gr <- GRanges(seqnames = seqname, IRanges(xlimZoom[1], xlimZoom[2]))
-        bam <- scanBam(file, param=ScanBamParam(which = gr,
-                               what=c("pos", "qwidth", "strand")))
-        bam <- bam[[1]]
-        ir <- IRanges(start=bam$pos,width=bam$qwidth)
-        if(length(ir)>0){
-          gr <- GRanges(seqnames = seqname, ir,
-                        strand = bam$strand)
-          cov <- coverage(ir, shift = -xlimZoom[1])
-          cov.n <- as.numeric(cov)
-          covlen <- length(cov.n)
-          x.pos <- xlimZoom[1]:(xlimZoom[1]+covlen-1)
-          qdrawRect(painter, x.pos,0, x.pos+1, log(cov.n+1),fill="gray50", stroke = NA)
-          ## qdrawPolygon(painter, c(x.pos[1],x.pos,tail(x.pos)[1]),
-          ##              c(0,log(cov.n+1),0),
-          ##              stroke=NA, fill="gray50")
-
-        }}
+        .self$paintCovRect(painter)
+      }
     }
-    
     ##======================================================================
     ## geom == "mismatch"
     ##======================================================================
     if(pars$geom == "mismatch"){
       ## level 1
       if(diff(xlimZoom)>zoomLevel[1]){
-        qdrawSegment(painter,xpos,0, xpos, log(ypos),stroke="gray50")
+        .self$paintCovSeg(painter, xpos, ypos)
       }
-      ## level 2
       if(diff(xlimZoom)<=zoomLevel[1] &
          diff(xlimZoom)>zoomLevel[2]){
-        gr <- GRanges(seqnames = seqname, IRanges(xlimZoom[1], xlimZoom[2]))
-        bam <- scanBam(file, param=ScanBamParam(which = gr,
-                               what=c("pos", "qwidth", "strand")))
-        bam <- bam[[1]]
-        ir <- IRanges(start=bam$pos,width=bam$qwidth)
-        if(length(ir)>0){
-          gr <- GRanges(seqnames = seqname, ir,
-                        strand = bam$strand)
-          cov <- coverage(ir, shift = -xlimZoom[1])
-          cov.n <- as.numeric(cov)
-          covlen <- length(cov.n)
-          x.pos <- xlimZoom[1]:(xlimZoom[1]+covlen-1)
-          qdrawRect(painter, x.pos,0, x.pos+1, log(cov.n+1),fill="gray50", stroke = NA)
-          ## qdrawPolygon(painter, c(x.pos[1],x.pos,tail(x.pos)[1]),
-          ##              c(0,log(cov.n+1),0),
-          ##              stroke=NA, fill="gray50")
-
-        }}
+        .self$paintCovRect(painter)
+      }
       if(diff(xlimZoom)<=zoomLevel[2] & diff(xlimZoom)>zoomLevel[3]){
         ## this should require loading or associated BSgenome
         ## And support sequence logo(maybe seperate painter)
-        if(is.null(BSgenome))
-          stop("Please specify the associated BSgenome object if geom is set to mismatch")
-        gr <- GRanges(seqnames = seqname, IRanges(xlimZoom[1], xlimZoom[2]))
-        lgr <- pileupAsGRanges(file, gr)
-        if(length(lgr)>0){
-          lgr <- pileupGRangesAsVariantTable(lgr, BSgenome) #too slow...
-          ## group by match and mismatch
-          values(lgr)$isMatch <- values(lgr)$read == values(lgr)$ref
-          ## make sure the mismatched color is down below the matched color
-          ## change order first
-          idx <- order(start(lgr), values(lgr)$isMatch, values(lgr)$read)
-          ## assumption: on the same chromosome
-          lgr <- lgr[idx]      
-          eds <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
-            cumsum(x)
-          }))
-          sts <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
-            N <- length(x)
-            c(0,cumsum(x)[-N])
-          }))
-          ## values(lgr)$.rect.start <- sts
-          ## values(lgr)$.rect.end <- eds
-          ## assign color
-          idx.m <- values(lgr)$isMatch
-          cols <- genLegend(lgr, color = "read")$color
-          cols[idx.m] <- "gray80"
-          values(lgr)$.color <- cols
-          ## FIXME: need flexible way to make transformation
-          qdrawRect(painter, start(lgr), log(sts+1),
-                    start(lgr)+1, log(eds+1),
-                    stroke = NA, fill = values(lgr)$.color)
-        }
+        .self$paintCovMismatch(painter)
+      }}
+    if(pars$geom == "elength"){
+      if(diff(xlimZoom)> 1e5){
+        .self$paintCovSeg(painter, xpos, ypos)
+      }
+      if(diff(xlimZoom)<= 1e5 & diff(xlimZoom)>zoomLevel[3]){
+        .self$paintFragLength(painter)
       }
     }
-    if(pars$geom == "elength"){
-      stop("not implemented yet")
-    }
-    
   }
 
   keyOutFun <- function(layer, event){
@@ -214,15 +157,14 @@ CoverageView.gen$methods(createView = function(){
   }
   
   rootLayer[0,0] <<- qlayer(scene, paintFun=pfunCov,
-                       row=row,  col=col, rowSpan=rowSpan, colSpan=colSpan,
-                       wheelFun = wheelEventZoom(view),
-                       keyPressFun = keyPressEventZoom(.self, view, sy = 1,
-                         focusin = focusin),
-                       hoverEnterFun = hoverEnterFun,
-                       focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
+                            row=row,  col=col, rowSpan=rowSpan, colSpan=colSpan,
+                            wheelFun = wheelEventZoom(view),
+                            keyPressFun = keyPressEventZoom(.self, view, sy = 1,
+                              focusin = focusin),
+                            hoverEnterFun = hoverEnterFun,
+                            focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   
   rootLayer[0,0]$setLimits(qrect(pars$xlim, pars$ylim))
-  
   pars$ylimChanged$connect(function(){
     rootLayer[0,0]$setLimits(qrect(pars$xlim, pars$ylim))
   })
@@ -239,7 +181,7 @@ setMethod("print","CoverageView",function(x,..){
 
 CoverageView.gen$methods(regSignal = function(){
   pars$xlimZoomChanged$connect(function(){
-    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    zoom_factor <- diff(pars$xlimZoom)/seqlengths(viewrange)
     ## then scale view
     view$resetTransform()
     view$scale(1/zoom_factor, 1)
@@ -255,11 +197,13 @@ CoverageView.gen$methods(regSignal = function(){
   })
   viewrange$seqnamesChanged$connect(function(){
     hd <- scanBamHeader(file)
-    pars$seqlength <<- hd[[1]]$targets[as.character(viewrange$seqnames)]
+    viewrange$seqnamesChanged$block()
+    seqlengths(viewrange) <<- hd[[1]]$targets[as.character(viewrange$seqnames)]
+    viewrange$seqnamesChanged$unblock()
     rootLayer[0,0]$close()
     view$resetTransform()
-    .self$createView()
-    .self$regSignal()
+    createView()
+    regSignal()
   })
   pars$bgColorChanged$connect(function(){
     bgcol <- pars$bgColor
@@ -269,3 +213,79 @@ CoverageView.gen$methods(regSignal = function(){
   })
 })
 
+CoverageView.gen$methods(paintCovSeg = function(painter, xpos, ypos){
+  qdrawSegment(painter,xpos,0, xpos, log(ypos),stroke="gray50")
+})
+
+CoverageView.gen$methods(paintCovRect = function(painter){
+  gr <- GRanges(seqnames = viewrange$seqnames, IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
+  bam <- scanBam(file, param=ScanBamParam(which = gr,
+                         what=c("pos", "qwidth", "strand")))
+  bam <- bam[[1]]
+  ir <- IRanges(start=bam$pos,width=bam$qwidth)
+  if(length(ir)>0){
+    gr <- GRanges(seqnames = viewrange$seqnames, ir,
+                  strand = bam$strand)
+    cov <- coverage(ir, shift = -pars$xlimZoom[1])
+    cov.n <- as.numeric(cov)
+    covlen <- length(cov.n)
+    x.pos <- pars$xlimZoom[1]:(pars$xlimZoom[1]+covlen-1)
+    qdrawRect(painter, x.pos,0, x.pos+1, log(cov.n+1),fill="gray50", stroke = NA)
+    ## qdrawPolygon(painter, c(x.pos[1],x.pos,tail(x.pos)[1]),
+    ##              c(0,log(cov.n+1),0),
+    ##              stroke=NA, fill="gray50")
+  }})
+
+
+
+
+
+CoverageView.gen$methods(paintCovMismatch = function(painter){
+  if(is.null(BSgenome))
+    stop("Please specify the associated BSgenome object
+                if geom is set to mismatch")
+  gr <- GRanges(seqnames = viewrange$seqnames, IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
+  lgr <- pileupAsGRanges(file, gr)
+  if(length(lgr)>0){
+    lgr <- pileupGRangesAsVariantTable(lgr, BSgenome) #too slow...
+    ## group by match and mismatch
+    values(lgr)$isMatch <- values(lgr)$read == values(lgr)$ref
+    ## make sure the mismatched color is down below the matched color
+    ## change order first
+    idx <- order(start(lgr), values(lgr)$isMatch, values(lgr)$read)
+    ## assumption: on the same chromosome
+    lgr <- lgr[idx]      
+    eds <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
+      cumsum(x)
+    }))
+    sts <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
+      N <- length(x)
+      c(0,cumsum(x)[-N])
+    }))
+    ## assign color
+    idx.m <- values(lgr)$isMatch
+    cols <- genLegend(lgr, color = "read")$color
+    cols[idx.m] <- "gray80"
+    values(lgr)$.color <- cols
+    ## FIXME: need flexible way to make transformation
+    qdrawRect(painter, start(lgr), log(sts+1),
+              start(lgr)+1, log(eds+1),
+              stroke = NA, fill = values(lgr)$.color)
+  }
+  
+})
+
+CoverageView.gen$methods(paintFragLength = function(painter){
+  gr <- GRanges(seqnames = viewrange$seqnames,
+                IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
+  pspan <- pspanGR(file, gr)$pspan
+  ## draw point based gr
+  ## THINK: MAKE IT GENERAL!
+  x <- (start(pspan)+end(pspan))/2
+  y <- width(pspan)
+  ## cir <- qglyphCircle(r = 2)
+  ## qdrawGlyph(painter, cir, x, y, stroke = NA, fill = "black")
+  qdrawCircle(painter, x, y, r = 3, stroke = NULL, fill = "black")
+  ## fixed or not?
+  pars$ylim <<- expand_range(c(0, max(y)), mul = 0.05)
+})

@@ -19,8 +19,8 @@ QtVisnabView.gen$methods(
                            }
                            if(is.null(rootLayer))
                              rootLayer <<- qlayer(scene,
-                                                     geometry=qrect(0,0,800,600),
-                                                  cache = TRUE)
+                                                  geometry=qrect(0,0,800,600),
+                                                  cache = FALSE)
                          },
                          setBgColor = function(bgcol = NULL){
                            if(is.null(bgcol))
@@ -48,3 +48,13 @@ QtVisnabView.gen$methods(GUI = function(show = TRUE){
     sv$hide()
 })
 
+
+## painter
+## QtVisnabView.gen$methods(paintPoint = function(painter, y){
+##   if(!length(y))
+##     stop("need to provide y value")
+##   yval <- values(mr)[idx, y]
+##   cir <- qglyphCircle(r = 1)
+##   qdrawGlyph(painter, cir, (st+ed)/2, yval, stroke = NA, fill = col)
+##   pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
+## })

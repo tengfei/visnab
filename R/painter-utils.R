@@ -113,6 +113,10 @@ blackred_pal <- function(){
 div_prox_pal <- function(low = "blue", mid = "white", high = "red",
                     to = c(0, 1), proxylen = 100){
   function(x){
+    if(length(x)>proxylen)
+      proxylen <- 100
+    else
+      proxylen <- length(x)
     vals <- x
     to = c(0, 1)
     vals <- rescale_mid(vals, to = to, mid = 0)

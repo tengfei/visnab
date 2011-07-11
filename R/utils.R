@@ -413,16 +413,22 @@ IMessage <- function(..., scene=.indicatorScene,
 ## A second take on the tally stuff using Rsamtools
 
 pileupAsGRanges <- function(bams, regions,
-                            samBases = c(A = 2, C = 3, G = 5, T = 9),...) {
+                            ## samBases = c(A = 2, C = 3, G = 5, T = 9),
+                            samBases = c("A", "C", "G", "T", "N"),
+                            ...) {
   pileupFiles <- PileupFiles(bams)
   pileupParams <- PileupParam(which = regions, ...)
   ## what if it's multiple bam files
   bamNames <- names(bams)
+  DNA_BASES <- samBases
   if (is.null(bamNames))
     bamNames <- bams
   pileupFun <- function(x) {
     grl <- lapply(seq_len(length(bamNames)),function(i){
-    seq <- x$seq[names(samBases),i,]
+    seq <- x$seq[samBases,i,]
+    getSeq(Hsapiens, GRanges("chrX", IRanges(x$pos[2], width = 1)),
+                             as.character = TRUE)
+
     if(length(seq)){
     GRanges(seqnames = rep(names(x$seqnames), each = length(bams[i])),
             ranges = IRanges(rep(x$pos, each = length(bams[i])), width = 1),
@@ -435,21 +441,25 @@ pileupAsGRanges <- function(bams, regions,
          seqnames = rep(names(x$seqnames), each = length(bams)),
             ranges = IRanges(0,0),
             strand = "*",
-            A = 0, C = 0, G = 0, T = 0,
+            A = 0, C = 0, G = 0, T = 0, N = 0,
             depth = 0, bam = bamNames)
   }})
     do.call(c, grl)
   }
   gr <- do.call(c, applyPileups(pileupFiles, pileupFun, param = pileupParams))
-  rc <- strand(gr) == "-"
-  if(sum(rc) > 0)
-    values(gr)[rc, DNA_BASES] <-
-      values(gr)[rc, as.character(complement(DNAStringSet(DNA_BASES)))]
-  split(test, values(test)$bam)
+  ## rc <- strand(gr) == "-"
+  ## if(sum(rc) > 0)
+  ##   values(gr)[rc, DNA_BASES] <-
+  ##     values(gr)[rc, as.character(complement(DNAStringSet(DNA_BASES)))]
+  ## split(test, values(test)$bam)
+  ## FIXME:
+  idx <- end(gr)!=0
+  gr[idx]
 }
 
 pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FALSE) {
-  refBases <- unlist(as.character(BSgenome::getSeq(genome, gr, as.character = TRUE)), use.names=FALSE)
+  ## genome <- Hsapiens
+  refBases <- getSeq(genome, gr, as.character = TRUE)
   ## df <- as.data.frame(values(gr))
   if(missing(DNA_BASES)){
     .reservedNames <- c("depth","bam")
@@ -460,6 +470,7 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
   variantsForBase <- function(base) {
     baseCounts <- counts[,base, drop=TRUE]
     keep <- baseCounts > 0
+    if(sum(keep)){
     count <- baseCounts[keep]
     gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
                   ref = refBases[keep], read = base, count = baseCounts[keep],
@@ -468,10 +479,14 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
     if(mismatchOnly)
       gr <- gr[values(gr)$read != values(gr)$ref]
     gr
+    }else{
+      NULL
+    }
   }
   lst <- lapply(colnames(counts), variantsForBase)
-  res <- do.call("c", lst)  ## why this is slow
-  return(res)
+  idx <- !sapply(lst, is.null)
+  res <- do.call("c", lst[idx])  ## why this is slow
+  return(res[order(start(res))])
 }
 
 GCcontent <- function(files, regions){
@@ -483,4 +498,32 @@ GCcontent <- function(files, regions){
 }
 
 ## ## utils to generate pair-end
-## pairendGR <- function(file, region)
+pspanGR <- function(file, region, sameChr = TRUE, isize.cutoff = 170){
+  ## FIXME: move unmated?
+  bam <- scanBam(file, param=ScanBamParam(which = region),
+                       flag = scanBamFlag(hasUnmappedMate = FALSE))
+  bam <- bam[[1]]
+  bamrd <- GRanges(bam$rname, IRanges(bam$pos, width = bam$qwidth),
+                      strand = bam$strand,
+                      mseqname = bam$mrnm,
+                      mstart = bam$mpos,
+                      isize = bam$isize)
+  ## why negative?sometime
+  bamrd <- bamrd[abs(bam$isize) >= isize.cutoff]
+  if(sameChr){
+    idx <- as.character(seqnames(bamrd)) == values(bamrd)$mseqname 
+    bamrd <- bamrd[idx]
+  }
+  if(length(bamrd)){
+  p1 <- GRanges(seqnames(bamrd),
+                ranges(bamrd))
+  p2 <- GRanges(values(bamrd)$mseqname,
+                IRanges(values(bamrd)$mstart, width = 75))
+  pspan <- punion(p1, p2, fill.gap = TRUE)
+  pgaps <- pgap(ranges(p1), ranges(p2))
+  return(list(pspan = pspan, pgaps = pgaps, p1 = p1, p2 = p2))
+}else{
+  return(NULL)
+}
+}
+

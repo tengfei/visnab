@@ -19,10 +19,11 @@ importClassesFrom(Biobase, AssayData)
 importFrom(IRanges, IRanges,  disjoin, disjointBins,
            "elementMetadata", "elementMetadata<-",
            start, width, end,  mid, 
-           "start<-", "width<-", "end<-", 
+           "start<-", "width<-", "end<-", "values", "values<-",
            ranges, "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
-           viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce)
+           viewMins, viewMaxs, viewSums, viewMeans, runValue, runLength, reduce,
+           punion, pgap)
 
 importMethodsFrom(IRanges,
                   unlist,setdiff, Rle,
@@ -36,7 +37,8 @@ importClassesFrom(IRanges, AsIs, Annotated)
 
 ## ## GenomicRanges
 ############################################################
-importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo)
+importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo,
+           seqlengths, "seqlengths<-")
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   start, end, width, "start<-", "end<-", "width<-",
                   seqnames, strand, seqinfo, show,
@@ -55,7 +57,7 @@ importClassesFrom(MutableRanges, MutableGRanges,Parameters,
 importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
            setParameters, MutableGRanges, setNumericWithRange)
 
-importMethodsFrom(MutableRanges, seqnames,
+importMethodsFrom(MutableRanges, 
                   elementMetadataChanged, rangesChanged)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)

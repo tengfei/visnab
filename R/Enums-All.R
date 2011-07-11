@@ -4,15 +4,17 @@
 ##  lazily define Geoms here
 ## setEnum return class name not generator function
 .IntervalViewGeom <- c("full", "reduce", "point", "length",
-                       "barchart", "heatmap", "segment")
+                       "barchart", "heatmap", "segment", "line",
+                       "polygon")
 setSingleEnum("VisnabViewGeom", levels = character())
 setSingleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
 setSingleEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
 setSingleEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
-setSingleEnum("AlignmentViewGeom", levels = c("full", "dense"))
+setSingleEnum("AlignmentViewGeom", levels = c("oneside","twoside","pairend"))
 setSingleEnum("ScaleViewGeom", levels = c("twoside"))
-setSingleEnum("SingleChromViewGeom", levels = c("full", "dense"))
+setSingleEnum("SingleChromViewGeom", levels = c("cytoband"))
 setSingleEnum("SeqViewGeom", levels = c("default"))
+setSingleEnum("TracksViewGeom", levels = c("default"))
 
 ## automatica constructor
 .Geom <- function(view = "VisnabView"){
@@ -21,10 +23,11 @@ setSingleEnum("SeqViewGeom", levels = c("default"))
                  IntervalView = new("IntervalViewGeomSingleEnum", "full"),
                  TxdbView = new("TxdbViewGeomSingleEnum", "full"),
                  CoverageView = new("CoverageViewGeomSingleEnum", "total"),
-                 AlignmentView = new("AlignmentViewGeomSingleEnum", "full"),
-                 ScaleViewGeom = new("ScaleViewGeomSingleEnum", "twoside"),
-                 SingleChromView = new("SingleChromViewGeomSingleEnum", "full"),
-                 SeqViewGeom = new("SeqViewGeomSingleEnum", "default"))
+                 AlignmentView = new("AlignmentViewGeomSingleEnum", "oneside"),
+                 ScaleView = new("ScaleViewGeomSingleEnum", "twoside"),
+                 SingleChromView = new("SingleChromViewGeomSingleEnum", "cytoband"),
+                 SeqView = new("SeqViewGeomSingleEnum", "default"),
+                 TracksView = new("TracksViewGeomSingleEnum", "default"))
 
 }
 
@@ -37,7 +40,8 @@ setSingleEnum("SeqViewGeom", levels = c("default"))
                  AlignmentView = "AlignmentViewGeomSingleEnum",
                  ScaleView = "ScaleViewGeomSingleEnum", 
                  SingleChromView = "SingleChromViewGeomSingleEnum",
-                 SeqView = "SeqViewGeomSingleEnum") 
+                 SeqView = "SeqViewGeomSingleEnum",
+                 TracksView = "TracksViewGeomSingleEnum") 
 }
 
 ## setEnum("CircularViewGeoms", levels = c("full", "dense"), contains = "Geoms")

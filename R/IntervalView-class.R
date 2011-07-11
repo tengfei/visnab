@@ -1,7 +1,3 @@
-## TODO:
-## 1. need a plot for IRanges which share the core code
-## 2. supported geom "midpoint", "rectangle", "line",
-## "interval" for IRanges, "heatmap" and "barchart"
 ##----------------------------------------------------------##
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
@@ -9,9 +5,9 @@ IntervalView.gen <- setRefClass("IntervalView",
                                 contains = "QtVisnabView",
                                 fields = c(track = "SimpleMutableGRanges",
                                   flag = "logical",
-                                  signalingField("group", "character")))
-
-
+                                  signalingFields(list(group = "character",
+                                                       facetBy = "character",
+                                                       y = "character"))))
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
@@ -20,10 +16,13 @@ IntervalView <- function(track,
                          seqname,
                          group,
                          color,
+                         facetBy, 
+                         y,
                          viewname = "Interval Data",
-                         geom = c("full", "reduce", "midpoint", "length",
-                           "barchart", "heatmap", "segment"),
-                         rescale = c("geometry", "transform", "none")){
+                         geom = c("full", "reduce", "point", "length",
+                           "barchart", "heatmap", "segment", "line"),
+                         rescale = c("geometry", "transform", "none"),
+                         overview = FALSE){
   
   ##
   tooltips <- "not implemented"
@@ -47,118 +46,53 @@ IntervalView <- function(track,
 
   viewrange <- MutableGRanges(seqname, IRanges(start, end))
   seqlengths(viewrange) <- end
-
-
-  if(is(track, "GRanges"))
-    track <- as(track,"MutableGRanges")
-  ## need to make sure it's a long form
-  ## FIXME:
-  track <- addLevels(track)
-  ## connect signal
-  ## FIXME:
-  track$elementMetadataChanged$connect(function() {
-    qupdate(scene)
-  })
   
   pars <- GraphicPars(xlimZoom = xlimZoom, 
                       geom = geom, color = color,
                       view = "IntervalView")
 
+  ##FIXME: a little hack of addAttr doesn't work for MutableGRanges right now
+  track <- addAttr(track, .color = "red")
+
+  if(is(track, "GRanges"))
+    track <- as(track,"MutableGRanges")
+
+  ## FIXME:
+  if(missing(group))
+    group <- character()
+  if(missing(facetBy))
+    facetBy <- character()
+  if(missing(y))
+    y <- character()
+  
+  message("Create new instance...")
   obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
                               tooltipinfo = tooltips, viewname = viewname,
-                              group = group,
-                              viewrange = viewrange)
-  ## event
-  ## add default attributes
-  addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
-  ## obj$regSignal()
-  obj$createView()
+                              group = group, selfSignal = FALSE, focusin = FALSE,
+                              viewrange = viewrange, facetBy = facetBy,
+                              y = y)
+  
+  obj$track$changed$connect(function(change){
+    if(is(change, "GRangesChanges"))
+      if(elementMetadataChanged(change))
+        qupdate(obj$scene)
+  })
+  
+  message("Creating view...")
+  obj$createView(overview = overview)
+  obj$regSignal()
+  message("Done")
   return(obj)
 }
 
 ############################################################
 ## createview method
 ############################################################
-IntervalView.gen$methods(createView = function(){
-  seqname <- as.character(seqnames(viewrange))
+IntervalView.gen$methods(createView = function(overview = FALSE){
+
   setDislayWidgets()
   setBgColor()
-
-  start <- min(start(ranges(track[seqnames(track)==seqname])))
-  end <- max(end(ranges(track[seqnames(track)==seqname])))
-  seqlength <- end
-  mr <- track[seqnames(track)==seqname]
-  pars$xlim <<- expand_range(c(start, end), mul = 0.05)
-  pars$ylim <<- expand_range(c(0, 10), mul = 0.05)
-  ## idx <- findOverlaps(IRanges(start=start,end=end),
-  ##                     ranges(mr))@matchMatrix[,2]
-  ## mr <- mr[idx]
-  ## return a painter function
-  ## lvpainter <- IntervalPainter(mr, obj = .self,      geom = pars$geom)
-  ## if(sing(geom)&!(missing(obj)))
-  ##   geom <- pars$geom
-  ## if(missing(geom)&missing(obj))
-  ##   geom <- "full"
-  ## if(length(color))
-    color <- pars$color
-  ## assigne color
-  if(length(color)){
-    vals <- values(mr)[,color]
-    if(length(vals)>100)
-      vallen <- 100
-    testpal <- function(to = c(0, 1), vallen = vallen){
-      function(x){
-        vals <- x
-        to = c(0, 1)
-        vals <- rescale_mid(vals, to = to, mid = 0)
-        ## cols <- cscale(vals, div_gradient_pal("blue", "white", "red"))
-        bks <- seq(0, 1, length = vallen)
-        ints <- as.character(cut(vals, bks))
-        lvs <- as.list(by(vals, ints, mean))
-        vls <- unname(unlist(lvs))
-        cols <- cscale(vls, div_gradient_pal("blue", "white", "red"))
-        colss <- cols[match(ints, names(lvs))]
-      }
-    }
-    cols <- cscale(vals, testpal(vallen = vallen))
-    values(mr)$.color <- cols
-  }
-                                        # Can use with gradient_n to create a continous gradient
-
-  ## if(!missing(group)){
-  ##   vs <- eval(as.symbol(group), elementMetadata(gr))
-  ##   grl <- split(gr, vs)
-  ##   group <- as.symbol(group)
-  ## }else{
-  ##   group <- NULL
-  ##   grl <- list(gr)
-  ## }
-
-  ## ## not used for every case
-  ## ts <- lapply(grl, function(gr){
-  ##   mr <- gr
-  ##   ir <- ranges(gr)
-  ##   bins <- disjointBins(ir)
-  ##   binmx <- max(bins*10+5)
-  ##   mr.r <- reduce(mr)
-  ##   sts <- start(gr)
-  ##   wds <- width(gr)
-  ##   ptx <- sts+wds/2
-  ##   cov <- coverage(gr)
-  ##   list(bins = bins, binmx = binmx,  mr = mr,
-  ##        mr.r = mr.r, sts = sts, wds = wds, ptx = ptx, cov = cov)
-  ## })
-  ## mrl <- split(mr, values(mr)[,group])
-  ## mrl <- lapply(mrl, function(mr){
-  ##   st <- start(mr)
-  ##   ed <- end(mr)
-  ##   col <- values(mr)$.color
-  ##   data.frame(st = st, ed = ed, col = col)
-  ## })
-  lv <- as.numeric(as.factor(values(mr)[,group]))
-  st <- start(mr)
-  ed <- st
-  col <- values(mr)$.color
+  ## FIXME: what happened when you try to facet it
   hoverMoveEvent <- function(layer,event){
     rect <- qrect(0,0,1,1)
     mat <- layer$deviceTransform(event)$inverted()
@@ -179,88 +113,125 @@ IntervalView.gen$methods(createView = function(){
       }
     }
   }
-  lvpainter <- function(layer,painter,exposed){
-    xlimZoom <- as.matrix(exposed)[,1]
-    ylimZoom <- as.matrix(exposed)[,2]
-    pars$xlimZoom <<- xlimZoom
-    pars$ylimZoom <<- ylimZoom
-    ## compute color on the fly
-    ## Draw rectangle
-    ##----------------------------------------------------------------------
-    ##  pars$geom "full"
-    ##----------------------------------------------------------------------
-    if(pars$geom == "full"){
-      ## values(mr)$.color <- cols
-      gps <- names(ts)
-      if(!is.null(group)){
-        cols <- genLegend(gr, color = color)$colorLegend$colors
-        if(length(cols)==1)
-          cols <- rep(cols, length(ts))
-        lapply(1:length(ts), function(i){
-          gs <- 0+5*(i-1)+2
-          with(ts[[i]],{
-            gp <- gps[i]
-            col <- cols[i]
-            qdrawRect(painter,start(mr),gs+(bins*10)/binmx*5,end(mr),
-                      gs+(bins*10+5)/binmx*5,
-                      stroke=NA,fill=col)
-            qdrawRect(painter, 0, gs-2, pars$seqlength, gs+5-2,
-                      fill = NA, stroke = "gray80")
-          })
-        })
-        pars$ylim <<- c(0,5*(length(ts)))
+
+  if(!overview){
+    seqs <- sortChr(as.character(seqnames(viewrange)))
+  }else{
+    seqs <- sortChr(unique(as.character(seqnames(track))))
+  }
+  sapply(seq_along(seqs), function(j){
+    message("Start creating layer for ",seqs[j])
+    seqname <- seqs[j]
+    start <- min(start(ranges(track[seqnames(track)==seqname])))
+    end <- max(end(ranges(track[seqnames(track)==seqname])))
+    seqlength <- end
+    mr <- track[seqnames(track)==seqname]
+    if(length(facetBy))
+      facetby <- unique(values(mr)[,facetBy])
+    else
+      facetby <- unique(values(mr)[,group])
+    color <- pars$color
+    ## assigne color
+    genColor <- function(x){
+      ## continuous
+      if(is.numeric(x)){
+        cscale(x, div_prox_pal())
       }else{
-        cols <- genLegend(gr, color = color)$color
-        with(ts[[1]], 
-             qdrawRect(painter,start(mr),(bins*10)/binmx*5,end(mr),
-                       (bins*10+5)/binmx*5,
-                       stroke=NA,fill=cols))
-        pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
+        dscale(x, dichromat_pal("DarkRedtoBlue.12"))
       }
     }
-    if(pars$geom == "dense"){
-      qdrawRect(painter,start(mr.r), 10, end(mr.r), 20,
-                stroke=NA,fill=values(mr.r)$.color)
-      pars$ylim <<- c(0,30)
+    
+    if(!(is(color,"AsIs"))){
+      vals <- values(mr)[,color]
+      message("Generating colors...")
+      cols <- genColor(vals)
+      message("Assigning colors...")
+      values(mr)$.color <- cols
+    }else{
+      values(mr)$.color <- color
     }
-    if(pars$geom == "segment"){
-      qdrawSegment(painter, ptx, 10, ptx, 20, stroke = values(mr)$.color)
-      pars$ylim <<- c(0,30)
+    pars$xlim <<- expand_range(c(start, end), mul = 0.05)
+    ## pars$ylim <<- expand_range(c(0, 10), mul = 0.05)
+    if(length(y)){
+      yval <- values(mr)[,y]
+      ymax <- max(yval)
+      ymin <- min(yval)
     }
-    if(pars$geom == "barchart"){
-      ## don't need gap in barchart
-      ## single position first
-      ## Ignore multiple sample or facets first
-      if(!is.null(fill)){
-        idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
-        ts[[1]]$mr <- ts[[1]]$mr[idx]
-        ts[[1]]$bins <- ts[[1]]$bins[idx]
-        cols <- genLegend(ts[[1]]$mr, color = fill)$color
-      }else{
-        cols <- "black"
+    sapply(seq_len(length(facetby)), function(i){
+
+      curval <- facetby[i]
+      if(length(facetBy))
+        idx <- values(mr)[, facetBy] == curval
+      else
+        idx <- values(mr)[, group] == curval
+
+    # Can use with gradient_n to create a continous gradient
+    if(length(group)){
+      lv <- as.numeric(as.factor(values(mr)[idx,group]))
+      pars$ylim <<- expand_range(c(0, 10*(max(lv)-1)), mul = 0.05)
+    }else{
+      lv <- 1
+    }
+    st <- start(mr)[idx]
+    ed <- st
+
+    lvpainter <- function(layer,painter,exposed){
+      col <- values(mr[idx])$.color
+      pars$xlimZoomChanged$block()
+      pars$xlimZoom <<- as.matrix(exposed)[,1]
+      ylimZoom <- as.matrix(exposed)[,2]
+      xlimZoom <- pars$xlimZoom
+      if(!selfSignal){
+        viewrange$rangesChanged$unblock()
+        ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
       }
-      with(ts[[1]],{
-        qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
-                  ((bins-1)*10+10)/binmx*5,
-                  stroke=NA, fill = cols)}
-           )
-      pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
-    }
-    if(pars$geom == "mismatch"){
-      ## suppose we have "read" and "ref" column
-      ## long form
-      ## read: color(mismatched)
-      ## ref: color
-      ## read: gray80(matched)
-      ## support: seqlogo(zoom level)
-      idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
-      ts[[1]]$mr <- ts[[1]]$mr[idx]
-      ts[[1]]$bins <- ts[[1]]$bins[idx]
-      idx <- values(ts[[1]]$mr)$read != values(ts[[1]]$mr)$ref
-      if(diff(xlimZoom)/600>1){      
-        cols <- rep("gray80", length(idx))
-        cols.mis <- genLegend(ts[[1]]$mr[idx], color = "read")$color
-        cols[idx] <- cols.mis
+      if(selfSignal){
+        viewrange$rangesChanged$block()
+        ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
+      }
+      pars$xlimZoomChanged$unblock()
+      pars$ylimZoom <<- ylimZoom
+      ## compute color on the fly
+      ## Draw rectangle
+      ##----------------------------------------------------------------------
+      ##  pars$geom "full"
+      ##----------------------------------------------------------------------
+      if(pars$geom == "full"){
+        if(!".level" %in% colnames(values(mr))){
+          addLevels(mr)
+        }
+        lvs <- values(mr)$.level
+        qdrawRect(painter, st, (lvs-1)*10, ed, lvs*10, stroke = NA, fill = col)
+        pars$ylim <<- expand_range(c(0, max(lvs)*10), mul = 0.05)
+      }
+      if(pars$geom == "dense"){
+        qdrawRect(painter,start(mr.r), 10, end(mr.r), 20,
+                  stroke=NA,fill=values(mr.r)$.color)
+        pars$ylim <<- c(0,30)
+      }
+      if(pars$geom == "segment"){
+        qdrawSegment(painter, ptx, 10, ptx, 20, stroke = values(mr)$.color)
+        pars$ylim <<- c(0,30)
+      }
+      if(pars$geom == "length"){
+        yval <- width(track)
+        ## cir <- qglyphCircle(r = 2)
+        ## qdrawGlyph(painter, cir, (st+ed)/2, yval+10*(lv-1), stroke = NA, fill = col)
+        qdrawSegment(painter, st, yval, ed, yval, stroke = col)
+        pars$ylim <<- expand_range(c(0, max(yval)+max(10*(lv-1))), mul = 0.05)
+      }
+      if(pars$geom == "barchart"){
+        ## don't need gap in barchart
+        ## single position first
+        ## Ignore multiple sample or facets first
+        if(!is.null(fill)){
+          idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
+          ts[[1]]$mr <- ts[[1]]$mr[idx]
+          ts[[1]]$bins <- ts[[1]]$bins[idx]
+          cols <- genLegend(ts[[1]]$mr, color = fill)$color
+        }else{
+          cols <- "black"
+        }
         with(ts[[1]],{
           qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
                     ((bins-1)*10+10)/binmx*5,
@@ -268,52 +239,99 @@ IntervalView.gen$methods(createView = function(){
              )
         pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
       }
-      if(diff(xlimZoom)/600<1){
-        ## show all the reference first
+      if(pars$geom == "mismatch"){
+        ## suppose we have "read" and "ref" column
+        ## long form
+        ## read: color(mismatched)
+        ## ref: color
+        ## read: gray80(matched)
+        ## support: seqlogo(zoom level)
+        idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
+        ts[[1]]$mr <- ts[[1]]$mr[idx]
+        ts[[1]]$bins <- ts[[1]]$bins[idx]
+        idx <- values(ts[[1]]$mr)$read != values(ts[[1]]$mr)$ref
+        if(diff(xlimZoom)/600>1){      
+          cols <- rep("gray80", length(idx))
+          cols.mis <- genLegend(ts[[1]]$mr[idx], color = "read")$color
+          cols[idx] <- cols.mis
+          with(ts[[1]],{
+            qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
+                      ((bins-1)*10+10)/binmx*5,
+                      stroke=NA, fill = cols)}
+               )
+          pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
+        }
+        if(diff(xlimZoom)/600<1){
+          ## show all the reference first
+          ## show seqlogo
+          ## now the short form works better here
+          ## use sumlong
+          cols <- genLegend(sumlong, color = "read")$color
+          sumlong <- addLevels(sumlong)
+          print(head(as.character(values(sumlong)$read)))
+          qdrawText(painter, as.character(values(sumlong)$read),
+                    start(sumlong), (values(sumlong)$.level-1)*10,
+                    halign = "center", valign = "bottom",
+                    vcex = values(sumlong)$count)
+          pars$ylim <<- expand_range(c(0, max(values(sumlong)$.level-1)), mul = 0.05)
+        }      
+
+      }
+      if(pars$geom == "seqlogo"){
         
-        ## show seqlogo
-        ## now the short form works better here
-        ## use sumlong
-        cols <- genLegend(sumlong, color = "read")$color
-        sumlong <- addLevels(sumlong)
-        print(head(as.character(values(sumlong)$read)))
-        qdrawText(painter, as.character(values(sumlong)$read),
-                  start(sumlong), (values(sumlong)$.level-1)*10,
-                  halign = "center", valign = "bottom",
-                  vcex = values(sumlong)$count)
-        pars$ylim <<- expand_range(c(0, max(values(sumlong)$.level-1)), mul = 0.05)
-      }      
+        
+      }
+      if(pars$geom == "heatmap"){
+        segs <- qglyphSegment(x = 20, dir = pi/2)
+        qdrawGlyph(painter, segs, st, 10*(lv-1), stroke = col)
+      }
+      if(pars$geom == "line"){
+        if(!length(y))
+          stop("need to provide y value")
+        yval <- values(mr)[idx, y]
+        xval <- (st+ed)/2
+        idx <- order(xval, decreasing = FALSE)
+        N <- length(idx)
+        qdrawSegment(painter, xval[idx][-N], yval[idx][-N],
+                     xval[idx][-1], yval[idx][-1],
+                     stroke = col)
+        pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
+      }
 
-    }
-    if(pars$geom == "seqlogo"){
-      
-    }
-    if(pars$geom == "heatmap"){
-      segs <- qglyphSegment(x = 30, dir = pi/2)
-      ## qdrawSegment(painter, st, 50*(lv-1), ed, 50*lv, 
-      ##                stroke = col)
-      qdrawGlyph(painter, segs, st, 10*(lv-1), stroke = col)
-      pars$ylim <<- c(-10, 10*max(lv))
-    }
-    if(pars$geom == "line"){
-      
-    }
+      if(pars$geom == "point"){
+        if(!length(y))
+          stop("need to provide y value")
+        yval <- values(mr)[idx, y]
+        cir <- qglyphCircle(r = 1)
+        qdrawGlyph(painter, cir, (st+ed)/2, yval, stroke = NA, fill = col)
+        pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
+      }
+      if(pars$geom == "length"){
+        ## this accept the bam file and query
+        yval <- values(track)[,y]
+        cir <- qglyphCircle(r = 2)
+        qdrawGlyph(painter, cir, (st+ed)/2, yval, stroke = NA, fill = col)
+        pars$ylim <<- expand_range(c(0, max(yval)), mul = 0.05)
+      }
   }
-  ## used for hover
-  flag <<- FALSE
-  ## construct layer
-  rootLayer[0,0] <<- qlayer(scene,paintFun=lvpainter,
-                            wheelFun=  wheelEventZoom(view),
-                            keyPressFun = keyPressEventZoom(track, view = view, sy = 1),
-                            cache = FALSE)
-  ## hoverMoveFun = hoverMoveEvent,
-
-
-  rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
-                                 pars$xlim[2], pars$ylim[2]))
-  pars$ylimChanged$connect(function(){
-    rootLayer[0,0]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+    ## used for hover
+    flag <<- FALSE
+    ## construct layer
+      if(!length(facetBy)){
+        i <- 1
+      }
+    rootLayer[i-1,j-1] <<- qlayer(scene,paintFun=lvpainter,
+                              wheelFun=  wheelEventZoom(view),
+                              keyPressFun =
+                              keyPressEventZoom(track, view = view, sy = 1),
+                              cache = FALSE)
+    rootLayer[i-1,j-1]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
                                    pars$xlim[2], pars$ylim[2]))
+    pars$ylimChanged$connect(function(){
+      rootLayer[i-1,j-1]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+                                     pars$xlim[2], pars$ylim[2]))
+    })
+    })  
   })
   ## rootLayer[0,0]$layer$setGeometry(0,0,600,150)
 })
@@ -327,5 +345,38 @@ setMethod("print","IntervalView",function(x){
   x$show()
 })
 
-
+IntervalView.gen$methods(regSignal = function(){
+  pars$xlimZoomChanged$connect(function(){
+    zoom_factor <- diff(pars$xlimZoom)/seqlengths(viewrange)
+    ## then scale view
+    view$resetTransform()
+    view$scale(1/zoom_factor, 1)
+    ## then center viewr
+    pos.x <- mean(pars$xlimZoom)
+    pos.y <- mean(pars$ylim)
+    pos.scene <- as.numeric(rootLayer[0,0]$mapToScene(pos.x, pos.y))
+    view$centerOn(pos.scene[1], pos.scene[2])
+    viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
+  })
+  pars$geomChanged$connect(function(){
+    qupdate(scene)
+  })
+  viewrange$seqnamesChanged$connect(function(){
+    viewrange$seqnamesChanged$block()
+    seqlengths(viewrange) <<- seqlengths(track)[[as.character(seqnames(viewrange))]]
+    viewrange$seqnamesChanged$unblock()
+    ## hd <- scanBamHeader(file)
+    ## pars$seqlength <<- hd[[1]]$targets[as.character(viewrange$seqnames)]
+    rootLayer[0,0]$close()
+    view$resetTransform()
+    .self$createView()
+    .self$regSignal()
+  })
+  pars$bgColorChanged$connect(function(){
+    bgcol <- pars$bgColor$names()
+    bgalpha <- pars$alpha
+    qcol <- col2qcol(bgcol,bgalpha)
+    scene$setBackgroundBrush(qbrush(qcol))
+  })
+})
 

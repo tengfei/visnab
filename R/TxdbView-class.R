@@ -241,11 +241,13 @@ TxdbView.gen$methods(createView = function(){
       if(length(st.int)>0)
         qdrawSegment(painter,st.int,10*lv.int,ed.int,10*lv.int,stroke="black")
 
-      if(diff(xlimZoom)<1e5){
+      if(diff(xlimZoom)<8e5){
         unit <- as.integer(diff(xlimZoom)/50)
-      ## draw arrow to indicate strand
+        ## draw arrow to indicate strand
         ## subset first
-        intsub <- subsetByOverlaps(int, viewrange)
+        seqlengths(int)
+        grsub <- GRanges(seqnames(viewrange), ranges = ranges(viewrange))
+        intsub <- subsetByOverlaps(int, grsub)
         st.int <- start(intsub)
         ed.int <- end(intsub)
         lv.int <- values(intsub)$.level
@@ -285,11 +287,12 @@ TxdbView.gen$methods(createView = function(){
       if(length(st.int.r)>0)
         qdrawSegment(painter,st.int.r,10,ed.int.r,10,stroke="black")
 
-      if(diff(xlimZoom)<1e5){
+      if(diff(xlimZoom)<8e5){
         unit <- as.integer(diff(xlimZoom)/50)
       ## draw arrow to indicate strand
         ## subset first
-        intsub <- subsetByOverlaps(int.r, viewrange)
+        grsub <- GRanges(seqnames(viewrange), ranges = ranges(viewrange))
+        intsub <- subsetByOverlaps(int, grsub)
         st.int <- start(intsub)
         ed.int <- end(intsub)
         lv.int <- values(intsub)$.level
@@ -358,6 +361,9 @@ TxdbView.gen$methods(createView = function(){
 TxdbView.gen$methods(regSignal = function(){
   
   viewrange$rangesChanged$connect(function(){
+    ## pars$xlimZoomChanged$block()
+    ## pars$xlimZoom <- as.matrix(exposed)[,1]
+    ## xlimZoom <- pars$xlimZoom
     qupdate(scene)
   })
   
@@ -412,24 +418,6 @@ setMethod("print","TxdbView",function(x,..){
 })
 
 
-setMethod("geom","TxdbView",function(x,...){
-  cat("Choosed geom: ",x$pars$geom,"\n")
-  cat("---------------------\n")
-  cat("Supported geoms: \n")
-  geoms <- levels(x$pars$geom)
-  if(!is.null(geoms))
-    cat(geoms,"\n")
-  else
-    message("No supported geom is found for this object")
-})
 
-setReplaceMethod("geom","TxdbView", function(x,value){
-  geoms <- levels(x$pars$geom)
-  if(!(value %in% geoms))
-    stop("Geom should be one of ", toString(geoms))
-  else
-    x$pars$geom@.Data <- value
-  x
-})
 
 

@@ -11,10 +11,10 @@ TracksView.gen <- setRefClass("TracksView",
 
 TracksView <- function(..., seqname="chr1"){
   track <- list(...)
-  seqname <- track[[1]]$pars$seqname
-  seqlength <- track[[1]]$pars$seqlength
+  seqname <- track[[1]]$viewrange$seqnames
+  seqlength <- seqlengths(track[[1]]$viewrange)
   ## grand scene
-  pars <- GraphicPars(seqname = seqname, xlimZoom = c(0, seqlength),
+  pars <- GraphicPars(xlimZoom = c(0, seqlength),
                       view = "TracksView")
   obj <- TracksView.gen$new(track=track,pars=pars, win = NULL,
                             selfSignal = TRUE, emit.id = 0)
@@ -33,8 +33,6 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   lapply(1:length(lst),function(i){
     cls <- class(lst[[i]])
     trackname <- cls
-    ## track <- qplotView(scene,rescale="transform")
-    ## track$setSceneRect(0,(i-1)*newh,xlim[1],newh*i)
     dw <- Qt$QDockWidget(trackname)
     if(verticalTitleBar){
       dw$setFeatures(Qt$QDockWidget$AllDockWidgetFeatures|
@@ -45,7 +43,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     dw$setAllowedAreas(Qt$Qt$LeftDockWidgetArea|
                        Qt$Qt$RightDockWidgetArea)
     dw$setWidget(lst[[i]]$view)
-    pars$seqnameChanged$connect(function(){
+    viewrange$seqnamesChanged$connect(function(){
       lst[[i]]$pars$seqname <- pars$seqname
     })
     lst[[i]]$focusinChanged$connect(function(){
@@ -55,7 +53,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
         lst[[n]]$selfSignal <- TRUE
       })
     })
-    lst[[i]]$outputRangeChanged$connect(function(){
+    lst[[i]]$viewrange$rangesChanged$connect(function(){
       pars$xlimZoom <<- lst[[i]]$pars$xlimZoom
     })
     pars$xlimZoomChanged$connect(function(){

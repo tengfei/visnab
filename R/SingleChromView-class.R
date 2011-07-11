@@ -7,26 +7,27 @@
 ##-----------------------------------------------------------------##
 
 SingleChromView.gen <- setRefClass("SingleChromView",contains="QtVisnabView",
-                                   fields=list(track="MutableGRanges"))
+                                   fields=list(track="GRanges"))
 
 
 ## not support cytoband drawing temoprarily.
 SingleChromView <- function(track,
                             seqname,
                             geom = c("cytoband"),
-                            rescale = c("geometry", "transform", "none"),...){
+                            rescale = c("geometry", "transform", "none"),
+                            ...){
 
   tooltips <- "not implemented yet"
     
   geom <- match.arg(geom)
-  geom <- new("TxdbViewGeomSingleEnum", geom)
+  geom <- new("SingleChromViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
   rescale <- new("RescaleSingleEnum", rescale)
   
-  if(is(track,"GRanges"))
-    track <- as(track,"MutableGRanges")
-  if(is.null(seqname))
+  ## if(is(track,"GRanges"))
+  ##   track <- as(track,"MutableGRanges")
+  if(missing(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   
   seqlength <- max(end(ranges(track[seqnames(track)==seqname])))
@@ -39,6 +40,7 @@ SingleChromView <- function(track,
 
   obj <- SingleChromView.gen$new(track = track,pars = pars,
                                  viewrange = viewrange,
+                                 rescale = rescale,
                                  focusin = FALSE)
 
   ## connected events
@@ -50,9 +52,8 @@ SingleChromView <- function(track,
 SingleChromView.gen$methods(createView = function(){
 
   seqname <- as.character(seqnames(viewrange))
-  .self$setDislayWidgets()
-  .self$setBgColor()
-
+  setDislayWidgets()
+  setBgColor()
   ## FIXME: need to move to options?
   col.lst <- list(gpos100 = "black",
                   gpos75 = "gray75",
@@ -64,7 +65,7 @@ SingleChromView.gen$methods(createView = function(){
                   stalk = "white")
 
   ## get ready to plot
-  chr <- track[seqnames(track)==pars$seqname]
+  chr <- track[seqnames(track)==seqname]
   idx <- order(start(chr),decreasing=FALSE)
   chr <- chr[idx]
   nms <- values(chr)$name
@@ -82,7 +83,6 @@ SingleChromView.gen$methods(createView = function(){
   chr.name <- as.character(unique(as.character(seqnames(chr))))
   offset <- (max(end(chr.r.rect))-min(start(chr.r.rect)))*0.05
 
-  
   pfunChrom <- function(layer,painter,exposed){
     ## pars$xlimZoom <<- as.matrix(exposed)[,1]
 
@@ -112,11 +112,11 @@ SingleChromView.gen$methods(createView = function(){
   ## event
   eventChrom <- function(layer,event){
     pos <- as.numeric(event$pos())
-    wid <- diff(viewrange$ranges)
+    wid <- width(viewrange$ranges)
     pars$xlimZoom <<- c(pos[1]-wid/2, pos[1]+wid/2)
     viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
   }
-  lth <- max(end(track[seqnames(track)==pars$seqname]))
+  lth <- max(end(track[seqnames(track) == seqname]))
   keyOutFun <- function(layer, event){
   focusin <<- FALSE
 }
@@ -174,13 +174,14 @@ SingleChromView.gen$methods(regSignal = function(){
   ## })
   ## seqname change should update view and update seqlength
   viewrange$seqnamesChanged$connect(function(){
-    start <- 0
-    end <- seqlengths(track)[[as.character(viewrange$seqnames)]]
-    pars$seqlength <<- end-start
+    viewrange$seqnamesChanged$block()
+    seqlengths(viewrange) <<- seqlengths(track)[[as.character(viewrange$seqnames)]]
+    viewrange$seqnamesChanged$unblock()
+    ## pars$seqlength <<- end-start
     rootLayer[0,0]$close()
     view$resetTransform()
-    .self$createView()
-    .self$regSignal()
+    createView()
+    regSignal()
   })
   ## selectedRangesModelChanged$connect(function(){
   ##   qupdate(scene)
@@ -192,29 +193,4 @@ SingleChromView.gen$methods(regSignal = function(){
   ##   scene$setBackgroundBrush(qbrush(qcol))
   ## })
 })
-
-
-
-
-setMethod("geom","SingleChromView",function(x,...){
-  cat("Choosed geom: ",x$pars$geom,"\n")
-  cat("---------------------\n")
-  cat("Supported geoms: \n")
-  geoms <- getOption("BioC")$visnab$SingleChromView$geom
-  if(!is.null(geoms))
-    cat(geoms,"\n")
-  else
-    message("No supported geom is found for this object")
-})
-
-setReplaceMethod("geom","SingleChromView", function(x,value){
-  geoms <- getOption("BioC")$visnab$SingleChromView$geom
-  if(!(value %in% geoms))
-    stop("Geom should be one of", geoms)
-  else
-    x$pars$geom <- value
-  x
-})
-
-
 

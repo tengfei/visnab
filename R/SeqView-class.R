@@ -17,14 +17,14 @@ SeqView <- function(track,
                     ...){
 
   geom <- match.arg(geom)
-  geom <- new("TxdbViewGeomSingleEnum", geom)
+  geom <- new("SeqViewGeomSingleEnum", geom)
 
   rescale <- match.arg(rescale)
   rescale <- new("RescaleSingleEnum", rescale)
 
   tooltips <- capture.output(print(track))
   
-  if(is.null(seqname))
+  if(missing(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
   start <- 1
   end <- length(track[[seqname]])
@@ -32,7 +32,6 @@ SeqView <- function(track,
 
   viewrange <- MutableGRanges(seqname, IRanges(start, end))
   seqlengths(viewrange) <- end
-
   
   if(extends(class(track),"GRanges"))
     track <- as(track,"MutableGRanges")
@@ -61,7 +60,7 @@ SeqView.gen$methods(createView = function(){
   zoomLevels <- c(10000,500,1)
   h <- 10
   lengths <- diff(pars$xlimZoom)
-  pars$seqlength <<- lengths
+  ## pars$seqlength <<- lengths
   dna <- track[[seqname]]
   ## Unfinished
   pfunSeq <- function(layer,painter,exposed){
@@ -147,17 +146,19 @@ SeqView.gen$methods(regSignal = function(){
   ##   qupdate(scene)
   ## })
   viewrange$seqnamesChanged$connect(function(){
-    start <- 0
-    end <- length(track[[as.character(viewrange$seqnames)]])
-    pars$seqlength <<- end-start
+    viewrange$seqnamesChanged$block()
+    seqlengths(viewrange) <<- max(end(track[seqnames(track)==viewrange$seqnames]))
+    viewrange$seqnamesChanged$unblock()
+    ## end <- length(track[[as.character(viewrange$seqnames)]])
+    ## pars$seqlength <<- end-start
     pars$xlimZoom <<- c(0, end)
     rootLayer[0,0]$close()
     view$resetTransform()
-    .self$createView()
-    ## .self$regSignal()
+    createView()
+    regSignal()
   })
   pars$xlimZoomChanged$connect(function(){
-    zoom_factor <- diff(pars$xlimZoom)/pars$seqlength
+    zoom_factor <- diff(pars$xlimZoom)/seqlengths(viewrange)
     ## then scale view
     view$resetTransform()
     view$scale(1/zoom_factor, 1)
@@ -176,23 +177,23 @@ SeqView.gen$methods(regSignal = function(){
 })
 
 
-setMethod("geom","SeqView",function(x,...){
-  cat("Choosed geom: ",x$pars$geom,"\n")
-  cat("---------------------\n")
-  cat("Supported geoms: \n")
-  geoms <- getOption("BioC")$visnab$TxdbView$geom
-  if(!is.null(geoms))
-    cat(geoms,"\n")
-  else
-    message("No supported geom is found for this object")
-})
+## setMethod("geom","SeqView",function(x,...){
+##   cat("Choosed geom: ",x$pars$geom,"\n")
+##   cat("---------------------\n")
+##   cat("Supported geoms: \n")
+##   geoms <- getOption("BioC")$visnab$TxdbView$geom
+##   if(!is.null(geoms))
+##     cat(geoms,"\n")
+##   else
+##     message("No supported geom is found for this object")
+## })
 
-setReplaceMethod("geom","SeqView", function(x,value){
-  geoms <- getOption("BioC")$visnab$SeqView$geom
-  if(!(value %in% geoms))
-    stop("Geom should be one of", geoms)
-  else
-    x$pars$geom <- value
-  x
-})
+## setReplaceMethod("geom","SeqView", function(x,value){
+##   geoms <- getOption("BioC")$visnab$SeqView$geom
+##   if(!(value %in% geoms))
+##     stop("Geom should be one of", geoms)
+##   else
+##     x$pars$geom <- value
+##   x
+## })
 

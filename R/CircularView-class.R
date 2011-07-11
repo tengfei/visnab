@@ -32,7 +32,7 @@ CircularView <- function(grl,
                          rescale = "none"){
   
   ## check if list element is MutableRanges
-  pars <- GraphicPars(bgColor="black",fill="gray80",fgColor="gray80")
+  pars <- GraphicPars()
   if(any(unlist(lapply(grl,function(gr) extends(class(gr),"GenomicRanges"))))){
     grl <- lapply(grl,function(gr) {
       gr <- as(gr,"MutableGRanges")
@@ -94,6 +94,8 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
     scene <<- qscene()
     view <<- qplotView(scene,rescale = rescale)
     view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+    library(qtpaint)
+    args(qlayer)
     rootLayer <<- qlayer(scene,
                   ## limits=qrect(c(-len,len),c(-len,len)),
                   keyPressFun=function(layer,event){
