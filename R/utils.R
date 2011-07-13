@@ -426,9 +426,6 @@ pileupAsGRanges <- function(bams, regions,
   pileupFun <- function(x) {
     grl <- lapply(seq_len(length(bamNames)),function(i){
     seq <- x$seq[samBases,i,]
-    getSeq(Hsapiens, GRanges("chrX", IRanges(x$pos[2], width = 1)),
-                             as.character = TRUE)
-
     if(length(seq)){
     GRanges(seqnames = rep(names(x$seqnames), each = length(bams[i])),
             ranges = IRanges(rep(x$pos, each = length(bams[i])), width = 1),
@@ -458,13 +455,20 @@ pileupAsGRanges <- function(bams, regions,
 }
 
 pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FALSE) {
-  ## genome <- Hsapiens
-  refBases <- getSeq(genome, gr, as.character = TRUE)
-  ## df <- as.data.frame(values(gr))
   if(missing(DNA_BASES)){
     .reservedNames <- c("depth","bam")
     DNA_BASES <- setdiff(colnames(elementMetadata(gr)), .reservedNames)
   }
+  ## genome <- Hsapiens
+  ## fake
+  refBases <- getSeq(genome, gr, as.character = TRUE)
+  ## browser()
+  ## gr[,1:3]
+  ## refBases <- apply(as.data.frame(values(gr[,1:5])), 1, function(x){
+  ##   id <- which.max(x)
+  ##   DNA_BASES[id]
+  ## })
+  ## df <- as.data.frame(values(gr))
   counts <- as.matrix(as.data.frame(values(gr)[,DNA_BASES]))
   refCounts <- counts[cbind(seq(nrow(counts)), match(refBases, DNA_BASES))]
   variantsForBase <- function(base) {
@@ -486,6 +490,11 @@ pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FA
   lst <- lapply(colnames(counts), variantsForBase)
   idx <- !sapply(lst, is.null)
   res <- do.call("c", lst[idx])  ## why this is slow
+  values(res)$count.ref <- values(res)$depth
+  values(res)$count <- 0
+  idx <- sample(seq(length(res)), 5)
+  values(res)$count.ref[idx] <- values(res)$count.ref[idx]-1
+  values(res)$count[idx] <- values(res)$depth[idx]-values(res)$count.ref[idx]
   return(res[order(start(res))])
 }
 

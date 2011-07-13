@@ -11,6 +11,8 @@ LazyLoad: Yes
 Collate: AllClasses.R
 	 Enums-All.R
 	 AllGenerics.R
+	 LinearView-class.R
+	 OverView-class.R
 	 visnab.R
          painter-utils.R
 	 utils.R	

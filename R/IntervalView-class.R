@@ -2,7 +2,7 @@
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
 IntervalView.gen <- setRefClass("IntervalView",
-                                contains = "QtVisnabView",
+                                contains = c("QtVisnabView", "LinearView"),
                                 fields = c(track = "SimpleMutableGRanges",
                                   flag = "logical",
                                   signalingFields(list(group = "character",
@@ -23,7 +23,6 @@ IntervalView <- function(track,
                            "barchart", "heatmap", "segment", "line"),
                          rescale = c("geometry", "transform", "none"),
                          overview = FALSE){
-  
   ##
   tooltips <- "not implemented"
   ## if null, set first chromosome as viewed chromosome
@@ -299,12 +298,7 @@ IntervalView.gen$methods(createView = function(overview = FALSE){
       }
 
       if(pars$geom == "point"){
-        if(!length(y))
-          stop("need to provide y value")
-        yval <- values(mr)[idx, y]
-        cir <- qglyphCircle(r = 1)
-        qdrawGlyph(painter, cir, (st+ed)/2, yval, stroke = NA, fill = col)
-        pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
+        .self$drawPoint(painter, data = mr[idx], y = y)
       }
       if(pars$geom == "length"){
         ## this accept the bam file and query
@@ -380,3 +374,17 @@ IntervalView.gen$methods(regSignal = function(){
   })
 })
 
+
+IntervalView.gen$methods(drawPoint = function(painter, data, y){
+  if(!length(y))
+    stop("need to provide y value")
+  yval <- values(data)[, y]
+  cir <- qglyphCircle(r = 1)
+  qdrawGlyph(painter, cir, (st+ed)/2, yval, stroke = NA, fill = col)
+  pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
+})
+
+
+IntervalView.gen$methods(drawLine = function(painter){
+
+})

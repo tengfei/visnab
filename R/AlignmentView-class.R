@@ -1,7 +1,8 @@
 ##----------------------------------------------------------------------------##
 ##             For class "AlignmentView"
 ##----------------------------------------------------------------------------##
-AlignmentView.gen <- setRefClass("AlignmentView",contains = "QtVisnabView",
+AlignmentView.gen <- setRefClass("AlignmentView",
+                                 contains = c("QtVisnabView", "LinearView"),
                                  fields = list(track = "list",
                                    lower = "numeric",
                                    cutbin = "numeric",
@@ -28,7 +29,6 @@ AlignmentView <- function(file,
 
   tooltips <- "none"
 
-  
   ## read in header, to get seqnames
   hd <- scanBamHeader(file)
   seqname <- sort(names(hd[[1]]$targets))[1]
@@ -40,7 +40,6 @@ AlignmentView <- function(file,
 
   viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
   seqlengths(viewrange) <- seqlength
-
   
   obj <- AlignmentView.gen$new(file = file, focusin = FALSE,
                                selfSignal = FALSE, viewrange = viewrange,
@@ -73,7 +72,6 @@ AlignmentView.gen$methods(createView = function(){
   pfunAlign <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    ## viewrange$ranges <<- pars$xlimZoom 
     if(!selfSignal){
       viewrange$rangesChanged$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
@@ -267,7 +265,9 @@ AlignmentView.gen$methods(paintPair = function(painter){
                 IRanges(xlimz[1], xlimz[2]))
   pgr <- pspanGR(file, gr)
   if(length(pgr)>0){
-    lv <- disjointBins(ranges(pgr$pspan))
+    rds <- ranges(pgr$pspan)
+    rds <- resize(rds, fix = "center", width = width(rds)+5)
+    lv <- disjointBins(rds)
     p1 <- pgr$p1
     p2 <- pgr$p2
     gps <- pgr$pgaps
@@ -280,7 +280,8 @@ AlignmentView.gen$methods(paintPair = function(painter){
               stroke = "blue", fill = "blue")
     qdrawRect(painter, start(p2), (lv-1)*10+2, end(p2), lv*10,
               stroke = "green", fill = "green")
-    pars$ylim <<- expand_range(c(max(cutbin)*10, 0), mul = 0.05)
+    if(TRUE)
+      pars$ylim <<- expand_range(c(max(cutbin)*10, 0), mul = 0.05)
   }
 })
 

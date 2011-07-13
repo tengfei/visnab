@@ -1,7 +1,8 @@
 ##----------------------------------------------------------------------------##
 ##                    For class "CoverageView"
 ##----------------------------------------------------------------------------##
-CoverageView.gen <- setRefClass("CoverageView",contains = "QtVisnabView",
+CoverageView.gen <- setRefClass("CoverageView",
+                                contains = c("QtVisnabView", "LinearView"),
                                 fields=list(track = "list",
                                   lower = "numeric",
                                   cutbin = "numeric",
@@ -73,7 +74,7 @@ CoverageView.gen$methods(createView = function(){
   seqname <- seqnames(viewrange)
 
   ## preset the level
-  zoomLevel <- c(1e4, 1000,0)
+  zoomLevel <- c(1e5, 1000,0)
   ## FIXME: make it flexible
   bam <- scanBam(file, param = ScanBamParam(which = GRanges(seqnames = seqname,
                                               IRanges(1, seqlengths(viewrange))),
@@ -218,9 +219,10 @@ CoverageView.gen$methods(paintCovSeg = function(painter, xpos, ypos){
 })
 
 CoverageView.gen$methods(paintCovRect = function(painter){
-  gr <- GRanges(seqnames = viewrange$seqnames, IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
-  bam <- scanBam(file, param=ScanBamParam(which = gr,
-                         what=c("pos", "qwidth", "strand")))
+  gr <- GRanges(seqnames = viewrange$seqnames,
+                IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
+
+  bam <- scanBam(file, param=ScanBamParam(which = gr))
   bam <- bam[[1]]
   ir <- IRanges(start=bam$pos,width=bam$qwidth)
   if(length(ir)>0){
@@ -238,23 +240,22 @@ CoverageView.gen$methods(paintCovRect = function(painter){
 
 
 
-
-
 CoverageView.gen$methods(paintCovMismatch = function(painter){
   if(is.null(BSgenome))
     stop("Please specify the associated BSgenome object
                 if geom is set to mismatch")
-  gr <- GRanges(seqnames = viewrange$seqnames, IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
+  gr <- GRanges(seqnames = viewrange$seqnames,
+                IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
   lgr <- pileupAsGRanges(file, gr)
   if(length(lgr)>0){
     lgr <- pileupGRangesAsVariantTable(lgr, BSgenome) #too slow...
     ## group by match and mismatch
+    ## idx <- values(lgr)$read != values(lgr)$ref
+    ## lgr <- lgr[idx]
     values(lgr)$isMatch <- values(lgr)$read == values(lgr)$ref
-    ## make sure the mismatched color is down below the matched color
-    ## change order first
     idx <- order(start(lgr), values(lgr)$isMatch, values(lgr)$read)
     ## assumption: on the same chromosome
-    lgr <- lgr[idx]      
+    lgr <- lgr[idx]
     eds <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
       cumsum(x)
     }))
@@ -262,23 +263,35 @@ CoverageView.gen$methods(paintCovMismatch = function(painter){
       N <- length(x)
       c(0,cumsum(x)[-N])
     }))
+    ism <- unlist(lapply(split(values(lgr)$isMatch, start(lgr)), function(x){
+      x
+    }))
+    rds <- unlist(lapply(split(values(lgr)$read, start(lgr)), function(x){
+      x
+    }))
     ## assign color
-    idx.m <- values(lgr)$isMatch
-    cols <- genLegend(lgr, color = "read")$color
-    cols[idx.m] <- "gray80"
-    values(lgr)$.color <- cols
+    ## cols <- genLegend(lgr, color = "read")$color
+    dnacol <- baseColor(IRanges:::safeExplode("ACTGN"))
+    cols <- unlist(lapply(rds, function(rd){
+      dnacol[[rd]]
+    }))
+    cols[ism] <- "gray80"
+    ## values(lgr)$.color <- cols
     ## FIXME: need flexible way to make transformation
+    ## paint coverage
+    ## .self$paintCovRect(painter)
+    ## only paint mismatch
     qdrawRect(painter, start(lgr), log(sts+1),
               start(lgr)+1, log(eds+1),
-              stroke = NA, fill = values(lgr)$.color)
+              stroke = NA, fill = cols)
   }
-  
 })
 
 CoverageView.gen$methods(paintFragLength = function(painter){
   gr <- GRanges(seqnames = viewrange$seqnames,
                 IRanges(pars$xlimZoom[1], pars$xlimZoom[2]))
   pspan <- pspanGR(file, gr)$pspan
+  pspan <- subsetByOverlaps(ranges(pspan), ranges(gr), type = "within")
   ## draw point based gr
   ## THINK: MAKE IT GENERAL!
   x <- (start(pspan)+end(pspan))/2
@@ -287,5 +300,6 @@ CoverageView.gen$methods(paintFragLength = function(painter){
   ## qdrawGlyph(painter, cir, x, y, stroke = NA, fill = "black")
   qdrawCircle(painter, x, y, r = 3, stroke = NULL, fill = "black")
   ## fixed or not?
-  pars$ylim <<- expand_range(c(0, max(y)), mul = 0.05)
+  if(TRUE)
+    pars$ylim <<- expand_range(c(min(y), max(y)), mul = 0.05)
 })

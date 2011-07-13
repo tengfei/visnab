@@ -6,7 +6,8 @@
 ##                  FOR class 'StackedView'
 ##-----------------------------------------------------------------##
 
-SingleChromView.gen <- setRefClass("SingleChromView",contains="QtVisnabView",
+SingleChromView.gen <- setRefClass("SingleChromView",
+                                   contains=c("QtVisnabView", "LinearView"),
                                    fields=list(track="GRanges"))
 
 

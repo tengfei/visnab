@@ -128,7 +128,7 @@ setTheme <- function(prefix, pars=list(),
 
   ## default is "white", light them
   
-  def <- list(bgColor = new("Color","white"),
+  def <- list(bgColor = new("bgColorSingleEnum","white"),
               fgColor = new("Color","black"),
               textColor = new("Color","black"),
               color = I("red"),
@@ -158,7 +158,7 @@ setTheme <- function(prefix, pars=list(),
 }
 
 .defFields <- function(){
-  defFields <- list(bgColor = "Color",
+  defFields <- list(bgColor = "bgColorSingleEnum",
                     bgAlpha = "NumericWithMin0Max1",
                     fgColor = "Color",
                     color = "AsIsORcharacter",

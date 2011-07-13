@@ -2,7 +2,8 @@
 ##             For class "SeqView"
 ##----------------------------------------------------------------------------##
 
-SeqView.gen <- setRefClass("SeqView",contains = "QtVisnabView",
+SeqView.gen <- setRefClass("SeqView",
+                           contains = c("QtVisnabView", "LinearView"),
                            fields=list(track = "BSgenome"))
 
 ##----------------------------------------------------------------------------##

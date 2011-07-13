@@ -2,7 +2,8 @@
 ##             For class "ScaleView"
 ##----------------------------------------------------------------------------##
 
-ScaleView.gen <- setRefClass("ScaleView",contains = "QtVisnabView",
+ScaleView.gen <- setRefClass("ScaleView",
+                             contains = c("QtVisnabView", "LinearView"),
                              fields=list(track = "SimpleMutableGRanges"))
 
 ##----------------------------------------------------------------------------##

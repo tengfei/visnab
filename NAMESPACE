@@ -1,7 +1,7 @@
 ############################################################
 ## Import
 ############################################################
-## import(methods)
+importFrom(methods, show)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
 importFrom(objectSignals, signalingField, signalingFields, Signal)
@@ -18,7 +18,7 @@ importClassesFrom(Biobase, AssayData)
 ## importClassesFrom(IRanges, IRanges, Rle)
 importFrom(IRanges, IRanges,  disjoin, disjointBins,
            "elementMetadata", "elementMetadata<-",
-           start, width, end,  mid, 
+           start, width, end,  mid, resize,
            "start<-", "width<-", "end<-", "values", "values<-",
            ranges, "ranges<-", "metadata", "metadata<-", 
            isTRUEorFALSE, coverage, slice, viewWhichMins, viewWhichMaxs,
@@ -95,6 +95,7 @@ exportMethods(
               length,
               names,
               print,
+              icons,
               ## viewInBrowser,
               ## visnabGUI,
               range,
@@ -125,7 +126,7 @@ export(GraphicPars,
 ##               "logicalORNULL",
 ##               "Theme") 
 
-
+exportClasses(ColorEnum, GlyphEnum)
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)

@@ -2,7 +2,8 @@
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
 
-TxdbView.gen <- setRefClass("TxdbView",contains="QtVisnabView",
+TxdbView.gen <- setRefClass("TxdbView",
+                            contains=c("QtVisnabView", "LinearView"),
                             fields=list(track="TranscriptDb",
                               introns="GRangesList",
                               fiveUTR="GRangesList",
