@@ -49,6 +49,15 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
     lyt$addRow(l.lab[[i]], l.col[[i]])
   })
 
+  sapply(gp$output()$pars[gp$output()$exposed & 
+          (sapply(gp$output()$value, function(i) is(i,"ColorEnum")))],
+    function(i) {
+      l.col[[i]] <<- ColorEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.col[[i]])
+  })  
+
+
   # character widgets
   this$l.char <- list()
 
@@ -107,7 +116,17 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
       l.enum[[i]] <<- MultEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
       lyt$addRow(l.lab[[i]], l.enum[[i]])
-  })  
+  })
+
+  # glyph enum widgets
+  sapply(gp$output()$pars[gp$output()$exposed & 
+          (sapply(gp$output()$value, function(i) is(i,"GlyphEnum")))],
+    function(i) {
+      l.enum[[i]] <<- GlyphEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.enum[[i]])
+  })
+  
 
   
   olyt$addLayout(lyt)
@@ -187,6 +206,105 @@ qsetMethod("setDefault", ColorParWidget, function() {
   parSwatch$setStyleSheet(paste("background-color:",clr,sep=""))
   parEdit$setText(clr)  
 })
+
+
+# widget to handle changing colors
+qsetClass("ColorEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
+  super(parent)
+  this$gp <- gp; this$par <- par
+
+  initColor <- eval(parse(text=paste("gp$",par,sep="")))
+
+  this$colors <- eval(parse(text=paste("levels(gp$",par,")",sep="")))
+  
+  this$dropList <- Qt$QComboBox()
+  sapply(colors, function(i) {
+    pmap <- Qt$QPixmap(30,20)
+    pmap$fill(Qt$QColor(i))
+    icon <- Qt$QIcon(pmap)
+    dropList$addItem(icon,i)
+  })
+  dropList$setCurrentIndex(which(colors == initColor) - 1)
+  dropList$setIconSize(Qt$QSize(40,20))  
+
+  # change gp when user changes level
+  qconnect(dropList, "currentIndexChanged", function(idx) {
+    eval(parse(text=paste("gp$",par,
+                 " <- dropList$currentText",sep="")))
+  })
+
+  lyt <- Qt$QHBoxLayout()
+  lyt$addWidget(dropList)
+  
+  setLayout(lyt)
+})
+
+qsetMethod("getPar", ColorEnumParWidget, function() {
+  par
+})
+
+qsetMethod("getValue", ColorEnumParWidget, function() {
+  dropList$currentText
+})
+
+qsetMethod("setValue", ColorEnumParWidget, function(val) {
+  if(val %in% colors) dropList$setCurrentIndex(which(colors == val) - 1)
+})
+
+qsetMethod("setDefault", ColorEnumParWidget, function() {
+  val <- eval(parse(text=paste("gp$",par,sep="")))
+  dropList$setCurrentIndex(which(colors == val) - 1)
+})
+
+
+
+# widget to handle changing colors
+qsetClass("GlyphEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
+  super(parent)
+  this$gp <- gp; this$par <- par
+
+  initLvl <- eval(parse(text=paste("gp$",par,sep="")))
+
+  this$levels <- eval(parse(text=paste("levels(gp$",par,")",sep="")))
+  
+  this$dropList <- Qt$QComboBox()
+  icons <- eval(parse(text=paste("icons(gp$",par,")",sep="")))
+  sapply(seq_along(levels), function(i) {
+    dropList$addItem(icons[[i]],levels[i])
+  })
+  dropList$setCurrentIndex(which(levels == initLvl) - 1)
+  dropList$setIconSize(Qt$QSize(40,20))  
+
+  # change gp when user changes level
+  qconnect(dropList, "currentIndexChanged", function(idx) {
+    eval(parse(text=paste("gp$",par,
+                 " <- dropList$currentText",sep="")))
+  })
+
+  lyt <- Qt$QHBoxLayout()
+  lyt$addWidget(dropList)
+  
+  setLayout(lyt)
+})
+
+qsetMethod("getPar", GlyphEnumParWidget, function() {
+  par
+})
+
+qsetMethod("getValue", GlyphEnumParWidget, function() {
+  dropList$currentText
+})
+
+qsetMethod("setValue", GlyphEnumParWidget, function(val) {
+  if(val %in% levels) dropList$setCurrentIndex(which(levels == val) - 1)
+})
+
+qsetMethod("setDefault", GlyphEnumParWidget, function() {
+  val <- eval(parse(text=paste("gp$",par,sep="")))
+  dropList$setCurrentIndex(which(levels == val) - 1)
+})
+
+
 
 # widget for changing numeric values (general for any numeric range, but
 # for now hard-coded for a 0-1 range)
