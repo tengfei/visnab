@@ -7,7 +7,7 @@
                        "barchart", "heatmap", "segment", "line",
                        "polygon")
 setSingleEnum("VisnabViewGeom", levels = character())
-setSingleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
+setMultipleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
 setSingleEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
 setSingleEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
 setSingleEnum("AlignmentViewGeom", levels = c("oneside","twoside","pairend"))
@@ -20,7 +20,7 @@ setSingleEnum("TracksViewGeom", levels = c("default"))
 .Geom <- function(view = "VisnabView"){
   geom <- switch(view,
                  VisnabView = new("VisnabViewGeomSingleEnum"),
-                 IntervalView = new("IntervalViewGeomSingleEnum", "full"),
+                 IntervalView = new("IntervalViewGeomMultipleEnum", "full"),
                  TxdbView = new("TxdbViewGeomSingleEnum", "full"),
                  CoverageView = new("CoverageViewGeomSingleEnum", "total"),
                  AlignmentView = new("AlignmentViewGeomSingleEnum", "oneside"),
@@ -34,7 +34,7 @@ setSingleEnum("TracksViewGeom", levels = c("default"))
 .GeomName <- function(view = "VisnabView"){
   geom <- switch(view,
                  VisnabView = "VisnabViewGeomSingleEnum",
-                 IntervalView = "IntervalViewGeomSingleEnum",
+                 IntervalView = "IntervalViewGeomMultipleEnum",
                  TxdbView = "TxdbViewGeomSingleEnum",
                  CoverageView = "CoverageViewGeomSingleEnum", 
                  AlignmentView = "AlignmentViewGeomSingleEnum",
@@ -94,7 +94,7 @@ setColorEnum <- function(name, levels = character(), contains = "ColorEnum",
   setSingleEnum(name, levels = levels, where = where, contains = contains)
 }
 
-bgColorSingleEnum <- setColorEnum("bgColor", levels = c("black", "white", "gray80"))
+bgColorSingleEnum <- setColorEnum("bgColor", levels = c("black", "white", "gray"))
 
 setClass("GlyphEnum", contains = "VIRTUAL")
 setSingleEnum("PointSize", levels = c("1", "2", "5", "10"), contains = "GlyphEnum")

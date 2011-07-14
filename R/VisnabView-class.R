@@ -133,7 +133,6 @@ setMethod("viewInBrowser","VisnabView",function(obj, genome, browser = "UCSC"){
 })
 
 
-
 setMethod("geom","VisnabView",function(x,...){
   cat("Choosed geom: ",x$pars$geom,"\n")
   cat("---------------------\n")
@@ -146,6 +145,6 @@ setMethod("geom","VisnabView",function(x,...){
 })
 
 setReplaceMethod("geom","VisnabView", function(x,value){
-  values(x$pars$geom) <- value
+  x$pars$geom <- value
   x
 })

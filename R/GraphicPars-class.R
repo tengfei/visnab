@@ -3,88 +3,83 @@
 ##-----------------------------------------------------------------##
 setOldClass("R::visnab::ControlPanel")
 
-
-
-GraphicPars.gen <- setRefClass("GraphicParameters", contains = c("DefaultTheme",
-                                                      "VIRTUAL"))
-
-## set back to default
-GraphicPars.gen$methods(
-                  reset = function(themeName){
-                    'reset parameters to default
+setRefClass("GraphicParameters",
+            contains = c("DefaultTheme", "VIRTUAL"),
+            methods = list(
+              reset = function(themeName){
+                'reset parameters to default
                     '
-                    ## do some thing first
-                    callSuper(themeName)
-                  })
-
-GraphicPars.gen$methods(
-                  update = function(...){
-                    'reset parameters to default
+                ## do some thing first
+                callSuper(themeName)
+              },
+              
+              update = function(...){
+                'reset parameters to default
                     '
-                    ## do some thing first
-                    callSuper(...)
-                  })
+                ## do some thing first
+                callSuper(...)
+              },
+              
+              output = function(){
+                'output a list of parameters, automatically remove signal
+                 function which are just used for internal signal emit.
+                 This function return a list, pars shows the names of parameters;
+                 value shows value of parameters; listeners shows how many
+                 signal function associagted with certain parameter;
+                 class shows class of those parameters.
+                 '
+                ## need to make sure the order are the same
+                flds <- getRefClass()$fields()
+                idx <- !(flds %in% c("activeBindingFunction","Signal","function",
+                                     "functionORNULL"))
+                flds <- flds[idx]
+                ## hard coded exclued variables
+                idx <- !(names(flds) %in%
+                         paste(".",  c("view", "parinfo", "tooltipinfo",
+                                       "exposed", "xlim", "ylim" ,
+                                       "xlimZoom", "ylimZoom", "cpanel", "view"),
+                               sep = ""))
+                flds <- flds[idx]
+                idx <- !grepl("^\\.init.", names(flds))
+                flds <- flds[idx]
+                ## move .init
+                cls <- as.character(flds)
+                valnames <- gsub("\\.","",names(flds))
+                names(cls) <- valnames
+                vals <- sapply(valnames, .self$field)
+                parinfo2 <- sapply(valnames, function(nm) parinfo[[nm]])
+                tooltipinfo2 <- sapply(valnames, function(nm) tooltipinfo[[nm]])
+                exposed2 <- sapply(valnames, function(nm) exposed[[nm]])
+                valschanged <- paste(valnames, "Changed", sep = "")
 
+                vsignal <- sapply(valschanged, .self$field)
+                sigs <- as.numeric(unlist(lapply(vsignal, length)))
+                names(sigs) <- valnames
+                lst <- list(pars = valnames, value = vals,
+                            listeners = sigs, class = cls,
+                            parinfo = parinfo2, tooltipinfo = tooltipinfo2,
+                            exposed = exposed2
+                            )
+                return(lst)
+              },
 
-## accessors
-GraphicPars.gen$methods(output = function(){
-  'output a list of parameters, automatically remove signal function which
-   are just used for internal signal emit. This function return a list,
-   pars shows the names of parameters;
-   value shows value of parameters;
-   listeners shows how many signal function associagted with certain parameter;
-   class shows class of those parameters.
-   '
-  ## need to make sure the order are the same
-  flds <- getRefClass()$fields()
-  idx <- !(flds %in% c("activeBindingFunction","Signal","function",
-                       "functionORNULL"))
-  flds <- flds[idx]
-  ## hard coded exclued variables
-  idx <- !(names(flds) %in% paste(".",
-                                  c("view", "parinfo", "tooltipinfo",
-                                    "exposed", "xlim", "ylim" ,
-                                    "xlimZoom", "ylimZoom", "cpanel", "view"), sep = ""))
-  flds <- flds[idx]
-  idx <- !grepl("^\\.init.", names(flds))
-  flds <- flds[idx]
-  ## move .init
-  cls <- as.character(flds)
-  valnames <- gsub("\\.","",names(flds))
-  names(cls) <- valnames
-  vals <- sapply(valnames, .self$field)
-  parinfo2 <- sapply(valnames, function(nm) parinfo[[nm]])
-  tooltipinfo2 <- sapply(valnames, function(nm) tooltipinfo[[nm]])
-  exposed2 <- sapply(valnames, function(nm) exposed[[nm]])
-  valschanged <- paste(valnames, "Changed", sep = "")
+              setTheme = function(themeName){
+                "set parameters based on theme name
+                "
+                .self$reset(themeName)
+              },
+              
+              cp = function(show = TRUE){
+                ## if(!length(cpanel)){
 
-  vsignal <- sapply(valschanged, .self$field)
-  sigs <- as.numeric(unlist(lapply(vsignal, length)))
-  names(sigs) <- valnames
-  lst <- list(pars = valnames, value = vals,
-              listeners = sigs, class = cls,
-              parinfo = parinfo2, tooltipinfo = tooltipinfo2,
-              exposed = exposed2
-              )
-  return(lst)
-})
-
-GraphicPars.gen$methods(setTheme = function(themeName){
-  "set parameters based on theme name
-  "
-  .self$reset(themeName)
-})
-
-GraphicPars.gen$methods(cp = function(show = TRUE){
-  ## if(!length(cpanel)){
-
-  ## }
-  if(show){
-    cpanel$show()
-  }else{
-    cpanel$hide()
-  }
-})
+                ## }
+                if(show){
+                  cpanel$show()
+                }else{
+                  cpanel$hide()
+                }
+              })
+            )
 
 
 setMethod("show","GraphicParameters",function(object){
@@ -127,13 +122,13 @@ setGraphicPars <- function(viewname, gparslst,
 
 sapply(.AllVisnabViews, function(viewname){
   gparslst <- list(xlimZoom = "numeric",
-                ylimZoom= "numeric",
-                xlim = "numeric",
-                ylim = "numeric",
-                view = "character",
+                   ylimZoom= "numeric",
+                   xlim = "numeric",
+                   ylim = "numeric",
+                   view = "character",
                    ## fix on active binding of this geom
-                 geom = .GeomName(viewname),
-                 cpanel = "R::visnab::ControlPanel")
+                   geom = .GeomName(viewname),
+                   cpanel = "R::visnab::ControlPanel")
   setGraphicPars(viewname, gparslst)
 })
 

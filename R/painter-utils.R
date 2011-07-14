@@ -129,3 +129,5 @@ div_prox_pal <- function(low = "blue", mid = "white", high = "red",
     colss <- cols[match(ints, names(lvs))]
   }
 }
+
+

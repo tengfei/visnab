@@ -292,6 +292,9 @@ setGeneric("getTooltipInfo",function(obj,...) standardGeneric("getTooltipInfo"))
 ## Suppose any hiden name is not for shown
 setMethod("getTooltipInfo","GenomicRanges",function(obj,i,...){
   df <- values(obj)[i,,drop=FALSE]
+  df$chrom <- as.character(seqnames(obj))[i]
+  df$start <- start(obj)[i]
+  df$end <- end(obj)[i]
   nms <- colnames(df)
   nms <- grep("^[^\\.]",nms,value=TRUE)
   tips <- "\n"
