@@ -56,6 +56,7 @@ IntervalView <- function(track,
                       geom = geom, color = color,
                       view = "IntervalView")
 
+  mode <- IModeGroup()
   ##FIXME: a little hack of addAttr doesn't work for MutableGRanges right now
   track <- addAttr(track, .color = "red")
 
@@ -69,12 +70,12 @@ IntervalView <- function(track,
     facetBy <- character()
   if(missing(y))
     y <- character()
-  
   message("Create new instance...")
   obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
                               tooltipinfo = tooltips, viewname = viewname,
-                              group = group, selfSignal = FALSE, focusin = FALSE,
+                              group = group, eventTrace = new("EventTrace"),
                               viewrange = viewrange, facetBy = facetBy,
+                              mode = mode,
                               x = x, y = y)
   
   obj$track$changed$connect(function(change){
@@ -258,11 +259,11 @@ IntervalView.gen$methods(
       pars$xlimZoom <<- as.matrix(exposed)[,1]
       ylimZoom <- as.matrix(exposed)[,2]
       xlimZoom <- pars$xlimZoom
-      if(!selfSignal){
+      if(!eventTrace$selfSignal){
         viewrange$rangesChanged$unblock()
         ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
       }
-      if(selfSignal){
+      if(eventTrace$selfSignal){
         viewrange$rangesChanged$block()
         ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
       }
@@ -339,7 +340,9 @@ IntervalView.gen$methods(
       }
     }
     rootLayer[3,j-1+2] <<- qlayer(scene,paintFun=sumPainter,
-                                  wheelFun=  wheelEventZoom(view),
+                                  wheelFun=
+                                  wheelEventZoom(view, layer = rootLayer[3, j-1+2],
+                                                 mid = mean(pars$xlimZoom)),
                                   keyPressFun =
                                   keyPressEventZoom(track, view = view, sy = 1),
                                   hoverMoveFun = hoverMoveEvent(.self, mr[idx]),

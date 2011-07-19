@@ -142,9 +142,6 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
 ##   img$save("~/Desktop/point.gif")
 ## }
 
-
-
-
 ##' s = qscene()
 ##' r = qlayer(s)
 ##' m = qlayer(paintFun = function(layer, painter) {

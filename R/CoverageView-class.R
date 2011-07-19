@@ -46,8 +46,9 @@ CoverageView <- function(file,
   
   pars <- GraphicPars(geom = geom, xlimZoom = xlimZoom, view = "CoverageView")
 
-  obj <- CoverageView.gen$new(file = file, focusin = FALSE, BSgenome = BSgenome,
-                              selfSignal = FALSE, rescale = rescale,
+  obj <- CoverageView.gen$new(file = file, BSgenome = BSgenome,
+                              rescale = rescale,
+                              eventTrace = new("EventTrace"),
                               viewrange = viewrange,
                               pars = pars, lower = lower, cutbin = cutbin)
 
@@ -95,11 +96,11 @@ CoverageView.gen$methods(createView = function(){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
     ## viewrange$ranges <<- pars$xlimZoom 
-    if(!selfSignal){
+    if(!eventTrace$selfSignal){
       viewrange$rangesChanged$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
     }
-    if(selfSignal){
+    if(eventTrace$selfSignal){
       viewrange$rangesChanged$block()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
     }
@@ -148,20 +149,20 @@ CoverageView.gen$methods(createView = function(){
   }
 
   keyOutFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
   hoverEnterFun <- function(layer, event){
-    focusin <<- TRUE
+    eventTrace$focusin <<- TRUE
   }
   hoverLeaveFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
   
   rootLayer[0,0] <<- qlayer(scene, paintFun=pfunCov,
                             row=row,  col=col, rowSpan=rowSpan, colSpan=colSpan,
                             wheelFun = wheelEventZoom(view),
                             keyPressFun = keyPressEventZoom(.self, view, sy = 1,
-                              focusin = focusin),
+                              focusin = eventTrace$focusin),
                             hoverEnterFun = hoverEnterFun,
                             focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   

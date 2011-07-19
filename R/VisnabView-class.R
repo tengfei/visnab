@@ -3,13 +3,13 @@
 ##------------------------------------------------------------##
 
 VisnabView.gen <- setRefClass("VisnabView",
-                              contains = c("VIRTUAL", "Annotated"),
+                              contains = c("VIRTUAL"),
                               fields = c(
-                                signalingField("focusin","logicalORNULL"),
                                 signalingField("colorLegend", "ColorLegendList"),
                                 signalingField("viewrange", "SimpleMutableGRanges"),
-                                signalingField("selfSignal", "logical"),
                                 pars = "GraphicParameters",
+                                mode = "IModeGroup",
+                                eventTrace = "EventTrace",
                                 tooltipinfo = "character",
                                 viewname = "character"
                                 ))

@@ -95,6 +95,9 @@ setColorEnum <- function(name, levels = character(), contains = "ColorEnum",
 }
 
 bgColorSingleEnum <- setColorEnum("bgColor", levels = c("black", "white", "gray"))
+shadowColorSingleEnum <- setColorEnum("ShadowColor",
+                                  levels = c("gray40", "gray",
+                                    "black", "white"))
 
 setClass("GlyphEnum", contains = "VIRTUAL")
 setSingleEnum("PointSize", levels = c("1", "2", "5", "10"), contains = "GlyphEnum")

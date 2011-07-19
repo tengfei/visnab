@@ -17,7 +17,7 @@ TracksView <- function(..., seqname="chr1"){
   pars <- GraphicPars(xlimZoom = c(0, seqlength),
                       view = "TracksView")
   obj <- TracksView.gen$new(track=track,pars=pars, win = NULL,
-                            selfSignal = TRUE, emit.id = 0)
+                            eventTrace = new("EventTrace"), emit.id = 0)
 
   obj$createView()
   return(obj)
@@ -46,11 +46,11 @@ TracksView.gen$methods(createView = function(seqname=NULL){
     viewrange$seqnamesChanged$connect(function(){
       lst[[i]]$pars$seqname <- pars$seqname
     })
-    lst[[i]]$focusinChanged$connect(function(){
+    lst[[i]]$eventTrace$focusinChanged$connect(function(){
       other.id <- setdiff(1:length(lst),i)
-      lst[[i]]$selfSignal <- FALSE
+      lst[[i]]$eventTrace$selfSignal <- FALSE
       sapply(other.id, function(n){
-        lst[[n]]$selfSignal <- TRUE
+        lst[[n]]$eventTrace$selfSignal <- TRUE
       })
     })
     lst[[i]]$viewrange$rangesChanged$connect(function(){

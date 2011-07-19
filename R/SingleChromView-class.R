@@ -42,7 +42,7 @@ SingleChromView <- function(track,
   obj <- SingleChromView.gen$new(track = track,pars = pars,
                                  viewrange = viewrange,
                                  rescale = rescale,
-                                 focusin = FALSE)
+                                 eventTrace = new("EventTrace"))
 
   ## connected events
   obj$createView()
@@ -119,17 +119,17 @@ SingleChromView.gen$methods(createView = function(){
   }
   lth <- max(end(track[seqnames(track) == seqname]))
   keyOutFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
 hoverEnterFun <- function(layer, event){
-  focusin <<- TRUE
+  eventTrace$focusin <<- TRUE
 }
 hoverLeaveFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
 
  keyPressEvent <- function(layer, event){
-   focusin <<- TRUE
+   eventTrace$focusin <<- TRUE
  }
   
   rootLayer[0,0] <<- qlayer(scene, pfunChrom,

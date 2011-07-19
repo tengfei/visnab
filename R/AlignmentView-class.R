@@ -41,8 +41,9 @@ AlignmentView <- function(file,
   viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
   seqlengths(viewrange) <- seqlength
   
-  obj <- AlignmentView.gen$new(file = file, focusin = FALSE,
-                               selfSignal = FALSE, viewrange = viewrange,
+  obj <- AlignmentView.gen$new(file = file, 
+                               viewrange = viewrange,
+                               eventTrace = new("EventTrace"),
                                viewname = viewname, tooltipinfo = tooltips,
                                pars = pars, lower = lower, cutbin = cutbin,
                                rescale = rescale)
@@ -72,11 +73,11 @@ AlignmentView.gen$methods(createView = function(){
   pfunAlign <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    if(!selfSignal){
+    if(!eventTrace$selfSignal){
       viewrange$rangesChanged$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
-    if(selfSignal){
+    if(eventTrace$selfSignal){
       viewrange$rangesChanged$block()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
@@ -119,20 +120,20 @@ AlignmentView.gen$methods(createView = function(){
   }
 
   keyOutFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
   hoverEnterFun <- function(layer, event){
-    focusin <<- TRUE
+    eventTrace$focusin <<- TRUE
   }
   hoverLeaveFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
 
   rootLayer[0,0] <<- qlayer(rootLayer,
                             paintFun = pfunAlign,
                             wheelFun = wheelEventZoom(view),
                             keyPressFun = keyPressEventZoom(.self, view, sy = 1,
-                              focusin = focusin),
+                              focusin = eventTrace$focusin),
                             hoverEnterFun = hoverEnterFun,
                             focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
 

@@ -92,8 +92,9 @@ TxdbView <- function(track,
                           viewrange = viewrange,
                           introns = introns, fiveUTR = fiveUTR, threeUTR = threeUTR,
                           rescale = rescale, tooltipinfo = tooltips,
-                          cds = cds,tx = tx, viewname = viewname, 
-                          selfSignal = FALSE, focusin = FALSE)
+                          cds = cds,tx = tx, viewname = viewname,
+                          eventTrace = new("EventTrace"))
+
 
   ## add default attributes
   ## addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)
@@ -215,11 +216,11 @@ TxdbView.gen$methods(createView = function(){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
     xlimZoom <- pars$xlimZoom
-    if(!selfSignal){
+    if(!eventTrace$selfSignal){
       viewrange$rangesChanged$unblock()
       ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
     }
-    if(selfSignal){
+    if(eventTrace$selfSignal){
       viewrange$rangesChanged$block()
       ranges(viewrange) <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
     }
@@ -336,18 +337,19 @@ TxdbView.gen$methods(createView = function(){
   ##   }
   ## }
   keyOutFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
   hoverEnterFun <- function(layer, event){
-    focusin <<- TRUE
+    eventTrace$focusin <<- TRUE
   }
   hoverLeaveFun <- function(layer, event){
-    focusin <<- FALSE
+    eventTrace$focusin <<- FALSE
   }
 
   rootLayer[0,0] <<- qlayer(scene, drawfun, 
                        wheelFun= wheelEventZoom(view, sy = 1),
-                       keyPressFun = keyPressEventZoom(.self, view, focusin = focusin),
+                       keyPressFun = keyPressEventZoom(.self, view,
+                         focusin = eventTrace$focusin),
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   

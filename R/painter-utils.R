@@ -108,8 +108,6 @@ blackred_pal <- function(){
 }
 ## used for heatmap
 
-
-
 div_prox_pal <- function(low = "blue", mid = "white", high = "red",
                     to = c(0, 1), proxylen = 100){
   function(x){

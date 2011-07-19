@@ -52,8 +52,9 @@ ScaleView <- function(track,
   pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "ScaleView")
   gp <- GraphicPars(view = "TxdbView")
   gp$geom <- "dense"
-  obj <- ScaleView.gen$new(track = track, pars = pars, selfSignal = FALSE,
-                           viewrange = viewrange, focusin = FALSE,
+  obj <- ScaleView.gen$new(track = track, pars = pars,
+                           eventTrace = new("EventTrace"),
+                           viewrange = viewrange, 
                            rescale = rescale, tooltipinfo = tooltips)
   obj$createView()
   obj$regSignal()
@@ -81,11 +82,11 @@ ScaleView.gen$methods(createView = function(){
     if(pars$geom == "twoside"){
       pars$xlimZoomChanged$block()
       pars$xlimZoom <<- as.matrix(exposed)[,1]
-          if(!selfSignal){
+          if(!eventTrace$selfSignal){
       viewrange$rangesChanged$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
-    if(selfSignal){
+    if(eventTrace$selfSignal){
       viewrange$rangesChanged$block()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2]) 
     }
@@ -129,19 +130,20 @@ ScaleView.gen$methods(createView = function(){
   }
 
   keyOutFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
 hoverEnterFun <- function(layer, event){
-  focusin <<- TRUE
+  eventTrace$focusin <<- TRUE
 }
 hoverLeaveFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
   rootLayer[0,0] <<- qlayer(scene,paintFun=pfunScale,
                   ## limits=qrect(pars$xlimZoom[1],h/2-h/9-3*h,
                   ##   pars$xlimZoom[2],h/2+h/9+h),
                   wheelFun=wheelEventZoom(view),
-                  keyPressFun=keyPressEventZoom(track, view, sy = 1, focusin = focusin),
+                  keyPressFun=keyPressEventZoom(track, view, sy = 1,
+                    focusin = eventTrace$focusin),
                   row=row, col=col, rowSpan=rowSpan, colSpan=colSpan,
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)

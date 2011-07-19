@@ -38,9 +38,10 @@ SeqView <- function(track,
     track <- as(track,"MutableGRanges")
   
   pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "SeqView")
-  obj <- SeqView.gen$new(track=track,pars=pars, focusin = FALSE,
+  obj <- SeqView.gen$new(track=track,pars=pars,
+                         eventTrace = new("EventTrace"),
                          viewrange = viewrange, rescale = rescale, 
-                         selfSignal = FALSE, tooltipinfo = tooltips)
+                        tooltipinfo = tooltips)
   obj$createView()
   obj$regSignal()
   obj
@@ -68,11 +69,11 @@ SeqView.gen$methods(createView = function(){
     ## level1:draw gray bars
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
-    if(!selfSignal){
+    if(!eventTrace$selfSignal){
       viewrange$rangesChanged$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1],pars$xlimZoom[2])  
     }
-    if(selfSignal){
+    if(eventTrace$selfSignal){
       viewrange$rangesChanged$block()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1],pars$xlimZoom[2])  
     }
@@ -113,19 +114,19 @@ SeqView.gen$methods(createView = function(){
      }
   }
   keyOutFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
 hoverEnterFun <- function(layer, event){
-  focusin <<- TRUE
+  eventTrace$focusin <<- TRUE
 }
 hoverLeaveFun <- function(layer, event){
-  focusin <<- FALSE
+  eventTrace$focusin <<- FALSE
 }
 
   rootLayer[0,0] <<- qlayer(scene, pfunSeq, row=row, col=col,
                        rowSpan=rowSpan, colSpan=colSpan,
                    keyPressFun=keyPressEventZoom(track, view, sy = 1,
-                     focusin = focusin),
+                     focusin = eventTrace$focusin),
                    wheelFun=wheelEventZoom(view),
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)

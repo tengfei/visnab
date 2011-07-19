@@ -10,6 +10,10 @@ License: GPL (>=2)
 LazyLoad: Yes
 Collate: AllClasses.R
 	 Enums-All.R
+	 Item-class.R
+	 iMode-class.R
+	 Group-class.R
+	 EventTrace-class.R
 	 AllGenerics.R
 	 LinearView-class.R
 	 OverView-class.R
