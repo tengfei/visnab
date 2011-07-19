@@ -1,4 +1,4 @@
-setClass("Group", contains = "VIRTUAL")
+setRefClass("Group", contains = c("AnnotatedWidget", "VIRTUAL"))
 ## items should be a mutalist of Item object
 setGroup <- function(name, 
                      contains = character(),
@@ -38,9 +38,10 @@ setGroup <- function(name,
               setExclusive = function(bool = TRUE){
                 exclusive <<- bool
               },
-              initialize = function(...){
+              initialize = function(t = as.character(class(.self)),...){
                 exclusive <<- TRUE
                 defaultId <<- 1
+                .self$text <<- t
                 ## .self$setId(defaultId)
                 .self$regSignal()
                 callSuper(...)

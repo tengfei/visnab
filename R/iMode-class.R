@@ -29,7 +29,7 @@ setMode <- function(name, modes,
               where = where,
               methods = list(
                 initialize = function(t = as.character(class(.self)), ...){
-                  text <<- t 
+                  .self$text <<- t 
                   callSuper(...)
                 }))
 }

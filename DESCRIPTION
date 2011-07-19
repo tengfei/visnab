@@ -10,6 +10,7 @@ License: GPL (>=2)
 LazyLoad: Yes
 Collate: AllClasses.R
 	 Enums-All.R
+	 AnnotatedWidget-class.R
 	 Item-class.R
 	 iMode-class.R
 	 Group-class.R

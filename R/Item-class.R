@@ -1,9 +1,5 @@
-## used for groups
-setOldClass("QIcon")
-setRefClass("Item", contains = "VIRTUAL",
+setRefClass("Item", contains = c("AnnotatedWidget", "VIRTUAL"),
             fields = list(
-              icon = "QIcon",
-              text = "character",
               checked = "logical"
               ),
             methods = list(
@@ -12,12 +8,6 @@ setRefClass("Item", contains = "VIRTUAL",
               },
               isChecked = function(){
                 checked
-              },
-              setIcon = function(value){
-                icon <<- value
-              },
-              setText = function(value){
-                text <<- value
               },
               initialize = function(...){
                 checked <<- FALSE

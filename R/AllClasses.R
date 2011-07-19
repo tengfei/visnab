@@ -1,5 +1,7 @@
 setClassUnion("AsIsORcharacter", c("AsIs","character"))
 
+setOldClass("QIcon")
+
 setOldClass("QWidget")
 setOldClass("QMainWindow")
 setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
