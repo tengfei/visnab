@@ -20,7 +20,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 
   qconnect(reset, "clicked", function() {
     gp$reset()
-    sapply(c(l.col,l.char,l.range,l.enum,l.int), function(i) {
+    sapply(l.wid, function(i) {
       i$setDefault()
     })
   })
@@ -38,93 +38,83 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
 
   this$l.lab <- list()
+  this$l.wid <- list()
   
   # color widgets
-  this$l.col <- list()
-
   sapply(gp$output()$pars[gp$output()$exposed &
                           (gp$output()$class == "Color")], function(i) {
-    l.col[[i]] <<- ColorParWidget(gp, i)
+    l.wid[[i]] <<- ColorParWidget(gp, i)
     l.lab[[i]] <<- ParLabel(gp, i)
-    lyt$addRow(l.lab[[i]], l.col[[i]])
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
   })
 
   sapply(gp$output()$pars[gp$output()$exposed & 
           (sapply(gp$output()$value, function(i) is(i,"ColorEnum")))],
     function(i) {
-      l.col[[i]] <<- ColorEnumParWidget(gp, i)
+      l.wid[[i]] <<- ColorEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
-      lyt$addRow(l.lab[[i]], l.col[[i]])
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
   })  
 
-
   # character widgets
-  this$l.char <- list()
-
   sapply(gp$output()$pars[gp$output()$exposed &
                           (gp$output()$class == "character")], function(i) {
-    l.char[[i]] <<- CharParWidget(gp, i)
+    l.wid[[i]] <<- CharParWidget(gp, i)
     l.lab[[i]] <<- ParLabel(gp, i)
-    lyt$addRow(l.lab[[i]], l.char[[i]])
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
   })
 
-  
   # numeric with range widgets
-  this$l.range <- list()
-
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
                                       "NumericWithMin0Max1")], function(i) {
-    l.range[[i]] <<- RangeParWidget(gp, i, "double")
+    l.wid[[i]] <<- RangeParWidget(gp, i, "double")
     l.lab[[i]] <<- ParLabel(gp, i)
-    lyt$addRow(l.lab[[i]], l.range[[i]])
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
   })
 
   # integer with range widgets
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class ==
                                          "IntegerWithRange")], function(i) {
-    l.range[[i]] <<- RangeParWidget(gp, i, "int")
+    l.wid[[i]] <<- RangeParWidget(gp, i, "int")
     l.lab[[i]] <<- ParLabel(gp, i)
-    lyt$addRow(l.lab[[i]], l.range[[i]])
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
   })  
 
   # integer widgets
-  this$l.int <- list()
-
   sapply(gp$output()$pars[gp$output()$exposed & (gp$output()$class %in%
     c("PositiveInteger","NonnegativeInteger","NegativeInteger",
       "NonpositiveInteger"))], function(i) {
-    l.int[[i]] <<- IntParWidget(gp, i, substr(gp$output()$class[i],1,6))
+    l.wid[[i]] <<- IntParWidget(gp, i, substr(gp$output()$class[i],1,6))
     l.lab[[i]] <<- ParLabel(gp, i)
-    lyt$addRow(l.lab[[i]], l.int[[i]])
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
   })  
   
-  # single enum widgets
-  this$l.enum <- list()
-
+  # single enum widgets (not color or glyph enum)
   sapply(gp$output()$pars[gp$output()$exposed & 
-          (sapply(gp$output()$value, function(i) is(i,"SingleEnum")))],
+          (sapply(gp$output()$value, function(i) is(i,"SingleEnum"))) &
+          (sapply(gp$output()$value, function(i) !is(i,"ColorEnum"))) &                (sapply(gp$output()$value, function(i) !is(i,"GlyphEnum")))],
     function(i) {
-      l.enum[[i]] <<- SingleEnumParWidget(gp, i)
+      l.wid[[i]] <<- SingleEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
-      lyt$addRow(l.lab[[i]], l.enum[[i]])
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
   })  
 
   # multiple enum widgets
   sapply(gp$output()$pars[gp$output()$exposed & 
           (sapply(gp$output()$value, function(i) is(i,"MultipleEnum")))],
     function(i) {
-      l.enum[[i]] <<- MultEnumParWidget(gp, i)
+      l.wid[[i]] <<- MultEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
-      lyt$addRow(l.lab[[i]], l.enum[[i]])
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
   })
 
   # glyph enum widgets
   sapply(gp$output()$pars[gp$output()$exposed & 
           (sapply(gp$output()$value, function(i) is(i,"GlyphEnum")))],
     function(i) {
-      l.enum[[i]] <<- GlyphEnumParWidget(gp, i)
+      l.wid[[i]] <<- GlyphEnumParWidget(gp, i)
       l.lab[[i]] <<- ParLabel(gp, i)
-      lyt$addRow(l.lab[[i]], l.enum[[i]])
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
   })
   
 
@@ -136,7 +126,7 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
 })
 
 qsetMethod("setValue", ControlPanel, function(par, val) {
-  c(l.col,l.char,l.range,l.int,l.enum)[[par]]$setValue(val)
+  l.wid[[par]]$setValue(val)
 })
 
 # widget to handle changing colors
