@@ -48,6 +48,7 @@ setTheme <- function(prefix, pars=list(),
 .DefaultTheme <- function(){
   ## parinfo used for showing actual name, easy to read
   parinfolst <- list(bgColor = "Background color",
+                     gridBgColor = "Background color",
                      fgColor = "Frontground color",
                      shadowColor = "Shadow Color",
                      textColor = "Text color",
@@ -76,6 +77,7 @@ setTheme <- function(prefix, pars=list(),
 
   ## tooltipinfo used for showing tooltip, wihch is descriptive
   tooltipinfolst <- list(bgColor = "no tool tip defined yet",
+                         gridBgColor = "Background color",
                          fgColor = "no tool tip defined yet",
                          shadowColor = "Shadow Color",
                          textColor = "no tool tip defined yet",
@@ -106,6 +108,7 @@ setTheme <- function(prefix, pars=list(),
 
   ## exposed decide which parameters exposed to users
   exposedlst <- list(bgColor = TRUE,
+                     gridBgColor = TRUE,
                      fgColor = TRUE,
                      shadowColor = TRUE,
                      textColor = FALSE,
@@ -135,6 +138,7 @@ setTheme <- function(prefix, pars=list(),
   ## default is "white", light them
   
   def <- list(bgColor = new("bgColorSingleEnum","white"),
+              gridBgColor = new("Color", "gray"),
               fgColor = new("Color","black"),
               shadowColor = new("ShadowColorSingleEnum","gray"),
               textColor = new("Color","black"),
@@ -167,6 +171,7 @@ setTheme <- function(prefix, pars=list(),
 
 .defFields <- function(){
   defFields <- list(bgColor = "bgColorSingleEnum",
+                    gridBgColor = "Color",
                     bgAlpha = "NumericWithMin0Max1",
                     shadowColor = "ShadowColorSingleEnum",
                     fgColor = "Color",

@@ -12,6 +12,14 @@ setSingleEnum("PointBrushMode", levels = c("Off", "ColorAndGlyph",
 setSingleEnum("EdgeBrushMode", levels = c("Off", "ColorAndLine",
                                  "ColorOnly", "LineOnly", "Shadow", "Unshadow"))
 setSingleEnum("DragMode",  levels = c("NoDrag", "ScrollHandDrag", "RubberBandDrag"))
+setGeneric("getQtEnum", function(x,...) standardGeneric("getQtEnum"))
+setMethod("getQtEnum", "DragModeSingleEnum", function(x){
+  val <- switch(x,
+                NoDrag = Qt$QGraphicsView$NoDrag,
+                ScrollHandDrag = Qt$QGraphicsView$ScrollHandDrag,
+                RubberBandDrag = Qt$QGraphicsView$RubberBandDrag)
+})
+
 setSingleEnum("ZoomMode", levels = c("Vertical", "Horizontal", "Both"))
 
 ## ======================================================================

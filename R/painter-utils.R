@@ -129,3 +129,9 @@ div_prox_pal <- function(low = "blue", mid = "white", high = "red",
 }
 
 
+## data should be MutalbeGRanges
+## painter utils
+## support floating first
+tooltipPainter <- function(pos, text){
+ 
+}

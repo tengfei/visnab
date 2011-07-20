@@ -56,7 +56,7 @@ IntervalView <- function(track,
                       geom = geom, color = color,
                       view = "IntervalView")
 
-  mode <- IModeGroup()
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
   ##FIXME: a little hack of addAttr doesn't work for MutableGRanges right now
   track <- addAttr(track, .color = "red")
 
@@ -77,7 +77,6 @@ IntervalView <- function(track,
                               viewrange = viewrange, facetBy = facetBy,
                               mode = mode,
                               x = x, y = y)
-  
   obj$track$changed$connect(function(change){
     if(is(change, "GRangesChanges"))
       if(elementMetadataChanged(change))
@@ -99,6 +98,7 @@ IntervalView.gen$methods(createView = function(overview = FALSE,
                            alpha = alpha){
   setDislayWidgets()
   setBgColor()
+  drawGrid()
   ## FIXME: what happened when you try to facet it
   .self$drawSummary(x = x, y = y, geom = pars$geom,
                     size = size, alpha = alpha,
@@ -115,7 +115,7 @@ IntervalView.gen$methods(regSignal = function(){
     ## then center viewr
     pos.x <- mean(pars$xlimZoom)
     pos.y <- mean(pars$ylim)
-    pos.scene <- as.numeric(rootLayer[0,0]$mapToScene(pos.x, pos.y))
+    pos.scene <- as.numeric(rootLayer[3,2]$mapToScene(pos.x, pos.y))
     view$centerOn(pos.scene[1], pos.scene[2])
     viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
   })
@@ -126,7 +126,7 @@ IntervalView.gen$methods(regSignal = function(){
     viewrange$seqnamesChanged$block()
     seqlengths(viewrange) <<- seqlengths(track)[[as.character(seqnames(viewrange))]]
     viewrange$seqnamesChanged$unblock()
-    rootLayer[0,0]$close()
+    rootLayer$close()
     view$resetTransform()
     createView()
     regSignal()
@@ -339,16 +339,18 @@ IntervalView.gen$methods(
         pars$ylim <<- expand_range(c(0, max(yval)), mul = 0.05)
       }
     }
-    rootLayer[3,j-1+2] <<- qlayer(scene,paintFun=sumPainter,
-                                  wheelFun=
-                                  wheelEventZoom(view, layer = rootLayer[3, j-1+2],
-                                                 mid = mean(pars$xlimZoom)),
-                                  keyPressFun =
-                                  keyPressEventZoom(track, view = view, sy = 1),
-                                  hoverMoveFun = hoverMoveEvent(.self, mr[idx]),
-                                  cache = TRUE)
-    rootLayer[3,j-1+2]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
+    rootLayer[3,j-1+2] <<- qlayer(scene, paintFun=sumPainter,
+                                  ## wheelFun=
+                                  ## wheelEventZoom(view, layer = rootLayer[3, j-1+2],
+                                  ##                mid = mean(pars$xlimZoom)),
+                                  keyPressFun = keyPressEventZoom(),
+                                  ## hoverMoveFun = hoverMoveEvent(.self, mr[idx]),
+                                  cache = TRUE,
+                                 limits = qrect(pars$xlim[1], pars$ylim[1],
                                        pars$xlim[2], pars$ylim[2]))
+    ## rootLayer[3, j-1+2]$setOpacity(0)
+    ## for tooltips 
+    ## layer <<- qlayer()
     pars$ylimChanged$connect(function(){
       rootLayer[3,j-1+2]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
                                          pars$xlim[2], pars$ylim[2]))
