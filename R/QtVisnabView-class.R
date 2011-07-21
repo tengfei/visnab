@@ -237,16 +237,10 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   i <- 3
                   j <- 3
                 })
-                if(s %in% c(1, 3)){
-                  data <- pars$xlim
-                }
-                if(s %in% c(2, 4)){
-                  data <- pars$ylim
-                }
                 ## a little hack to put it into closure
                 arr <- function(s){
                   rootLayer[i, j] <<- layer <- qlayer(scene,
-                                                      axisPainter(s, data = data))
+                                                      axisPainter(s))
                   layout <- rootLayer$gridLayout()
                   if(s %in% c(1, 3)){
                     layout$setRowPreferredHeight(i, 30)
@@ -378,21 +372,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
 
                 arr <- function(fun){
                   rootLayer[3, 2] <<- layer <- qlayer(scene, fun)
-                  layer$setLimits(qrect(pars$xlim[1],
-                                        pars$ylim[1],
-                                        pars$xlim[2],
-                                        pars$ylim[2]))
-                  pars$xlimChanged$connect(function(){
-                    layer$setLimits(qrect(pars$xlim[1],
-                                          pars$ylim[1],
-                                          pars$xlim[2],
-                                          pars$ylim[2]))
-                  })
-                  pars$ylimChanged$connect(function(){
-                    layer$setLimits(qrect(pars$xlim[1],
-                                          pars$ylim[1],
-                                          pars$xlim[2],
-                                          pars$ylim[2]))})
+                  fixLimits(layer)
+                  syncLimits(layer)
                 }
                 if(!missing(h)){
                   fun <- function(layer, painter){
@@ -428,6 +409,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                                           pars$ylim[2]))
                   },
               syncLimits = function(layer){
+                'signal level
+                '
                 pars$xlimChanged$connect(fixLimits(layer))
                 pars$ylimChanged$connect(fixLimits(layer))
               },
@@ -507,13 +490,19 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               ## ----------------------------------------
               ##   painter
               ## ----------------------------------------
-              axisPainter = function(side, data, breaks = pretty_breaks(),
+              axisPainter = function(side, breaks = pretty_breaks(),
                 labels = scientific_format()){
                 xalign <- yalign <- "center"
                 xshift1 <- yshift1 <- xshift2 <- yshift2 <- 0
-                cbs <- cbreaks(range(data), breaks = breaks, labels = labels)
-                xat <- yat <- cbs$breaks
                 function(layer, painter){
+                  if(side %in% c(1, 3)){
+                    data <- pars$xlim
+                  }
+                  if(side %in% c(2, 4)){
+                    data <- pars$ylim
+                  }
+                  cbs <- cbreaks(range(data), breaks = breaks, labels = labels)
+                  xat <- yat <- cbs$breaks
                   switch(side, {
                     yat <- 0.9
                     yalign <- "top"

@@ -209,12 +209,13 @@ IntervalView.gen$methods(
            }}else{
              yval <- disjointBins(ranges(mr[idx]))
            }
-         
-         ymax <- max(yval)
-         ymin <- min(yval)
 
          st <- start(mr)[idx]
          ed <- end(mr)[idx]
+
+         ymax <- max(yval)
+         ymin <- min(yval)
+
          xval <- switch(x,
                         start = st,
                         end = ed,
@@ -222,6 +223,9 @@ IntervalView.gen$methods(
          
          xmax <- max(xval)
          xmin <- min(xval)
+         
+         pars$ylim <<- expand_range(range(yval), mul = 0.05)
+         pars$xlim <<- expand_range(range(xval), mul = 0.05)
 
 
          if(length(group)){
@@ -242,7 +246,7 @@ IntervalView.gen$methods(
              if(is.character(size)){
              if(size %in% colnames(values(mr))){
                vals <- values(mr)[,size]
-               cex <- cscale(vals, rescale_pal(c(0.1, 3)))
+               cex <- cscale(vals, rescale_pal(c(1, 3)))
              }}
            }else{
              cex <- 5
@@ -271,10 +275,10 @@ IntervalView.gen$methods(
            color <- pars$color
            if(!(is(color,"AsIs"))){
              vals <- values(mr)[,color]
-             message("Generating colors...")
+             ## message("Generating colors...")
              cols <- genColor(vals)
              cols <- alpha(cols, al)
-             message("Assigning colors...")
+             ## message("Assigning colors...")
              values(mr)$.color <- cols
            }else{
              values(mr)$.color <- alpha(color, al)
@@ -319,24 +323,30 @@ IntervalView.gen$methods(
              pars$ylim <<- c(0,30)
            }
            if("barchart" %in% pars$geom){
-             if(!is.null(fill)){
-               idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
-               ts[[1]]$mr <- ts[[1]]$mr[idx]
-               ts[[1]]$bins <- ts[[1]]$bins[idx]
-               cols <- genLegend(ts[[1]]$mr, color = fill)$color
-             }else{
-               cols <- "black"
-             }
-             with(ts[[1]],{
-               qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
-                         ((bins-1)*10+10)/binmx*5,
-                         stroke=NA, fill = cols)}
-                  )
-             pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
+             ## if(!is.null(fill)){
+             ##   idx <- order(start(ts[[1]]$mr), values(ts[[1]]$mr)[,fill])
+             ##   ts[[1]]$mr <- ts[[1]]$mr[idx]
+             ##   ts[[1]]$bins <- ts[[1]]$bins[idx]
+             ##   cols <- genLegend(ts[[1]]$mr, color = fill)$color
+             ## }else{
+             ##   cols <- "black"
+             ## }
+             ## with(ts[[1]],{
+             ##   qdrawRect(painter,start(mr),((bins-1)*10)/binmx*5,end(mr)+1,
+             ##             ((bins-1)*10+10)/binmx*5,
+             ##             stroke=NA, fill = cols)}
+             ##      )
+             ## pars$ylim <<- expand_range(c(0, 5), mul = 0.05)
+             cols <- values(mr[idx])$.color
+             pars$ylim <<- expand_range(range(yval), mul = 0.05)
+             qdrawSegment(painter, xval, min(pars$ylim), xval, yval, stroke = cols)
+             ## fix me: qdrawRect doesn't work
+             ## qdrawRect(painter, xval, min(pars$ylim),
+             ##           xval+1, yval, stroke = NA, fill = cols)
            }
-           if(pars$geom == "seqlogo"){
+           if("seqlogo" %in% pars$geom){
            }
-           if(pars$geom == "heatmap"){
+           if("heatmap" %in% pars$geom ){
              segs <- qglyphSegment(x = 20, dir = pi/2)
              qdrawGlyph(painter, segs, st, 10*(lv-1), stroke = col)
            }
@@ -357,7 +367,7 @@ IntervalView.gen$methods(
              pars$ylim <<- expand_range(range(yval), mul = 0.05)
              pars$xlim <<- expand_range(range(xval), mul = 0.05)
            }
-           if(pars$geom == "length"){
+           if("length" %in% pars$geom){
              ## this accept the bam file and query
              yval <- values(track)[,y]
              cir <- qglyphCircle(r = 2)
