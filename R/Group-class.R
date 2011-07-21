@@ -41,6 +41,8 @@ setGroup <- function(name,
               initialize = function(t = as.character(class(.self)),...){
                 exclusive <<- TRUE
                 defaultId <<- 1
+                ## .self$setId(defaultId)
+                ## items[[defaultId]]$checked <<- TRUE
                 .self$text <<- t
                 ## .self$setId(defaultId)
                 .self$regSignal()

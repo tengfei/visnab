@@ -7,6 +7,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               view = "Qanviz::PlotViewORNULL",
               rootLayer = "Qanviz::RLayerORNULL",
               gridLayer = "Qanviz::RLayerORNULL",
+              tooltipLayer = "Qanviz::RLayerORNULL",
               rescale = "RescaleSingleEnum"),
             methods = list(
               setDragMode = function(value = c("NoDrag",
@@ -17,6 +18,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 vals <- getQtEnum(mode$items$scaleMode$pars$dragMode)
                 view$setDragMode(vals)
               },
+              
               setDislayWidgets = function(dragMode = TRUE){
                 if(is.null(scene)){
                   scene <<- qscene()
@@ -41,20 +43,187 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               ##   if(missing(parent))
               ##     parent <- rootLayer
               ##   ## qlayer(parent, ...)
-              ##   rootLayer[i, j] <<- layer
+              ##   parent[i, j] <<- layer
               ## },
-              
+              setTitle = function(text){
+                setLabel(text, side = 3)
+              },
+              closeTitle = function(){
+                closeLabel(side = 3)
+              },
+              setXLab = function(text){
+                setLabel(text, side = 1)
+              },
+              closeXLab = function(){
+                closeLabel(side = 1)
+              },
+              setYLab = function(text){
+                setLabel(text, side = 2)
+              },
+              closeYLab = function(){
+                closeLabel(side = 2)
+              },
+              setMargin = function(mar = c(10, 10, 20, 20)){
+                stopifnot(length(mar) == 4)
+                sapply(seq_along(mar), function(s){
+                  switch(s,{
+                    i <- 6
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 0
+                  },{
+                    i <- 0
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 5
+                  })
+                  arr <- function(s){
+                    layout <- rootLayer$gridLayout()
+                    if(s %in% c(1, 3)){
+                      layout$setRowPreferredHeight(i, mar[s])
+                      layout$setRowStretchFactor(i, 0)
+                    }
+                    if(s %in% c(2, 4)){
+                      layout$setColumnPreferredWidth(j, mar[s])
+                      layout$setColumnStretchFactor(j, 0)
 
-              setLabel = function(...){
-                
+                    }
+                  }
+                  arr(s)
+                })
+              },
+              setLabel = function(text, side = c(1, 2, 3, 4), ...){
+                if(missing(text))
+                  stop("Please specify the label")
+                if(!all(side %in% c(1, 2, 3, 4)))
+                  stop("side must be one or more of 1, 2, 3, 4")
+                if(length(text) != length(side))
+                  stop("length of text must be of the same length of side")
+                ## suppose mainLayer is always's in
+                sapply(seq_along(side), function(k){
+                  s <- side[k]
+                switch(s,{
+                  i <- 5
+                  j <- 2
+                  halign <- "center"
+                  valign <- "top"
+                  rot <- 0
+                  data <- pars$xlim
+                },{
+                  i <- 3
+                  j <- 0
+                  halign <- "right"
+                  valign <- "center"
+                  rot <- 90
+                  data <- pars$ylim
+                },{
+                  i <- 1
+                  j <- 2
+                  halign <- "center"
+                  valign <- "bottom"
+                  rot <- 0
+                  data <- pars$xlim
+                },{
+                  i <- 3
+                  j <- 4
+                  halign <- "left"
+                  valign <- "center"
+                  rot <- 270
+                  data <- pars$ylim
+                })
+                arr <- function(s, text){
+                rootLayer[i, j] <<- qlayer(scene,
+                                           function(layer, painter){
+                           qdrawText(painter, text, 5, 5, halign, valign,
+                            rot = rot, color = pars$textColor)
+                                           },
+                                           limits = qrect(0, 0, 10, 10))
+                layout <- rootLayer$gridLayout()
+                if(s %in% c(1, 3)){
+                  layout$setRowPreferredHeight(i, 30)
+                  layout$setRowStretchFactor(i, 0)
+                }
+                if(s %in% c(2, 4)){
+                  layout$setColumnPreferredWidth(j, 30)
+                  layout$setColumnStretchFactor(j, 0)
+                }}
+                arr(s, text[k])
+              })
               },
 
+              showLabel = function(side = c(1, 2, 3, 4)){
+                if(!all(side %in% c(1, 2, 3, 4)))
+                  stop("side must be one or more of 1, 2, 3, 4")
+                switch(side,{
+                  i <- 5
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 0
+                },{
+                  i <- 1
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 4
+                })
+                rootLayer[i, j]$show()
+              },
+
+              hideLabel = function(side = c(1, 2, 3, 4)){
+                if(!all(side %in% c(1, 2, 3, 4)))
+                  stop("side must be one or more of 1, 2, 3, 4")
+                for(s in side){
+                switch(s,{
+                  i <- 5
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 0
+                },{
+                  i <- 1
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 4
+                })
+                rootLayer[i, j]$hide()
+              }
+              },
+
+              closeLabel = function(side = c(1, 2, 3, 4)){
+                if(!all(side %in% c(1, 2, 3, 4)))
+                  stop("side must be one or more of 1, 2, 3, 4")
+                switch(side,{
+                  i <- 5
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 0
+                },{
+                  i <- 1
+                  j <- 2
+                },{
+                  i <- 3
+                  j <- 4
+                })
+                rootLayer[i, j]$close()
+                layout <- rootLayer$gridLayout()
+                if(side %in% c(1, 3)){
+                  layout$setRowPreferredHeight(i, 0)
+                }
+                if(side %in% c(2, 4)){
+                  layout$setColumnPreferredWidth(j, 0)
+                }
+              },
 
               drawAxis = function(side = c(1, 2, 3, 4), ...){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
                 ## suppose mainLayer is always's in 
-                s <- side
+                for(s in side){
                 switch(s,{
                   i <- 4
                   j <- 2
@@ -74,31 +243,37 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 if(s %in% c(2, 4)){
                   data <- pars$ylim
                 }
-                rootLayer[i, j] <<- qlayer(scene,
-                                           axisPainter(s, data = data))
-                layout <- rootLayer$gridLayout()
-                if(s %in% c(1, 3)){
-                  layout$setRowPreferredHeight(i, 30)
-                  layout$setRowStretchFactor(i, 0)
-                  rootLayer[i, j]$setLimits(qrect(pars$xlim, c(-1,1)))
-                  pars$xlimChanged$connect(function(){
-                    rootLayer[i, j]$setLimits(qrect(pars$xlim, c(-1, 1)))
-                  })
+                ## a little hack to put it into closure
+                arr <- function(s){
+                  rootLayer[i, j] <<- layer <- qlayer(scene,
+                                                      axisPainter(s, data = data))
+                  layout <- rootLayer$gridLayout()
+                  if(s %in% c(1, 3)){
+                    layout$setRowPreferredHeight(i, 30)
+                    layout$setRowStretchFactor(i, 0)
+                    layer$setLimits(qrect(pars$xlim, c(-1,1)))
+                    pars$xlimChanged$connect(function(){
+                      layer$setLimits(qrect(pars$xlim, c(-1, 1)))
+                    })
+                  }
+                  if(s %in% c(2, 4)){
+                    layout$setColumnPreferredWidth(j, 30)
+                    layout$setColumnStretchFactor(j, 0)
+                    layer$setLimits(qrect(c(-1, 1), pars$ylim))
+                    pars$ylimChanged$connect(function(){
+                      layer$setLimits(qrect(c(-1, 1), pars$ylim))
+                    })
+                  }
                 }
-                if(s %in% c(2, 4)){
-                  layout$setColumnPreferredWidth(j, 30)
-                  layout$setColumnStretchFactor(j, 0)
-                  rootLayer[i, j]$setLimits(qrect(c(-1, 1), pars$ylim))
-                  pars$ylimChanged$connect(function(){
-                    rootLayer[i, j]$setLimits(qrect(c(-1, 1), pars$ylim))
-                  })
-                }
+                arr(s)
+              }
               },
               
               showAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
-                switch(side,{
+                for(s in side){
+                switch(s,{
                   i <- 4
                   j <- 2
                 },{
@@ -112,12 +287,14 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   j <- 3
                 })
                 rootLayer[i, j]$show()
+              }
               },
 
               hideAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
-                switch(side,{
+                for(s in side){
+                switch(s,{
                   i <- 4
                   j <- 2
                 },{
@@ -131,12 +308,14 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   j <- 3
                 })
                 rootLayer[i, j]$hide()
+              }
               },
 
               closeAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
-                switch(side,{
+                for(s in side){
+                switch(s,{
                   i <- 4
                   j <- 2
                 },{
@@ -149,14 +328,18 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   i <- 3
                   j <- 3
                 })
+                arr <- function(s){
                 rootLayer[i, j]$close()
                 layout <- rootLayer$gridLayout()
-                if(side %in% c(1, 3)){
+                if(s %in% c(1, 3)){
                   layout$setRowPreferredHeight(i, 0)
                 }
-                if(side %in% c(2, 4)){
+                if(s %in% c(2, 4)){
                   layout$setColumnPreferredWidth(j, 0)
                 }
+              }
+                arr(s)
+              }
               },
 
               drawGrid = function(color) {
@@ -182,6 +365,87 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               hideGrid = function(){
                 gridLayer$hide()
               },
+              ## abline
+              abline = function(a, b, h, v, stroke, width = 2, parent){
+                if(!missing(a))
+                  stop("not implemented 'a' mode")
+                if(!missing(b))
+                  stop("not implemented 'b' mode")
+                if(missing(parent))
+                  parent <- rootLayer[3, 2]
+                if(missing(stroke))
+                    stroke <- pars$stroke
+
+                arr <- function(fun){
+                  rootLayer[3, 2] <<- layer <- qlayer(scene, fun)
+                  layer$setLimits(qrect(pars$xlim[1],
+                                        pars$ylim[1],
+                                        pars$xlim[2],
+                                        pars$ylim[2]))
+                  pars$xlimChanged$connect(function(){
+                    layer$setLimits(qrect(pars$xlim[1],
+                                          pars$ylim[1],
+                                          pars$xlim[2],
+                                          pars$ylim[2]))
+                  })
+                  pars$ylimChanged$connect(function(){
+                    layer$setLimits(qrect(pars$xlim[1],
+                                          pars$ylim[1],
+                                          pars$xlim[2],
+                                          pars$ylim[2]))})
+                }
+                if(!missing(h)){
+                  fun <- function(layer, painter){
+                    qlineWidth(painter) <- width
+                    qdrawSegment(painter, pars$xlim[1], h,
+                                 pars$xlim[2], h, stroke = stroke)
+                  }
+                  arr(fun)
+                }
+                if(!missing(v)){
+                  fun <- function(layer, painter){
+                    qlineWidth(painter) <- width
+                    qdrawSegment(painter, v, pars$ylim[1],
+                                 v, pars$ylim[2], stroke = stroke)
+                  }
+                  arr(fun)
+                }
+              },
+              ## draw tooltip
+              ## setIdentifyMode = function(){
+                
+              ## },
+              ## setBrushMode = function(){
+                
+              ## },
+              ## setScaleMode = function(){
+                
+              ## },
+              fixLimits = function(layer){
+                layer$setLimits(qrect(pars$xlim[1],
+                                          pars$ylim[1],
+                                          pars$xlim[2],
+                                          pars$ylim[2]))
+                  },
+              syncLimits = function(layer){
+                pars$xlimChanged$connect(fixLimits(layer))
+                pars$ylimChanged$connect(fixLimits(layer))
+              },
+              drawTooltip = function(text){
+                layer <- qlayer(scene, tooltipPainter(text))
+                fixLimits(layer)
+                rootLayer[3, 2] <<- tooltipLayer <<- layer
+                syncLimits(tooltipLayer)
+              },
+              showTooltip = function(){
+                tooltipLayer$show()
+              },
+              hideTooltip = function(){
+                tooltipLayer$hide()
+              },
+              closeTooltip = function(){
+                tooltipLayer$close()
+              },
               update = function(){
                 qupdate(scene)
               },
@@ -202,7 +466,10 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 view$setWindowTitle(title)
               },
               
-              GUI = function(show = TRUE){
+              ## ----------------------------------------
+              ##   GUI level
+              ## ----------------------------------------
+                            GUI = function(show = TRUE){
                 ## for temproary
                 ## FIXME: need to check the genome
                 if(TRUE)
@@ -219,11 +486,11 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   sv$hide()
               },
               regSignal = function(){
-                
+                pars$ThemeChanged$connect(function(){
+                  qupdate(scene)
+                })
               },
-              ## ----------------------------------------
-              ##   GUI level
-              ## ----------------------------------------
+
               showMessage = function(){
                 
               },
@@ -233,6 +500,9 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               },
               setValue = function(){
                 
+              },
+              cp = function(...){
+                pars$cp(...)
               },
               ## ----------------------------------------
               ##   painter
@@ -269,53 +539,58 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                             y = yat, halign = xalign, valign = yalign)
                   qdrawSegment(painter,  xat+ xshift1,
                                yat + yshift1, xat + xshift2, yat + yshift2)
-                  ## lims <- range(data)
-                  ## qdrawSegment(painter, )
                 }
               },
               gridPainter = function(breaks = pretty_breaks(),
                 labels = scientific_format()){
-              function(layer, painter) {
-                xat <- cbreaks(range(pars$xlim),
-                               breaks = breaks, labels = labels)$breaks
-                yat <- cbreaks(range(pars$ylim),
-                               breaks = breaks, labels = labels)$breaks
-                qdrawRect(painter, pars$xlim[1], pars$ylim[1],
-                          pars$xlim[2], pars$ylim[2], stroke = "gray",
-                          fill = "gray")
-                qlineWidth(painter) <- 2
-                qdrawSegment(painter, xat, pars$ylim[1], xat,
-                             pars$ylim[2], stroke = "white")
-                qdrawSegment(painter, pars$xlim[1], yat,
-                             pars$xlim[2], yat, stroke = "white")
-                qlineWidth(painter) <- 1
-              }},
-
+                function(layer, painter) {
+                  xat <- cbreaks(range(pars$xlim),
+                                 breaks = breaks, labels = labels)$breaks
+                  yat <- cbreaks(range(pars$ylim),
+                                 breaks = breaks, labels = labels)$breaks
+                  qdrawRect(painter, pars$xlim[1], pars$ylim[1],
+                            pars$xlim[2], pars$ylim[2], stroke = "gray",
+                            fill = "gray")
+                  qlineWidth(painter) <- 2
+                  qdrawSegment(painter, xat, pars$ylim[1], xat,
+                               pars$ylim[2], stroke = "white")
+                  qdrawSegment(painter, pars$xlim[1], yat,
+                               pars$xlim[2], yat, stroke = "white")
+                  qlineWidth(painter) <- 1
+                }},
               ## for general painter
-              ## tooltipPainter = function(text){
-              ##   'Generate tooltip painter function
-              ##   '
-              ##   function(layer, painter){
-              ##     ## mode
-              ##     pos <- switch(mode$identifyMode$tooltipPos,
-              ##                   TopLeft = c(0, 0),
-              ##                   TopRight = NULL ,
-              ##                   BottomLeft = NULL,
-              ##                   BottomRight = NULL,
-              ##                   Float = eventTrace$hoverPos)
-              ##     ## draw background
-              ##     bgwidth <- qstrWidth(painter, text)
-              ##     bgheight <- qstrHeight(painter, text)
-              ##     qdrawRect(painter, pos[1], pos[2],
-              ##               pos[1]+bgwidth, pos[2]+bgheight,
-              ##               fill = "yellow", stroke = "yellow")
-              ##     qdrawText(painter, text, pos[1], pos[2], "left", "top")
-              ##   }
-              ## },
+              tooltipPainter = function(text){
+                'Generate tooltip painter function
+                '
+                function(layer, painter){
+                  ## mode
+                  md <- mode$idenitfyMode$tooltipMode
+                  pos <- switch(mode$identifyMode$tooltipPos,
+                                TopLeft = c(0, 0),
+                                TopRight = NULL , #TODO
+                                BottomLeft = NULL, #TODO
+                                BottomRight = NULL, #TODO
+                                Float = eventTrace$hoverPos)
+                  ## info
+                  text <- switch(md,
+                                 Off = chracter(),
+                                 Identify = hoverId,
+                                 Metainfo =
+                                 getTooltipInfo(mr,eventTrace$hoverId),
+                                 Text = text
+                                 )
+                  ## draw background
+                  bgwidth <- qstrWidth(painter, text)
+                  bgheight <- qstrHeight(painter, text)
+                  qdrawRect(painter, pos[1], pos[2],
+                            pos[1]+bgwidth, pos[2]+bgheight,
+                            fill = "yellow", stroke = "yellow")
+                  qdrawText(painter, text, pos[1], pos[2], "left", "top")
+                }
+              },
               ## ## ----------------------------------------
               ## ##  Event-generator method
               ## ## ----------------------------------------
-              
               keyPressEventZoom = function(sx = 1.5, sy = 1.5,
                 browser = TRUE){
                 function(layer, event){
@@ -324,7 +599,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                     sx <- 1
                   if(zoommode == "Horizontal")
                     sy <- 1
-                  if(zoommode == "NoDrag")
+                  if(zoommode == "Off")
                     sx <- sy <- 1
                   eventTrace$focusin <<- TRUE
                   if(event$modifiers() == Qt$Qt$ControlModifier){
@@ -337,22 +612,29 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   }
                 }
               },
-              ## wheelEventZoom = function(sx = 2, sy = 1, mid, layer){
-              ##   function(layer, event){
-              ##     pos.s <- as.numeric(event$scenePos())
-              ##     pos <- as.numeric(event$pos())
-              ##     if (event$delta() < 0)
-              ##       sx <- 1/sx
-              ##     view$scale(sx, sy)
-              ##     if(!missing(layer)){
-              ##       centerOn <-
-              ##         as.numeric(layer$mapToScene((pos[1]-
-              ##                                      (pos[1]-mid[1])*(1/sx)), pos[2]))
-              ##       view$centerOn(centerOn)
-              ##     }
-              ##   }
-              ## },
-              
+              wheelEventZoom = function(sx = 1.5, sy = 1.5){
+                function(layer, event){
+                  zoommode <- mode$items$scaleMode$pars$zoomMode
+                  if(zoommode == "Vertical")
+                    sx <- 1
+                  if(zoommode == "Horizontal")
+                    sy <- 1
+                  if(zoommode == "Off")
+                    sx <- sy <- 1
+                  pos.s <- as.numeric(event$scenePos())
+                  pos <- as.numeric(event$pos())
+                  if (event$delta() < 0)
+                    sx <- 1/sx
+                  mid <- c(mean(pars$xlimZoom),mean(pars$ylim))
+                  mid.cur <- pos[1]- (pos[1]-mid[1])*(1/sx)
+                  centerOn <- as.numeric(rootLayer[3, 2]$mapToScene(mid.cur, mid[2]))
+                  view$scale(sx, sy)
+                  ## mid.s.old <- rootLayer[3, 2]$mapToScene(mid[1], mid[2])
+                  ## mid.s.cur <- pos.s-(pos.s-mid.s.old)*sx
+                  view$centerOn(centerOn[1], centerOn[2])
+                  }
+                },
+
               ## hoverMoveEvent = function(obj, mr){
               ##   function(layer,event){
               ##     rect <- qrect(0,0,1,1)
@@ -398,57 +680,6 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               }
 
               ))
-
-
-##' s = qscene()
-##' r = qlayer(s)
-##' m = qlayer(paintFun = function(layer, painter) {
-##'     qdrawCircle(painter, runif(1000), runif(1000), r = 2)
-##'     qdrawRect(painter, 0, 0, 1, 1)
-##' }, limits = qrect(matrix(c(0, 1, 0, 1), 2))) # main layer
-##' g = qgrid(xat = seq(0, 1, .2), yat = seq(0, 1, .5), sister = m)
-##' r[1, 1] = g  # must add the grid layer FIRST, then the plot layer
-##' r[1, 1] = m
-##' print(qplotView(scene = s))
-##'
-
-qmtext = function(parent = NULL, data = NULL, side = 1, text = '', x = NULL, y = NULL,
-  cex = 1, sister = NULL, ...) {
-  if (!is.null(sister)) {
-    lims = as.matrix(sister$limits())
-    at = colMeans(lims)
-    x = at[1]; y = at[2]
-    lims = qrect(if (side%%2) cbind(lims[, 1], 0:1) else cbind(0:1, lims[, 2]))
-  }
-  draw_text = function(layer, painter) {
-    if (!is.null(data)) {
-      at = colMeans(data$limits)
-      x = at[1]; y = at[2]
-    }
-    if (side%%2) y <- 0.5 else x <- 0.5
-    qdrawText(painter, text, x, y, rot = c(0, 90, 0, 90)[side], cex = cex)
-  }
-  if (!('limits' %in% names(list(...))) && !is.null(sister))
-    qlayer(parent, paintFun = draw_text, limits = lims, ...) else
-  qlayer(parent, paintFun = draw_text, ...)
-}
-
-
-
-## s = qscene()
-## r = qlayer(s)
-## r[1, 1] = qlayer(paintFun = function(layer, painter) {
-## qdrawCircle(painter, runif(1000), runif(1000), r = 2)
-## qdrawRect(painter, 0, 0, 1, 1)
-## }, limits = qrect(matrix(c(0, 1, 0, 1), 2))) # main layer
-
-## r[2, 1] = qaxis(side = 1, at = c(0, .1, .3, .7, .8), sister = r[1, 1]) # x-axis
-## r[1, 0] = qaxis(side = 2, at = c(0.2, .5, .6, .7, .9), sister = r[1, 1]) # y-axis
-## r[0, 1] = qaxis(side = 3, data = list(xat = c(.1, .3, .7), xlabels = c('a', 'b', 'c')),
-## sister = r[1, 1]) # top x-axis
-## print(qplotView(scene = s)) # default layout is ugly; tune in r$gridLayout()
-
-
 
 
 setMethod("print","QtVisnabView",function(x){

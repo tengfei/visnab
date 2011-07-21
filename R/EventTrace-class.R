@@ -5,7 +5,8 @@ EventTrace.gen <- setRefClass("EventTrace",
                               fields = signalingFields(list(
                                 focusin = "logical",
                                 selfSignal = "logical",
-                                hoverPos = "numeric"
+                                hoverPos = "numeric",
+                                hoverId = "integer"
                                 )),
                               methods = list(
                                 initialize = function(...){

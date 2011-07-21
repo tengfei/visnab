@@ -43,7 +43,7 @@ setClassUnion("QGraphicsSceneORNULL", c("QGraphicsScene","NULL"))
 setClassUnion("Qanviz::RLayerORNULL", c("Qanviz::RLayer","NULL"))
 setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
 
-
+setClassUnion("numericORcharacter", c("numeric", "character"))
 setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("characterORNULL", c("character", "NULL"))
 setClassUnion("functionORNULL", c("function","NULL"))
