@@ -1,19 +1,3 @@
-#library(qtbase)
-#library(GenomicRanges)
-
-#load("genesymbol.rda")
-
-#gr1 <-
-#  GRanges(seqnames =
-#          Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#          ranges =
-#          IRanges(1:10, end = 7:16, names = head(letters, 10)),
-#          strand =
-#          Rle(strand(c("-", "+", "*", "+", "-")),
-#              c(1, 2, 2, 3, 2)),
-#          score = 1:10,
-#          GC = seq(1, 0, length=10))
-
 qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
                                                 parent = NULL)
 {
@@ -36,7 +20,7 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
     sb$parseSearchString(sb$text, gr, ref)
   })
 
-  qconnect(sb, "rangeChanged", this$rangeChanged)
+  ## qconnect(sb, "rangeChanged", this$rangeChanged)
 
   # update table when search range updates
   #qconnect(sb, "rangeChanged", function() {
@@ -55,7 +39,7 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
   #windowLyt$addWidget(tv)
   windowLyt$addLayout(sbLyt)
   setLayout(windowLyt)
-
+  windowLyt
 })
 
 #qsetMethod("filterTable", GRangesViewer, function(gr, grInterval) {

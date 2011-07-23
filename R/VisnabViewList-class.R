@@ -64,16 +64,16 @@ setMethod("names", "VisnabViewList", function(x){
 ## subsetting doesn't work
 ##----------------------------------------
 ## cannot make a copy
-setMethod("[[", "VisnabViewList", function(x, i, j, ...){
-  lst <- x$listData[[i]]
-  obj <- VisnabViewList(lst)
-  obj
-})
+## setMethod("[[", "VisnabViewList", function(x, i, j, ...){
+##   lst <- x$listData[[i]]
+##   obj <- VisnabViewList(lst)
+##   obj
+## })
 
-setReplaceMethod("[[", "VisnabViewList", function(x, i, j, ..., value){
-  x$listData[[i]] <- value
-  x
-})
+## setReplaceMethod("[[", "VisnabViewList", function(x, i, j, ..., value){
+##   x$listData[[i]] <- value
+##   x
+## })
 
 ## coerce
 setAs("VisnabViewList", "list", function(from, to){

@@ -5,9 +5,12 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
             fields=list(
               scene = "QGraphicsSceneORNULL",
               view = "Qanviz::PlotViewORNULL",
+              facetLayer = "Qanviz::RLayerORNULL",
               rootLayer = "Qanviz::RLayerORNULL",
               gridLayer = "Qanviz::RLayerORNULL",
               tooltipLayer = "Qanviz::RLayerORNULL",
+              leftDock = "QDockWidget",
+              cpanel = "QStackedWidget",
               rescale = "RescaleSingleEnum"),
             methods = list(
               setDragMode = function(value = c("NoDrag",
@@ -25,12 +28,14 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   view <<- qplotView(scene,rescale = rescale)
                   vals <- getQtEnum(mode$items$scaleMode$pars$dragMode)
                   view$setDragMode(vals)
+                  facetLayer <<- qlayer(scene)
                 }
                 if(is.null(rootLayer))
                   rootLayer <<- qlayer(scene,
-                                       geometry=qrect(0,0,800,600),
+                                       geometry = qrect(0,0,800,600),
                                        cache = FALSE)
               },
+              
               setBgColor = function(bgcol = NULL){
                 if(is.null(bgcol))
                   bgcol <- pars$bgColor
@@ -104,53 +109,53 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 ## suppose mainLayer is always's in
                 sapply(seq_along(side), function(k){
                   s <- side[k]
-                switch(s,{
-                  i <- 5
-                  j <- 2
-                  halign <- "center"
-                  valign <- "top"
-                  rot <- 0
-                  data <- pars$xlim
-                },{
-                  i <- 3
-                  j <- 0
-                  halign <- "right"
-                  valign <- "center"
-                  rot <- 90
-                  data <- pars$ylim
-                },{
-                  i <- 1
-                  j <- 2
-                  halign <- "center"
-                  valign <- "bottom"
-                  rot <- 0
-                  data <- pars$xlim
-                },{
-                  i <- 3
-                  j <- 4
-                  halign <- "left"
-                  valign <- "center"
-                  rot <- 270
-                  data <- pars$ylim
+                  switch(s,{
+                    i <- 5
+                    j <- 2
+                    halign <- "center"
+                    valign <- "top"
+                    rot <- 0
+                    data <- pars$xlim
+                  },{
+                    i <- 3
+                    j <- 0
+                    halign <- "right"
+                    valign <- "center"
+                    rot <- 90
+                    data <- pars$ylim
+                  },{
+                    i <- 1
+                    j <- 2
+                    halign <- "center"
+                    valign <- "bottom"
+                    rot <- 0
+                    data <- pars$xlim
+                  },{
+                    i <- 3
+                    j <- 4
+                    halign <- "left"
+                    valign <- "center"
+                    rot <- 270
+                    data <- pars$ylim
+                  })
+                  arr <- function(s, text){
+                    rootLayer[i, j] <<- qlayer(scene,
+                                               function(layer, painter){
+                                                 qdrawText(painter, text, 5, 5, halign, valign,
+                                                           rot = rot, color = pars$textColor)
+                                               },
+                                               limits = qrect(0, 0, 10, 10))
+                    layout <- rootLayer$gridLayout()
+                    if(s %in% c(1, 3)){
+                      layout$setRowPreferredHeight(i, 30)
+                      layout$setRowStretchFactor(i, 0)
+                    }
+                    if(s %in% c(2, 4)){
+                      layout$setColumnPreferredWidth(j, 30)
+                      layout$setColumnStretchFactor(j, 0)
+                    }}
+                  arr(s, text[k])
                 })
-                arr <- function(s, text){
-                rootLayer[i, j] <<- qlayer(scene,
-                                           function(layer, painter){
-                           qdrawText(painter, text, 5, 5, halign, valign,
-                            rot = rot, color = pars$textColor)
-                                           },
-                                           limits = qrect(0, 0, 10, 10))
-                layout <- rootLayer$gridLayout()
-                if(s %in% c(1, 3)){
-                  layout$setRowPreferredHeight(i, 30)
-                  layout$setRowStretchFactor(i, 0)
-                }
-                if(s %in% c(2, 4)){
-                  layout$setColumnPreferredWidth(j, 30)
-                  layout$setColumnStretchFactor(j, 0)
-                }}
-                arr(s, text[k])
-              })
               },
 
               showLabel = function(side = c(1, 2, 3, 4)){
@@ -176,21 +181,21 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
                 for(s in side){
-                switch(s,{
-                  i <- 5
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 0
-                },{
-                  i <- 1
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 4
-                })
-                rootLayer[i, j]$hide()
-              }
+                  switch(s,{
+                    i <- 5
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 0
+                  },{
+                    i <- 1
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 4
+                  })
+                  rootLayer[i, j]$hide()
+                }
               },
 
               closeLabel = function(side = c(1, 2, 3, 4)){
@@ -224,116 +229,116 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   stop("side must be one or more of 1, 2, 3, 4")
                 ## suppose mainLayer is always's in 
                 for(s in side){
-                switch(s,{
-                  i <- 4
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 1
-                },{
-                  i <- 2
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 3
-                })
-                ## a little hack to put it into closure
-                arr <- function(s){
-                  rootLayer[i, j] <<- layer <- qlayer(scene,
-                                                      axisPainter(s))
-                  layout <- rootLayer$gridLayout()
-                  if(s %in% c(1, 3)){
-                    layout$setRowPreferredHeight(i, 30)
-                    layout$setRowStretchFactor(i, 0)
-                    layer$setLimits(qrect(pars$xlim, c(-1,1)))
-                    pars$xlimChanged$connect(function(){
-                      layer$setLimits(qrect(pars$xlim, c(-1, 1)))
-                    })
-                  }
-                  if(s %in% c(2, 4)){
-                    layout$setColumnPreferredWidth(j, 30)
-                    layout$setColumnStretchFactor(j, 0)
-                    layer$setLimits(qrect(c(-1, 1), pars$ylim))
-                    pars$ylimChanged$connect(function(){
+                  switch(s,{
+                    i <- 4
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 1
+                  },{
+                    i <- 2
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 3
+                  })
+                  ## a little hack to put it into closure
+                  arr <- function(s){
+                    rootLayer[i, j] <<- layer <- qlayer(scene,
+                                                        axisPainter(s))
+                    layout <- rootLayer$gridLayout()
+                    if(s %in% c(1, 3)){
+                      layout$setRowPreferredHeight(i, 30)
+                      layout$setRowStretchFactor(i, 0)
+                      layer$setLimits(qrect(pars$xlim, c(-1,1)))
+                      pars$xlimChanged$connect(function(){
+                        layer$setLimits(qrect(pars$xlim, c(-1, 1)))
+                      })
+                    }
+                    if(s %in% c(2, 4)){
+                      layout$setColumnPreferredWidth(j, 30)
+                      layout$setColumnStretchFactor(j, 0)
                       layer$setLimits(qrect(c(-1, 1), pars$ylim))
-                    })
+                      pars$ylimChanged$connect(function(){
+                        layer$setLimits(qrect(c(-1, 1), pars$ylim))
+                      })
+                    }
                   }
+                  arr(s)
                 }
-                arr(s)
-              }
               },
               
               showAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
                 for(s in side){
-                switch(s,{
-                  i <- 4
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 1
-                },{
-                  i <- 2
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 3
-                })
-                rootLayer[i, j]$show()
-              }
+                  switch(s,{
+                    i <- 4
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 1
+                  },{
+                    i <- 2
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 3
+                  })
+                  rootLayer[i, j]$show()
+                }
               },
 
               hideAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
                 for(s in side){
-                switch(s,{
-                  i <- 4
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 1
-                },{
-                  i <- 2
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 3
-                })
-                rootLayer[i, j]$hide()
-              }
+                  switch(s,{
+                    i <- 4
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 1
+                  },{
+                    i <- 2
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 3
+                  })
+                  rootLayer[i, j]$hide()
+                }
               },
 
               closeAxis = function(side = c(1, 2, 3, 4)){
                 if(!all(side %in% c(1, 2, 3, 4)))
                   stop("side must be one or more of 1, 2, 3, 4")
                 for(s in side){
-                switch(s,{
-                  i <- 4
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 1
-                },{
-                  i <- 2
-                  j <- 2
-                },{
-                  i <- 3
-                  j <- 3
-                })
-                arr <- function(s){
-                rootLayer[i, j]$close()
-                layout <- rootLayer$gridLayout()
-                if(s %in% c(1, 3)){
-                  layout$setRowPreferredHeight(i, 0)
+                  switch(s,{
+                    i <- 4
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 1
+                  },{
+                    i <- 2
+                    j <- 2
+                  },{
+                    i <- 3
+                    j <- 3
+                  })
+                  arr <- function(s){
+                    rootLayer[i, j]$close()
+                    layout <- rootLayer$gridLayout()
+                    if(s %in% c(1, 3)){
+                      layout$setRowPreferredHeight(i, 0)
+                    }
+                    if(s %in% c(2, 4)){
+                      layout$setColumnPreferredWidth(j, 0)
+                    }
+                  }
+                  arr(s)
                 }
-                if(s %in% c(2, 4)){
-                  layout$setColumnPreferredWidth(j, 0)
-                }
-              }
-                arr(s)
-              }
               },
 
               drawGrid = function(color) {
@@ -342,15 +347,15 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 rootLayer[3, 2] <<- gridLayer <<- qlayer(scene, paintFun = gridPainter())
                 pars$xlimChanged$connect(function(){
                   gridLayer$setLimits(qrect(pars$xlim[1],
-                                        pars$ylim[1],
-                                        pars$xlim[2],
-                                        pars$ylim[2]))
+                                            pars$ylim[1],
+                                            pars$xlim[2],
+                                            pars$ylim[2]))
                 })
                 pars$ylimChanged$connect(function(){
                   gridLayer$setLimits(qrect(pars$xlim[1],
-                                        pars$ylim[1],
-                                        pars$xlim[2],
-                                        pars$ylim[2]))
+                                            pars$ylim[1],
+                                            pars$xlim[2],
+                                            pars$ylim[2]))
                 })
               },
               showGrid = function(){
@@ -360,16 +365,13 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 gridLayer$hide()
               },
               ## abline
-              abline = function(a, b, h, v, stroke, width = 2, parent){
+              abline = function(a, b, h, v, stroke, width = 2){
                 if(!missing(a))
                   stop("not implemented 'a' mode")
                 if(!missing(b))
                   stop("not implemented 'b' mode")
-                if(missing(parent))
-                  parent <- rootLayer[3, 2]
                 if(missing(stroke))
-                    stroke <- pars$stroke
-
+                  stroke <- pars$stroke
                 arr <- function(fun){
                   rootLayer[3, 2] <<- layer <- qlayer(scene, fun)
                   fixLimits(layer)
@@ -394,20 +396,21 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               },
               ## draw tooltip
               ## setIdentifyMode = function(){
-                
+              
               ## },
               ## setBrushMode = function(){
-                
+              
               ## },
               ## setScaleMode = function(){
-                
+              
               ## },
               fixLimits = function(layer){
-                layer$setLimits(qrect(pars$xlim[1],
-                                          pars$ylim[1],
-                                          pars$xlim[2],
-                                          pars$ylim[2]))
-                  },
+                function(){
+                  layer$setLimits(qrect(pars$xlim[1],
+                                        pars$ylim[1],
+                                        pars$xlim[2],
+                                        pars$ylim[2]))
+                }},
               syncLimits = function(layer){
                 'signal level
                 '
@@ -452,21 +455,103 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               ## ----------------------------------------
               ##   GUI level
               ## ----------------------------------------
-                            GUI = function(show = TRUE){
-                ## for temproary
-                ## FIXME: need to check the genome
-                if(TRUE)
-                  data(genesymbol)
-                sv <- SimpleViewer(view = view, gr = genesymbol)
-                qconnect(sv, "rangeChanged", function(){
-                  vgr <- sv$getSearchRange()
+              widget = function(gr, title, show = TRUE){
+                if(missing(title))
+                  title <- paste(class(.self), "GUI")
+                if(missing(gr))
+                  gr <- GRanges()
+                w <- Qt$QMainWindow()
+                w$setMinimumSize(800,600)
+                w$setWindowTitle(title)
+                leftDock <<- Qt$QDockWidget()
+                cpanel <<- Qt$QStackedWidget()                
+                leftDock$setWidget(cpanel)
+                w$addDockWidget(Qt$Qt$LeftDockWidgetArea, leftDock)
+                ## for now, construct them all
+                ## FIXME: need to be more smart here
+                lapply(seq(length(mode$items)), function(i){
+                  cpanel$addWidget(mode$widget(i))
+                })
+                cpanel$addWidget(pars$widget())
+                ## recording
+                N <- cpanel$count
+                ## Actions ###
+                exitAction <- Qt$QAction("Exit", w)
+                qconnect(exitAction, "triggered", w$hide)
+                exitAction$setStatusTip("Exit Program")
+
+                loadWSAction <- Qt$QAction("Load from workspace", w)
+                loadWSAction$setStatusTip("Load a dataset from your R workspace")
+
+                loadFileAction <- Qt$QAction("Load from file", w)
+                qconnect(loadFileAction, "triggered", function() {
+                  nameFilter <- paste("BAM files (*.bam *.bai)",
+                                      "vCard files (*.vcf)",
+                                      "All files (*.*)", 
+                                      sep=";;")
+
+                  filename <- Qt$QFileDialog$getOpenFileName(NULL, "Open File...",
+                                                             getwd(),nameFilter)
+                  print(filename)
+                })
+                loadFileAction$setStatusTip("Load a dataset from a file
+                                               on your local machine")
+                loadURLAction <- Qt$QAction("Load from URL", w)
+                loadURLAction$setStatusTip("Load a dataset
+                from a website (requires internet connection)")
+
+                ## Menubar ###
+                menubar <- Qt$QMenuBar()
+                w$setMenuBar(menubar)
+                
+                fileMenu <- Qt$QMenu("File")
+                fileMenu$addAction(loadWSAction)
+                fileMenu$addAction(loadFileAction)
+                fileMenu$addAction(loadURLAction)
+                fileMenu$addSeparator()
+                fileMenu$addAction(exitAction)
+                menubar$addMenu(fileMenu)
+                
+                toolsMenu <- Qt$QMenu("Tools")
+                gcpAction <- Qt$QAction("Graphic Parameters", w)
+                toolsMenu$addAction(gcpAction)
+                qconnect(gcpAction, "triggered", function(){
+                  cpanel$setCurrentIndex(N-1)
+                  leftDock$show()
+                })
+                ## toolsMenu$addSeparator()
+                legend <- 
+                menubar$addMenu(toolsMenu)
+                
+                menubar$addMenu(mode$menu(w))
+
+                ## reg signal for imode group
+                mode$curIdChanged$connect(function(){
+                  cpanel$setCurrentIndex(as.numeric(mode$curId)-1)
+                  leftDock$show()
+                })
+                
+                ## Toolbar ###
+                ## toolbar$addWidget(searchWid)
+                ## main widget
+                viewsearch <- SimpleViewer(view, gr = gr)
+                qconnect(viewsearch, "rangeChanged", function(){
+                  vgr <- viewsearch$getSearchRange()
                   if(length(vgr))
                     range(.self) <- vgr
                 })
-                if(show)
-                  sv$show()
-                else
-                  sv$hide()
+                w$setCentralWidget(viewsearch)
+                ## Status bar ###
+                statusbar <- Qt$QStatusBar()
+                w$setStatusBar(statusbar)
+                ## ### Data Viewer ###
+                ## dview <- DataViewer()
+                ## leftDock$hide()
+                w
+              },
+              gcp = function(){
+                cpanel <<- pars$widget(FALSE)
+                cpanel$show()
               },
               regSignal = function(){
                 pars$ThemeChanged$connect(function(){
@@ -621,8 +706,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   ## mid.s.old <- rootLayer[3, 2]$mapToScene(mid[1], mid[2])
                   ## mid.s.cur <- pos.s-(pos.s-mid.s.old)*sx
                   view$centerOn(centerOn[1], centerOn[2])
-                  }
-                },
+                }
+              },
 
               ## hoverMoveEvent = function(obj, mr){
               ##   function(layer,event){
@@ -674,3 +759,4 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
 setMethod("print","QtVisnabView",function(x){
   x$show()
 })
+

@@ -497,8 +497,6 @@ qsetMethod("setDefault", MultEnumParWidget, function() {
   })
 })
 
-
-
 # widget for changing integer values (obselete at this point since there
 # are not parameters of this type)
 qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
@@ -616,6 +614,148 @@ qsetClass("ParLabel", Qt$QLabel, function(gp, par, parent = NULL) {
     gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
     
 })
+
+
+
+
+## for parameters class
+
+# should this inherit from QDialog?
+# submit button not currently necessary due to automatic updating
+qsetClass("ParametersControlPanel", Qt$QWidget, function(gp, parent = NULL) {
+  super(parent)
+
+  #this$submit <- Qt$QPushButton("Submit")
+  this$reset <- Qt$QPushButton("Reset to Defaults")
+
+  ## qconnect(reset, "clicked", function() {
+  ##   gp$reset()
+  ##   sapply(l.wid, function(i) {
+  ##     i$setDefault()
+  ##   })
+  ## })
+
+  blyt <- Qt$QHBoxLayout()
+  blyt$insertStretch(0,1)
+  blyt$addWidget(reset)
+  #blyt$addWidget(submit)
+
+  olyt <- Qt$QVBoxLayout()
+  lyt <- Qt$QFormLayout()
+  lyt$setRowWrapPolicy(Qt$QFormLayout$WrapLongRows)
+
+  # best way to check for a particular class
+  #sapply(pars$output()$value, function(i) is(i,"SingleEnum"))
+
+  this$l.lab <- list()
+  this$l.wid <- list()
+
+  # color widgets
+  sapply(names(gp$parameters())[gp$parameters() == "Color"], function(i) {
+    l.wid[[i]] <<- ColorParWidget(gp, i)
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })
+
+  sapply(names(gp$parameters())[sapply(names(gp$parameters()),
+                            function(i) is(gp$field(i),"ColorEnum"))],
+    function(i) {
+      l.wid[[i]] <<- ColorEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParsLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })  
+
+  # character widgets
+  sapply(names(gp$parameters())[gp$parameters() == "character"], function(i) {
+    l.wid[[i]] <<- CharParWidget(gp, i)
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })
+
+  # numeric with range widgets
+  sapply(names(gp$parameters())[gp$parameters() == "NumericWithMin0Max1"],
+                                function(i) {
+    l.wid[[i]] <<- RangeParWidget(gp, i, "double")
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })
+
+  # integer with range widgets
+  sapply(names(gp$parameters())[gp$parameters() == "IntegerWithRange"],
+         function(i) {
+    l.wid[[i]] <<- RangeParWidget(gp, i, "int")
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })  
+
+  # integer widgets
+  sapply(names(gp$parameters())[gp$parameters() %in% c("PositiveInteger",
+    "NonnegativeInteger","NegativeInteger","NonpositiveInteger")],
+         function(i) {
+    l.wid[[i]] <<- IntParWidget(gp, i, substr(gp$parameters()[i],1,6))
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })  
+  
+  # single enum widgets (not color or glyph enum)
+  sapply(names(gp$parameters())[(sapply(names(gp$parameters()),
+                            function(i) is(gp$field(i),"SingleEnum"))) &
+                                (sapply(names(gp$parameters()),
+                            function(i) !is(gp$field(i),"ColorEnum"))) &
+                                (sapply(names(gp$parameters()),
+                            function(i) !is(gp$field(i),"GlyphEnum")))],
+    function(i) {
+      l.wid[[i]] <<- SingleEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParsLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })  
+
+  # multiple enum widgets
+  sapply(names(gp$parameters())[sapply(names(gp$parameters()),
+                            function(i) is(gp$field(i),"MultipleEnum"))],
+    function(i) {
+      l.wid[[i]] <<- MultEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParsLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })
+
+  # glyph enum widgets
+  sapply(names(gp$parameters())[sapply(names(gp$parameters()),
+                            function(i) is(gp$field(i),"GlyphEnum"))],
+    function(i) {
+      l.wid[[i]] <<- GlyphEnumParWidget(gp, i)
+      l.lab[[i]] <<- ParsLabel(gp, i)
+      lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })
+    
+
+  
+  olyt$addLayout(lyt)
+  olyt$addLayout(blyt)
+
+  setLayout(olyt)
+})
+
+qsetMethod("setValue", ParametersControlPanel, function(par, val) {
+  l.wid[[par]]$setValue(val)
+})
+
+## # label for a given parameter, with appropriate text and tooltip
+qsetClass("ParsLabel", Qt$QLabel, function(gp, par, parent = NULL) {
+  super(parent)
+
+  this$gp <- gp; this$par <- par
+
+  ## # eventually, fix these so they display the text field and tooltip info
+  ## parInfo <- gp$output()$parinfo[names(gp$output()$parinfo) == par]
+  ## setText(paste(parInfo,":",sep=""))
+  ## setToolTip(
+  ##   gp$output()$tooltipinfo[names(gp$output()$tooltipinfo) == par])
+
+  setText(paste(par,":",sep=""))
+    
+})
+
 
 
 

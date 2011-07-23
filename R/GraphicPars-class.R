@@ -68,17 +68,15 @@ setRefClass("GraphicParameters",
                 "
                 .self$reset(themeName)
               },
-              
-              cp = function(show = TRUE){
-                ## if(!length(cpanel)){
-
-                ## }
-                if(show){
-                  cpanel$show()
-                }else{
-                  cpanel$hide()
-                }
-              })
+              widget = function(){
+                w <- ControlPanel(.self)
+                ThemeChanged$connect(function(name){
+                  vals <-.self$field(name)
+                  w$setValue(name, vals)
+                })
+                w
+              }
+              )
             )
 
 
@@ -127,8 +125,8 @@ sapply(.AllVisnabViews, function(viewname){
                    ylim = "numeric",
                    view = "character",
                    ## fix on active binding of this geom
-                   geom = .GeomName(viewname),
-                   cpanel = "R::visnab::ControlPanel")
+                   geom = .GeomName(viewname))
+
   setGraphicPars(viewname, gparslst)
 })
 
@@ -162,11 +160,8 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   gp <- new(cls, geom = geom)
   gp$setTheme(theme)
   gp$update(...)
-  gp$cpanel <- ControlPanel(gp)
-  gp$ThemeChanged$connect(function(name){
-    vals <-gp$field(name)
-    gp$cpanel$setValue(name, vals)
-  })
+  ## gp$cpanel <- ControlPanel(gp)
+  ## gp$cpanel <- widget(gp)
   ## FIXME: check if the widget is shown or not.
   return(gp)
 }

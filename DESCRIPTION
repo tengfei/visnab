@@ -42,13 +42,11 @@ Collate: AllClasses.R
 	 Painter-class.R
 	 VisnabViewList-class.R
 	 VisnabProject-class.R
-	 QtVisnabView-GUI.R
-	 CircularView-GUI.R
 	 SimpleViewer-GUI.R
 	 SearchBar-GUI.R
+         SearchBarList-GUI.R
 	 ControlPanel-GUI.R
          AppWindow-GUI.R
-         ModeControlPanel-GUI.R
-         SearchBarList-GUI.R
+	 widget-method.R
 
 

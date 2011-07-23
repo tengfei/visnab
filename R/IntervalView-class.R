@@ -76,6 +76,9 @@ IntervalView <- function(track,
   if(missing(y))
     y <- character()
   message("Create new instance...")
+  ## FIXME:
+ if(!length(facetBy))
+    facetBy <- "1"
   obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
                               tooltipinfo = tooltips, viewname = viewname,
                               group = group, eventTrace = new("EventTrace"),
@@ -169,7 +172,6 @@ IntervalView.gen$methods(
          seqs <- sortChr(unique(as.character(seqnames(track))))
        }
        
-
        sapply(seq_along(seqs), function(j){
          message("Start creating layer for ",seqs[j])
          seqname <- seqs[j]
@@ -177,22 +179,22 @@ IntervalView.gen$methods(
          end <- max(end(ranges(track[seqnames(track)==seqname])))
          seqlength <- end
          mr <- track[seqnames(track)==seqname]
-         ## if(!length(facetBy) | !length(group)){
-         ##   if(length(facetBy))
-         ##     facetby <- unique(values(mr)[,facetBy])
-         ##   else
-         ##     facetby <- unique(values(mr)[,group])
-         ## }else{
-         ##     facetBy <- "1"
-         ## }
+         if(length(facetBy)){
+           ## if(length(facetBy))
+           if(facetBy %in% colnames(values(mr)))
+             facetby <- unique(values(mr)[,facetBy])
+           else
+             facetby <- facetBy
+           ## else
+           ##   facetby <- unique(values(mr)[,group])
+         }
+
          ## assigne color
-         
+         sapply(seq_len(length(facetby)), function(i){         
          pars$xlim <<- expand_range(c(start, end), mul = 0.05)
          pars$ylim <<- expand_range(c(0, 10), mul = 0.05)
-
-         ## sapply(seq_len(length(facetby)), function(i){
          
-         if(length(facetBy)){
+         if(facetBy %in% colnames(values(mr))){
            curval <- facetby[i]
            idx <- values(mr)[, facetBy] == curval
          }else{
@@ -201,7 +203,8 @@ IntervalView.gen$methods(
              idx <- values(mr)[, group] == curval
            }else{
              idx <- seq(length(mr))
-           }}
+           }
+         }
          
          if(geom != "full"){
            if(length(y)){
@@ -269,7 +272,13 @@ IntervalView.gen$methods(
              if(is.numeric(x)){
                cscale(x, div_prox_pal())
              }else{
-               dscale(x, dichromat_pal("DarkRedtoBlue.12"))
+               if(length(unique(x)) <10)
+                 dscale(as.character(x), brewer_pal())
+               else{
+                 cols <- brewer_pal()(9)
+                 cscale(as.numeric(as.factor(x)), gradient_n_pal(cols))
+               }
+               ## dscale(x, dichromat_pal("DarkRedtoBlue.12"))
              }
            }
            color <- pars$color
@@ -375,23 +384,17 @@ IntervalView.gen$methods(
              pars$ylim <<- expand_range(c(0, max(yval)), mul = 0.05)
            }
          }
-         rootLayer[3,j-1+2] <<- qlayer(scene, paintFun = sumPainter,
+         rootLayer[3, 2] <<- layer <- qlayer(scene, paintFun = sumPainter,
                                        wheelFun = wheelEventZoom(),
                                        keyPressFun = keyPressEventZoom(),
                                        ## hoverMoveFun = hoverMoveEvent(.self, mr[idx]),
                                        cache = TRUE,
                                        limits = qrect(pars$xlim[1], pars$ylim[1],
                                          pars$xlim[2], pars$ylim[2]))
-         ## rootLayer[3, j-1+2]$setOpacity(0)
-         ## for tooltips 
-         ## layer <<- qlayer()
-         pars$ylimChanged$connect(function(){
-           rootLayer[3,j-1+2]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
-                                              pars$xlim[2], pars$ylim[2]))
-         })
-         pars$xlimChanged$connect(function(){
-           rootLayer[3,j-1+2]$setLimits(qrect(pars$xlim[1], pars$ylim[1],
-                                              pars$xlim[2], pars$ylim[2]))
-         })
-       }
-              )})   
+         ## root.copy <- .self$copy()
+         root.copy <- rootLayer
+         syncLimits(layer)
+         facetLayer[i, j] <<- root.copy
+       })
+       })
+       })   

@@ -36,7 +36,6 @@ ColorLegend.gen$methods(show = function(graphics = FALSE){
                labels = labels,
                colors = colors)) 
   }
-  
 })
 
 
