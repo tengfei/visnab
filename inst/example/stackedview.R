@@ -1,6 +1,0 @@
-require(visnab)
-library(rtracklayer)
-chrmodel <- paste("chr",c(1:23,"X","Y"),sep="")
-gr <- getIdeogram("hg19",subchr=chrmodel,cytobands=FALSE)
-sv <- StackedView(gr)
-print(sv)
