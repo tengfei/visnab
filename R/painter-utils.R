@@ -71,7 +71,7 @@ qpathCurveBundle <- function(startpoint1,controlpoint1,endpoint1,
                               startpoint2,controlpoint2,endpoint2){
   glyph <- Qt$QPainterPath()
   glyph$moveTo(startpoint1[1],startpoint1[2])
-  glyph$quadTo(controlpoint1[1],controlpoint1[2],endpoint1[1],endpoint1[2])
+  glyph$qCuadTo(controlpoint1[1],controlpoint1[2],endpoint1[1],endpoint1[2])
   glyph$lineTo(startpoint2[1],startpoint2[2])
   glyph$quadTo(controlpoint2[1],controlpoint2[2],endpoint2[1],endpoint2[2])
   glyph$lineTo(startpoint1[1],startpoint1[2])

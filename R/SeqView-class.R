@@ -37,8 +37,9 @@ SeqView <- function(track,
   if(extends(class(track),"GRanges"))
     track <- as(track,"MutableGRanges")
   
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))  
   pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "SeqView")
-  obj <- SeqView.gen$new(track=track,pars=pars,
+  obj <- SeqView.gen$new(track=track,pars=pars, mode = mode,
                          eventTrace = new("EventTrace"),
                          viewrange = viewrange, rescale = rescale, 
                         tooltipinfo = tooltips)
@@ -125,9 +126,8 @@ hoverLeaveFun <- function(layer, event){
 
   rootLayer[0,0] <<- qlayer(scene, pfunSeq, row=row, col=col,
                        rowSpan=rowSpan, colSpan=colSpan,
-                   keyPressFun=keyPressEventZoom(track, view, sy = 1,
-                     focusin = eventTrace$focusin),
-                   wheelFun=wheelEventZoom(view),
+                   keyPressFun=keyPressEventZoom(),
+                   wheelFun=wheelEventZoom(),
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   rootLayer[0,0]$setLimits(qrect(pars$xlimZoom[1],0,pars$xlimZoom[2],h))

@@ -23,16 +23,21 @@ CircularView <- function(grl,
                          tracksOrder=NULL,
                          ## isPlotted=NULL,
                          tracksWidth=NULL,
-                         scene=NULL,
-                         view=NULL,
-                         rootLayer=NULL,
-                         row=0L,
-                         col=0L,
                          .sectorText=TRUE,
-                         rescale = "none"){
+                         geom = "default",
+                         rescale = c("geometry", "transform", "none")){
   
   ## check if list element is MutableRanges
-  pars <- GraphicPars()
+  geom <- match.arg(geom)
+  geom <- new("CircularViewGeomSingleEnum", geom)
+
+  rescale <- match.arg(rescale)
+  rescale <- new("RescaleSingleEnum", rescale)
+
+  pars <- GraphicPars(geom = geom,
+                      view = "CircularView")
+
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Both"))
   if(any(unlist(lapply(grl,function(gr) extends(class(gr),"GenomicRanges"))))){
     grl <- lapply(grl,function(gr) {
       gr <- as(gr,"MutableGRanges")
@@ -80,59 +85,63 @@ CircularView <- function(grl,
 
   obj <- CircularView.gen$new(tracks=grl,pars=pars,tracksType=tracksType,model=model,
                               tracksOrder=tracksOrder, tracksWidth=tracksWidth,
-                              chrOrder=chro, scene=scene, row=row, col=col,
-                              view=view, rootLayer=rootLayer,
+                              chrOrder=chro, mode = mode, rescale = rescale,
                               .sectorText=.sectorText)
-  obj$createView(rescale = rescale)
+  obj$createView()
+  obj$pars$alphaChanged$connect(function(){
+    qupdate(obj$scene)
+  })
   obj
 }
 
 
-CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry"){
+CircularView.gen$methods(createView = function(){
+  setDislayWidgets()
+  setBgColor()
   ## graphic device
-  if(is.null(scene)){
-    scene <<- qscene()
-    view <<- qplotView(scene,rescale = rescale)
-    view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-    library(qtpaint)
-    args(qlayer)
-    rootLayer <<- qlayer(scene,
-                  ## limits=qrect(c(-len,len),c(-len,len)),
-                  keyPressFun=function(layer,event){
-                    if(event$modifiers() == Qt$Qt$ControlModifier){
-                      if(event$key() == Qt$Qt$Key_Equal)
-                        view$scale(1.5,1.5)
-                      if(event$key() == Qt$Qt$Key_Minus)
-                        view$scale(1/1.5,1/1.5)
-                      if(event$key() == Qt$Qt$Key_0)
-                        view$resetTransform()
-                      ## if(event$key() == Qt$Qt$Key_u)
-                      ##    viewInUCSC(obj)
-                    }},
-                  ## mouseMoveFun=function(layer,event){
-                  ##   pos <- as.numeric(event$pos())
-                  ##   if(!is.null(visenv$new.view)){
-                  ##     scene.pos <- layer$mapToScene(pos[1],pos[2])
-                  ##     spos <- as.numeric(scene.pos)
-                  ##     visenv$new.view$centerOn(spos[1],spos[2])
-                  ##   }
-                  ## },
-                  wheelFun= function(layer, event) {
-                    zoom_factor <- 1.5
-                    if(event$delta()<0)
-                      zoom_factor <- 1/1.5
-                    view$scale(zoom_factor,zoom_factor)
-                  },
-                  geometry=qrect(0,0,700,700),cache=FALSE)
+  ## if(is.null(scene)){
+  ##   scene <<- qscene()
+  ##   view <<- qplotView(scene,rescale = rescale)
+  ##   view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
+  ##   library(qtpaint)
+  ##   args(qlayer)
+  ##   rootLayer <<- qlayer(scene,
+  ##                 ## limits=qrect(c(-len,len),c(-len,len)),
+  ##                 keyPressFun=function(layer,event){
+  ##                   if(event$modifiers() == Qt$Qt$ControlModifier){
+  ##                     if(event$key() == Qt$Qt$Key_Equal)
+  ##                       view$scale(1.5,1.5)
+  ##                     if(event$key() == Qt$Qt$Key_Minus)
+  ##                       view$scale(1/1.5,1/1.5)
+  ##                     if(event$key() == Qt$Qt$Key_0)
+  ##                       view$resetTransform()
+  ##                     ## if(event$key() == Qt$Qt$Key_u)
+  ##                     ##    viewInUCSC(obj)
+  ##                   }},
+  ##                 ## mouseMoveFun=function(layer,event){
+  ##                 ##   pos <- as.numeric(event$pos())
+  ##                 ##   if(!is.null(visenv$new.view)){
+  ##                 ##     scene.pos <- layer$mapToScene(pos[1],pos[2])
+  ##                 ##     spos <- as.numeric(scene.pos)
+  ##                 ##     visenv$new.view$centerOn(spos[1],spos[2])
+  ##                 ##   }
+  ##                 ## },
+  ##                 wheelFun= function(layer, event) {
+  ##                   zoom_factor <- 1.5
+  ##                   if(event$delta()<0)
+  ##                     zoom_factor <- 1/1.5
+  ##                   view$scale(zoom_factor,zoom_factor)
+  ##                 },
+  ##                 geometry=qrect(0,0,700,700),cache=FALSE)
 
-  }
+  ## }
   ## event
   ## background
-  bgcol <- pars$bgColor
-  bgalpha <- pars$alpha
-  qcol <- col2qcol(bgcol,bgalpha)
-  scene$setBackgroundBrush(qbrush(qcol))
-  ## settings
+  ## bgcol <- pars$bgColor
+  ## bgalpha <- pars$alpha
+  ## qcol <- col2qcol(bgcol,bgalpha)
+  ## scene$setBackgroundBrush(qbrush(qcol))
+  ## ## settings
   length <- 100
   skip <- 3
   spaceRate <- 0.01
@@ -200,9 +209,10 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
   ## ====================
   ## Link
   ## ====================
-  pfunLink <-function(gr,idx,paths){
+  pfunLink <-function(gr,idx,paths,obj){
     function(layer,painter){
-      cols <- values(gr)$.color[idx]
+      cols <- alpha(values(gr)$.color[idx], pars$alpha)
+      ## cols <- alpha(obj$pars$stoke, obj$pars$alpha)
       qdrawPath(painter,paths,stroke=cols)
     }}
   
@@ -314,7 +324,7 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
       values(gr)$.color <- "white"
     }
     if(tp == "link"){
-      values(gr)$.color <- alpha(pars$fgColor,0.5)
+      values(gr)$.color <- alpha(pars$fgColor, pars$alpha)
       m2g <- map2global4link(gr)
       idx <- apply(m2g,1,function(row){all(!is.na(row))})
       ## gr <- gr[idx]
@@ -330,7 +340,7 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
       xy1 <- polar2xy(radius=l+wsub,x)
       xy2 <- polar2xy(radius=l+wsub,x2)
       paths <- lapply(seq_len(nrow(xy1)),function(i){
-        qglyphQuadCurve(c(xy1[i,1],xy1[i,2]),
+        qpathQuadCurve(c(xy1[i,1],xy1[i,2]),
                         c(0,0),
                         c(xy2[i,1],xy2[i,2]))
       })
@@ -354,7 +364,7 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
       paths <- lapply(1:length(gr),function(i){
         sa <- ms[i]
         sl <- mw[i]
-        paths <- qglyphSector(0,0,
+        paths <- qpathSector(0,0,
                               ## length=l+wsub*(lv[i]-1)+skipsub*(lv[i]-1),
                               length=l,
                               width=wsub,
@@ -396,14 +406,14 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
         sa <- msm[i]
         sl <- mwm[i]
         paths <- lapply(seqlen.cor,function(r){
-          qglyphArc(0,0,r=r,sa,sl)          
+          qpathArc(0,0,r=r,sa,sl)          
         })
       })
       ## compute the position
       paths <- lapply(1:length(model),function(i){
         sa <- msm[i]
         sl <- mwm[i]
-        paths <- qglyphSector(0,0,length=l,
+        paths <- qpathSector(0,0,length=l,
                               width=w,
                               startAngle=sa,sweepLength=sl)
       })
@@ -454,7 +464,7 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
         sl <- mw[i]
         wsub <- widthunit[n]
         skipsub <- wsub*0.2
-        paths <- qglyphArc(0,0,r=l,
+        paths <- qpathArc(0,0,r=l,
                            startAngle=sa,
                            sweepLength=sl)
       })
@@ -476,15 +486,16 @@ CircularView.gen$methods(createView = function(seqname=NULL, rescale = "geometry
                        bar=pfunBar(gr,xy1,xy2),
                        point=pfunPoint(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid),
                        line=pfunLine(gr,seqlen.cor,xy,paths,msm,mwm,lst.grid,chrgp),
-                       link=pfunLink(gr,idx,paths),
+                       link=pfunLink(gr,idx,paths, .self),
                        scale=pfunScale(gr,scale.lst,xy1,xy2,xy1.s,xy2.s,paths,scale.lab)
                        )
     layer <- qlayer(rootLayer,paintFun=paintFun,
-                    limits=qrect(c(-len,len),c(-len,len)),cache=FALSE,
-                    row=row,col=col)
-    tracks[[n]]$elementMetadataChanged$connect(function(){
-      qupdate(layer)
-    })
+                    keyPressFun = keyPressEventZoom(),
+                    limits=qrect(c(-len,len),c(-len,len)),cache=FALSE)
+
+    ## tracks[[n]]$elementMetadataChanged$connect(function(){
+    ##   qupdate(layer)
+    ## })
   })
 })
 

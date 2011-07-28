@@ -6,10 +6,12 @@ EventTrace.gen <- setRefClass("EventTrace",
                                 focusin = "logical",
                                 selfSignal = "logical",
                                 hoverPos = "numeric",
-                                hoverId = "integer"
+                                hoverId = "integer",
+                                flag = "logical"
                                 )),
                               methods = list(
                                 initialize = function(...){
+                                  flag <<- FALSE
                                   focusin <<- FALSE
                                   selfSignal <<- FALSE
                                   callSuper(...)

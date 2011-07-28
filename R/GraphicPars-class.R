@@ -116,7 +116,8 @@ setGraphicPars <- function(viewname, gparslst,
                      "ScaleView",
                      "SingleChromView",
                      "SeqView",
-                     "TracksView")
+                     "TracksView",
+                     "CircularView")
 
 sapply(.AllVisnabViews, function(viewname){
   gparslst <- list(xlimZoom = "numeric",

@@ -8,7 +8,6 @@ VisnabView.gen <- setRefClass("VisnabView",
                                 signalingField("colorLegend", "ColorLegendList"),
                                 signalingField("viewrange", "SimpleMutableGRanges"),
                                 pars = "GraphicParameters",
-                                mode = "IModeGroup",
                                 eventTrace = "EventTrace",
                                 tooltipinfo = "character",
                                 viewname = "character"

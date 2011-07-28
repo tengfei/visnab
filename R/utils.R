@@ -457,47 +457,44 @@ pileupAsGRanges <- function(bams, regions,
   gr[idx]
 }
 
-pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES, mismatchOnly = FALSE) {
+pileupGRangesAsVariantTable <- function(gr, genome, DNA_BASES) {
   if(missing(DNA_BASES)){
     .reservedNames <- c("depth","bam")
     DNA_BASES <- setdiff(colnames(elementMetadata(gr)), .reservedNames)
   }
-  ## genome <- Hsapiens
-  ## fake
+
   refBases <- getSeq(genome, gr, as.character = TRUE)
-  ## browser()
-  ## gr[,1:3]
   ## refBases <- apply(as.data.frame(values(gr[,1:5])), 1, function(x){
   ##   id <- which.max(x)
   ##   DNA_BASES[id]
   ## })
   ## df <- as.data.frame(values(gr))
+  ## browser()
   counts <- as.matrix(as.data.frame(values(gr)[,DNA_BASES]))
   refCounts <- counts[cbind(seq(nrow(counts)), match(refBases, DNA_BASES))]
   variantsForBase <- function(base) {
     baseCounts <- counts[,base, drop=TRUE]
     keep <- baseCounts > 0
     if(sum(keep)){
-    count <- baseCounts[keep]
-    gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
-                  ref = refBases[keep], read = base, count = baseCounts[keep],
-                  count.ref = refCounts[keep],
-                  values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
-    if(mismatchOnly)
-      gr <- gr[values(gr)$read != values(gr)$ref]
-    gr
+      count <- baseCounts[keep]
+      gr <- GRanges(seqnames(gr)[keep], ranges(gr)[keep], strand(gr)[keep],
+                    ref = refBases[keep], read = base,
+                    count = baseCounts[keep],
+                    ## count.ref = refCounts[keep],
+                    values(gr)[keep, setdiff(colnames(values(gr)), DNA_BASES)])
+      ## if(mismatchOnly)
+      ##   gr <- gr[values(gr)$read != values(gr)$ref]
+      values(gr)$match <- values(gr)$ref == values(gr)$read
+      gr
     }else{
       NULL
     }
   }
+  ## test <- variantsForBase("A")
+  ## test[1:5]
   lst <- lapply(colnames(counts), variantsForBase)
   idx <- !sapply(lst, is.null)
   res <- do.call("c", lst[idx])  ## why this is slow
-  values(res)$count.ref <- values(res)$depth
-  values(res)$count <- 0
-  idx <- sample(seq(length(res)), 5)
-  values(res)$count.ref[idx] <- values(res)$count.ref[idx]-1
-  values(res)$count[idx] <- values(res)$depth[idx]-values(res)$count.ref[idx]
   return(res[order(start(res))])
 }
 

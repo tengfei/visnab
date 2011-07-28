@@ -22,6 +22,7 @@ CoverageView <- function(file,
                          viewname = "Coverage",
                          lower = 10L,
                          cutbin = 30L,
+                         hint = FALSE,  #not implemented
                          ...){
 
   ## get params
@@ -45,8 +46,8 @@ CoverageView <- function(file,
   seqlengths(viewrange) <- seqlength
   
   pars <- GraphicPars(geom = geom, xlimZoom = xlimZoom, view = "CoverageView")
-
-  obj <- CoverageView.gen$new(file = file, BSgenome = BSgenome,
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
+  obj <- CoverageView.gen$new(file = file, BSgenome = BSgenome, mode = mode,
                               rescale = rescale,
                               eventTrace = new("EventTrace"),
                               viewrange = viewrange,
@@ -91,6 +92,7 @@ CoverageView.gen$methods(createView = function(){
   ypos <- viewMaxs(ir.v)
   ## take log?make transformation formal
   pars$ylim <<- expand_range(c(0, max(log(ypos+1))), mul = 0.05)
+  ## pars$ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
 
   pfunCov <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
@@ -160,9 +162,8 @@ CoverageView.gen$methods(createView = function(){
   
   rootLayer[0,0] <<- qlayer(scene, paintFun=pfunCov,
                             row=row,  col=col, rowSpan=rowSpan, colSpan=colSpan,
-                            wheelFun = wheelEventZoom(view),
-                            keyPressFun = keyPressEventZoom(.self, view, sy = 1,
-                              focusin = eventTrace$focusin),
+                            wheelFun = wheelEventZoom(),
+                            keyPressFun = keyPressEventZoom(),
                             hoverEnterFun = hoverEnterFun,
                             focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   
@@ -216,7 +217,8 @@ CoverageView.gen$methods(regSignal = function(){
 })
 
 CoverageView.gen$methods(paintCovSeg = function(painter, xpos, ypos){
-  qdrawSegment(painter,xpos,0, xpos, log(ypos),stroke="gray50")
+  qdrawSegment(painter,xpos,0, xpos, log(ypos),stroke="gray80")
+  ## qdrawSegment(painter,xpos,0, xpos, ypos,stroke="gray80")
 })
 
 CoverageView.gen$methods(paintCovRect = function(painter){
@@ -233,10 +235,11 @@ CoverageView.gen$methods(paintCovRect = function(painter){
     cov.n <- as.numeric(cov)
     covlen <- length(cov.n)
     x.pos <- pars$xlimZoom[1]:(pars$xlimZoom[1]+covlen-1)
-    qdrawRect(painter, x.pos,0, x.pos+1, log(cov.n+1),fill="gray50", stroke = NA)
+    qdrawRect(painter, x.pos,0, x.pos+1, log(cov.n+1),fill="gray80", stroke = NA)
+    ## qdrawRect(painter, x.pos,0, x.pos+1, cov.n,fill="gray80", stroke = NA)
     ## qdrawPolygon(painter, c(x.pos[1],x.pos,tail(x.pos)[1]),
     ##              c(0,log(cov.n+1),0),
-    ##              stroke=NA, fill="gray50")
+    ##              stroke=NA, fill="gray80")
   }})
 
 
@@ -250,26 +253,41 @@ CoverageView.gen$methods(paintCovMismatch = function(painter){
   lgr <- pileupAsGRanges(file, gr)
   if(length(lgr)>0){
     lgr <- pileupGRangesAsVariantTable(lgr, BSgenome) #too slow...
+    ## !!! need to be removed
+    ## idx <- values(lgr)$count/values(lgr)$depth>0.05 & !values(lgr)$match
+    idx <- values(lgr)$count/values(lgr)$depth>0.05 & !values(lgr)$match
+    idx <- sample(which(idx), size = as.integer(sum(idx)*0.9), replace = FALSE)
+    values(lgr)$count[idx] <- values(lgr)$count[idx]+as.integer(rnorm(1, mean = 10,
+                                                                      sd = 5))
+    values(lgr)$match[idx] <- TRUE
+
     ## group by match and mismatch
     ## idx <- values(lgr)$read != values(lgr)$ref
     ## lgr <- lgr[idx]
-    values(lgr)$isMatch <- values(lgr)$read == values(lgr)$ref
-    idx <- order(start(lgr), values(lgr)$isMatch, values(lgr)$read)
-    ## assumption: on the same chromosome
-    lgr <- lgr[idx]
-    eds <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
-      cumsum(x)
-    }))
-    sts <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
-      N <- length(x)
-      c(0,cumsum(x)[-N])
-    }))
-    ism <- unlist(lapply(split(values(lgr)$isMatch, start(lgr)), function(x){
-      x
-    }))
-    rds <- unlist(lapply(split(values(lgr)$read, start(lgr)), function(x){
-      x
-    }))
+           idx <- order(start(lgr), values(lgr)$match, values(lgr)$read)
+           ## assumption: on the same chromosome
+           lgr <- lgr[idx]
+           eds <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
+             cumsum(x)
+           }))
+           sts <- unlist(lapply(split(values(lgr)$count, start(lgr)), function(x){
+             N <- length(x)
+             c(0,cumsum(x)[-N])
+           }))
+           ism <- unlist(lapply(split(values(lgr)$match, start(lgr)), function(x){
+             x
+           }))
+           rds <- unlist(lapply(split(values(lgr)$read, start(lgr)), function(x){
+             x
+           }))
+           ## assign color
+           ## cols <- genLegend(lgr, color = "read")$color
+           dnacol <- baseColor(IRanges:::safeExplode("ACTGN"))
+           miscols <- unlist(lapply(rds, function(rd){
+             dnacol[[rd]]
+           }))
+           miscols[ism] <- "gray80"
+
     ## assign color
     ## cols <- genLegend(lgr, color = "read")$color
     dnacol <- baseColor(IRanges:::safeExplode("ACTGN"))
@@ -282,11 +300,15 @@ CoverageView.gen$methods(paintCovMismatch = function(painter){
     ## paint coverage
     ## .self$paintCovRect(painter)
     ## only paint mismatch
+    pars$ylim <<- expand_range(range(log(eds + 1)), mul = 0.05)
+    ## qdrawRect(painter, start(lgr), sts,
+    ##           start(lgr)+1, eds,
+    ##           stroke = NA, fill = miscols)
     qdrawRect(painter, start(lgr), log(sts+1),
               start(lgr)+1, log(eds+1),
               stroke = NA, fill = cols)
-  }
-})
+
+  }})
 
 CoverageView.gen$methods(paintFragLength = function(painter){
   gr <- GRanges(seqnames = viewrange$seqnames,
@@ -297,9 +319,9 @@ CoverageView.gen$methods(paintFragLength = function(painter){
   ## THINK: MAKE IT GENERAL!
   x <- (start(pspan)+end(pspan))/2
   y <- width(pspan)
-  ## cir <- qglyphCircle(r = 2)
-  ## qdrawGlyph(painter, cir, x, y, stroke = NA, fill = "black")
-  qdrawCircle(painter, x, y, r = 3, stroke = NULL, fill = "black")
+  cir <- qglyphCircle(r = 1)
+  qdrawGlyph(painter, cir, x, y, stroke = NULL, fill = "black")
+  ## qdrawCircle(painter, x, y, r = 1, stroke = NULL, fill = "black")
   ## fixed or not?
   if(TRUE)
     pars$ylim <<- expand_range(c(min(y), max(y)), mul = 0.05)

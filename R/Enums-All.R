@@ -5,7 +5,7 @@
 ## setEnum return class name not generator function
 .IntervalViewGeom <- c("full", "reduce", "point", "length",
                        "barchart", "heatmap", "segment", "line",
-                       "polygon")
+                       "polygon", "mismatch")
 setSingleEnum("VisnabViewGeom", levels = character())
 setMultipleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
 setSingleEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
@@ -15,6 +15,7 @@ setSingleEnum("ScaleViewGeom", levels = c("twoside"))
 setSingleEnum("SingleChromViewGeom", levels = c("cytoband"))
 setSingleEnum("SeqViewGeom", levels = c("default"))
 setSingleEnum("TracksViewGeom", levels = c("default"))
+setSingleEnum("CircularViewGeom", levels = c("default"))
 
 ## automatica constructorx
 .Geom <- function(view = "VisnabView"){
@@ -27,7 +28,8 @@ setSingleEnum("TracksViewGeom", levels = c("default"))
                  ScaleView = new("ScaleViewGeomSingleEnum", "twoside"),
                  SingleChromView = new("SingleChromViewGeomSingleEnum", "cytoband"),
                  SeqView = new("SeqViewGeomSingleEnum", "default"),
-                 TracksView = new("TracksViewGeomSingleEnum", "default"))
+                 TracksView = new("TracksViewGeomSingleEnum", "default"),
+                 CircularView = new("CircularViewGeomSingleEnum", "default"))
 
 }
 
@@ -41,7 +43,8 @@ setSingleEnum("TracksViewGeom", levels = c("default"))
                  ScaleView = "ScaleViewGeomSingleEnum", 
                  SingleChromView = "SingleChromViewGeomSingleEnum",
                  SeqView = "SeqViewGeomSingleEnum",
-                 TracksView = "TracksViewGeomSingleEnum") 
+                 TracksView = "TracksViewGeomSingleEnum",
+                 CircularView = "CircularViewGeomSingleEnum") 
 }
 
 ## setEnum("CircularViewGeoms", levels = c("full", "dense"), contains = "Geoms")
@@ -57,6 +60,17 @@ setSingleEnum("TracksViewGeom", levels = c("default"))
 ##-----------------------------------------------------------------##
 CPalSingleEnum <- setSingleEnum("CPal", levels = c("area", "gradient", "grey",
                               "identity", "manual", "rescales"))
+
+setGeneric("getPal", function(obj, ...) standardGeneric("getPal"))
+setMethod("getPal", "CPalSingleEnum", function(obj){
+  pal <- switch(obj,
+                area = ,
+                gradient = ,
+                grey = ,
+                identify = ,
+                manual = ,
+                rescales = )
+})
 ##-----------------------------------------------------------------##
 ##                Class DPalEnum
 ##-----------------------------------------------------------------##

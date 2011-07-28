@@ -1,7 +1,8 @@
 ## ======================================================================
 ## Enum used in iMode class
 ## ======================================================================
-setSingleEnum("TooltipMode", levels = c("Off", "Identify", "Metainfo","Text"))
+setSingleEnum("TooltipMode", levels = c("Off", "Identify", "Metainfo","Text",
+                               "Position"))
 setSingleEnum("TooltipPos", levels = c("TopLeft", "TopRight",
                                        "BottomLeft", "BottomRight",
                                        "Float"))
@@ -79,22 +80,25 @@ BrushMode <- function(brushMode = "Off",
   obj <- BrushMode.gen$new(pars = pars, ...)
 }
 
-
+setSingleEnum("Logical", levels = c("TRUE", "FALSE"))
 IdentifyMode.gen <- setMode("Identify",
                             list(tooltipMode = "TooltipModeSingleEnum",
                                  tooltipPos = "TooltipPosSingleEnum",
-                                 hoverMode = "logical"))
+                                 hoverMode = "LogicalSingleEnum"))
 ## IdentifyMode.gen$methods(setIdentifyMode =
 ##                       function(md = c("tooltipMode", "tooltipPos", "hoverMode"),
 ##                                value){
 ##   .self$pars$field(md, value)
 ## })
+
 IdentifyMode <- function(tooltipMode = "Off",
                          tooltipPos = "Float",
+                         hoverMode = "FALSE",
                          ...){
   pars <- new("IdentifyModeParameters",
               tooltipMode = tooltipMode,
-              tooltipPos = tooltipPos)
+              tooltipPos = tooltipPos,
+              hoverMode = hoverMode)
   obj <- IdentifyMode.gen$new(pars = pars, ...)
 }
 

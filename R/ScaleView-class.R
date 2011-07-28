@@ -52,9 +52,11 @@ ScaleView <- function(track,
   pars <- GraphicPars(xlimZoom = xlimZoom, geom = geom, view = "ScaleView")
   gp <- GraphicPars(view = "TxdbView")
   gp$geom <- "dense"
+
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Off"))
   obj <- ScaleView.gen$new(track = track, pars = pars,
                            eventTrace = new("EventTrace"),
-                           viewrange = viewrange, 
+                           viewrange = viewrange,  mode = mode,
                            rescale = rescale, tooltipinfo = tooltips)
   obj$createView()
   obj$regSignal()
@@ -141,9 +143,8 @@ hoverLeaveFun <- function(layer, event){
   rootLayer[0,0] <<- qlayer(scene,paintFun=pfunScale,
                   ## limits=qrect(pars$xlimZoom[1],h/2-h/9-3*h,
                   ##   pars$xlimZoom[2],h/2+h/9+h),
-                  wheelFun=wheelEventZoom(view),
-                  keyPressFun=keyPressEventZoom(track, view, sy = 1,
-                    focusin = eventTrace$focusin),
+                  wheelFun=wheelEventZoom(),
+                  keyPressFun=keyPressEventZoom(),
                   row=row, col=col, rowSpan=rowSpan, colSpan=colSpan,
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)

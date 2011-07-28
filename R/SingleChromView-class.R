@@ -38,8 +38,8 @@ SingleChromView <- function(track,
 
   viewrange <- MutableGRanges(seqname, IRanges(0, seqlength))
   seqlengths(viewrange) <- seqlength
-
-  obj <- SingleChromView.gen$new(track = track,pars = pars,
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Off"))
+  obj <- SingleChromView.gen$new(track = track,pars = pars, mode = mode,
                                  viewrange = viewrange,
                                  rescale = rescale,
                                  eventTrace = new("EventTrace"))

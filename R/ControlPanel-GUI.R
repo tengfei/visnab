@@ -457,7 +457,7 @@ qsetClass("MultEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
 
   # change gp when user changes level
   qconnect(bg, "buttonClicked(int)", function(id) {
-    currentVal[id] <- bg$button(id)$checked
+    currentVal[id] <<- bg$button(id)$checked
     eval(parse(text=paste("gp$",par," <- levels[currentVal]",
                    sep="")))
   })

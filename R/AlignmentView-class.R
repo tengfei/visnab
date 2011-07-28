@@ -40,8 +40,9 @@ AlignmentView <- function(file,
 
   viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
   seqlengths(viewrange) <- seqlength
-  
-  obj <- AlignmentView.gen$new(file = file, 
+
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
+  obj <- AlignmentView.gen$new(file = file, mode = mode,
                                viewrange = viewrange,
                                eventTrace = new("EventTrace"),
                                viewname = viewname, tooltipinfo = tooltips,
@@ -131,9 +132,8 @@ AlignmentView.gen$methods(createView = function(){
 
   rootLayer[0,0] <<- qlayer(rootLayer,
                             paintFun = pfunAlign,
-                            wheelFun = wheelEventZoom(view),
-                            keyPressFun = keyPressEventZoom(.self, view, sy = 1,
-                              focusin = eventTrace$focusin),
+                            wheelFun = wheelEventZoom(),
+                            keyPressFun = keyPressEventZoom(),
                             hoverEnterFun = hoverEnterFun,
                             focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
 

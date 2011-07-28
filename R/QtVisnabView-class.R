@@ -7,8 +7,10 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               view = "Qanviz::PlotViewORNULL",
               facetLayer = "Qanviz::RLayerORNULL",
               rootLayer = "Qanviz::RLayerORNULL",
+              ## hack, because current cache mode fail
               gridLayer = "Qanviz::RLayerORNULL",
               tooltipLayer = "Qanviz::RLayerORNULL",
+              mode = "IModeGroup",
               leftDock = "QDockWidget",
               cpanel = "QStackedWidget",
               rescale = "RescaleSingleEnum"),
@@ -28,12 +30,12 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   view <<- qplotView(scene,rescale = rescale)
                   vals <- getQtEnum(mode$items$scaleMode$pars$dragMode)
                   view$setDragMode(vals)
-                  facetLayer <<- qlayer(scene)
+                  ## facetLayer <<- qlayer(scene)
                 }
                 if(is.null(rootLayer))
                   rootLayer <<- qlayer(scene,
                                        geometry = qrect(0,0,800,600),
-                                       cache = FALSE)
+                                       cache = TRUE)
               },
               
               setBgColor = function(bgcol = NULL){
@@ -245,7 +247,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   ## a little hack to put it into closure
                   arr <- function(s){
                     rootLayer[i, j] <<- layer <- qlayer(scene,
-                                                        axisPainter(s))
+                                                        axisPainter(s),
+                                                        cache = TRUE)
                     layout <- rootLayer$gridLayout()
                     if(s %in% c(1, 3)){
                       layout$setRowPreferredHeight(i, 30)
@@ -344,7 +347,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               drawGrid = function(color) {
                 if(!missing(color))
                   pars$gridBgColor <<- color
-                rootLayer[3, 2] <<- gridLayer <<- qlayer(scene, paintFun = gridPainter())
+                rootLayer[3, 2] <<- gridLayer <<-
+                  qlayer(scene, paintFun = gridPainter(), cache = TRUE)
                 pars$xlimChanged$connect(function(){
                   gridLayer$setLimits(qrect(pars$xlim[1],
                                             pars$ylim[1],
@@ -418,9 +422,12 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 pars$ylimChanged$connect(fixLimits(layer))
               },
               drawTooltip = function(text){
-                layer <- qlayer(scene, tooltipPainter(text))
-                fixLimits(layer)
-                rootLayer[3, 2] <<- tooltipLayer <<- layer
+                rootLayer[3, 2] <<-
+                  tooltipLayer <<-
+                    qlayer(scene, tooltipPainter(text), cache = FALSE,
+                           limits = qrect(pars$xlim,
+                             pars$ylim))
+                fixLimits(tooltipLayer)
                 syncLimits(tooltipLayer)
               },
               showTooltip = function(){
@@ -534,6 +541,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 ## Toolbar ###
                 ## toolbar$addWidget(searchWid)
                 ## main widget
+                if(!is(.self, "TracksView")){
                 viewsearch <- SimpleViewer(view, gr = gr)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
@@ -541,6 +549,14 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                     range(.self) <- vgr
                 })
                 w$setCentralWidget(viewsearch)
+              }else{
+                viewsearch <- SimpleViewer(view, gr = gr)
+                qconnect(viewsearch, "rangeChanged", function(){
+                  vgr <- viewsearch$getSearchRange()
+                  if(length(vgr))
+                    range(.self) <- vgr
+                })
+              }
                 ## Status bar ###
                 statusbar <- Qt$QStatusBar()
                 w$setStatusBar(statusbar)
@@ -623,8 +639,8 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   yat <- cbreaks(range(pars$ylim),
                                  breaks = breaks, labels = labels)$breaks
                   qdrawRect(painter, pars$xlim[1], pars$ylim[1],
-                            pars$xlim[2], pars$ylim[2], stroke = "gray",
-                            fill = "gray")
+                            pars$xlim[2], pars$ylim[2], stroke = pars$gridBgColor,
+                            fill = pars$gridBgColor)
                   qlineWidth(painter) <- 2
                   qdrawSegment(painter, xat, pars$ylim[1], xat,
                                pars$ylim[2], stroke = "white")
@@ -638,28 +654,35 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 '
                 function(layer, painter){
                   ## mode
-                  md <- mode$idenitfyMode$tooltipMode
-                  pos <- switch(mode$identifyMode$tooltipPos,
+                  md <- mode$items$identifyMode$pars$tooltipMode
+                  pos <- switch(mode$items$identifyMode$pars$tooltipPos,
+                                ## FIXME: need to map from scene
                                 TopLeft = c(0, 0),
                                 TopRight = NULL , #TODO
                                 BottomLeft = NULL, #TODO
                                 BottomRight = NULL, #TODO
                                 Float = eventTrace$hoverPos)
+
                   ## info
                   text <- switch(md,
-                                 Off = chracter(),
-                                 Identify = hoverId,
-                                 Metainfo =
+                                 Off = character(),
+                                 Identify = as.character(eventTrace$hoverId),
+                                 Metainfo = "not implement yet",
                                  getTooltipInfo(mr,eventTrace$hoverId),
-                                 Text = text
+                                 Text = text,
+                                 Position =
+                                 paste(eventTrace$hoverPos, sep = "\n")
                                  )
                   ## draw background
-                  bgwidth <- qstrWidth(painter, text)
-                  bgheight <- qstrHeight(painter, text)
-                  qdrawRect(painter, pos[1], pos[2],
-                            pos[1]+bgwidth, pos[2]+bgheight,
-                            fill = "yellow", stroke = "yellow")
-                  qdrawText(painter, text, pos[1], pos[2], "left", "top")
+                  ## bgwidth <- qstrWidth(painter, text)*2
+                  ## bgheight <- qstrHeight(painter, text)*2
+                  if(length(text)){
+                  ## qdrawRect(painter, pos[1], pos[2],
+                  ##           pos[1]+, pos[2],
+                  ##           fill = "yellow", stroke = "yellow")
+                  qdrawText(painter, text, pos[1], pos[2], "left", "top",
+                            color = pars$textColor)
+                }
                 }
               },
               ## ## ----------------------------------------
@@ -709,29 +732,31 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 }
               },
 
-              ## hoverMoveEvent = function(obj, mr){
-              ##   function(layer,event){
-              ##     rect <- qrect(0,0,1,1)
-              ##     mat <- layer$deviceTransform(event)$inverted()
-              ##     rect <- mat$mapRect(rect)
-              ##     pos <- event$pos()
-              ##     rect$moveCenter(pos)
-              ##     hits <- layer$locate(rect)+1
-              ##     if(length(hits)>=1){
-              ##       posS <- event$screenPos()
-              ##       hits <- hits[1]
-              ##       values(obj$track)$.color[hits] <<- obj$pars$hoverColor
-              ##       Qt$QToolTip$showText(posS,getTooltipInfo(mr,hits))
-              ##       obj$flag <<- TRUE
-              ##     }else{
-              ##       if(obj$flag){
-              ##         values(obj$track)$.color <<- obj$pars$fill
-              ##         obj$flag <<- FALSE
-              ##       }
-              ##     }
-              ##   }
-              ## }
-
+              hoverMoveEvent = function(){
+                function(layer,event){
+                  rect <- qrect(0,0,10,10)
+                  mat <- layer$deviceTransform(event)$inverted()
+                  rect <- mat$mapRect(rect)
+                  pos <- event$pos()
+                  eventTrace$hoverPos <<- as.numeric(pos)
+                  rect$moveCenter(pos)
+                  hits <- layer$locate(rect)+1
+                  if(length(hits)){
+                    posS <- event$screenPos()
+                    hits <- hits[1]
+                    eventTrace$hoverId <<- hits
+                    ## values(obj$track)$.color[hits] <- obj$pars$hoverColor
+                    ## Qt$QToolTip$showText(posS,getTooltipInfo(mr,hits))
+                    eventTrace$flag <<- TRUE
+                  }
+                  else{
+                    if(eventTrace$flag){
+                      ## values(obj$track)$.color <<- obj$pars$fill
+                      eventTrace$flag <<- FALSE
+                    }
+                  }
+              }}
+              ,
               save = function(file){
                 if(FALSE){
                   library(qtbase)
@@ -752,7 +777,9 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   img$save("~/Desktop/point.gif")
                 }
               }
-
+              ## regSignal = function(...){
+              ##   callSuper(...)
+              ## }
               ))
 
 

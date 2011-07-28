@@ -16,7 +16,8 @@ TracksView <- function(..., seqname="chr1"){
   ## grand scene
   pars <- GraphicPars(xlimZoom = c(0, seqlength),
                       view = "TracksView")
-  obj <- TracksView.gen$new(track=track,pars=pars, win = NULL,
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))  
+  obj <- TracksView.gen$new(track=track,pars=pars, win = NULL, mode = mode,
                             eventTrace = new("EventTrace"), emit.id = 0)
 
   obj$createView()
@@ -29,6 +30,7 @@ TracksView.gen$methods(createView = function(seqname=NULL){
   size <- c(1400,600)  
   lst <- track
   win <<- Qt$QMainWindow()
+  ## vbox <- Qt$QVBoxLayout()
   win$resize(size[1],size[2])
   lapply(1:length(lst),function(i){
     cls <- class(lst[[i]])

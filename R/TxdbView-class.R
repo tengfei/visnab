@@ -88,7 +88,9 @@ TxdbView <- function(track,
   ## loading exons?                        
   viewrange <- MutableGRanges(seqname, IRanges(start, end))
   seqlengths(viewrange) <- end
-  obj <- TxdbView.gen$new(track = track, pars = pars,
+
+  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
+  obj <- TxdbView.gen$new(track = track, pars = pars, mode = mode,
                           viewrange = viewrange,
                           introns = introns, fiveUTR = fiveUTR, threeUTR = threeUTR,
                           rescale = rescale, tooltipinfo = tooltips,
@@ -347,9 +349,8 @@ TxdbView.gen$methods(createView = function(){
   }
 
   rootLayer[0,0] <<- qlayer(scene, drawfun, 
-                       wheelFun= wheelEventZoom(view, sy = 1),
-                       keyPressFun = keyPressEventZoom(.self, view,
-                         focusin = eventTrace$focusin),
+                       wheelFun= wheelEventZoom(),
+                       keyPressFun = keyPressEventZoom(),
                        hoverEnterFun = hoverEnterFun,
                        focusOutFun = keyOutFun, hoverLeaveFun = hoverLeaveFun)
   

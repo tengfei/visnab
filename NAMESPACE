@@ -47,6 +47,8 @@ importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                    "elementMetadata<-", elementMetadata,
                   as.data.frame)
 importClassesFrom(GenomicRanges, GRanges, GenomicRanges, Seqinfo)
+## GenomicFeatures
+importClassesFrom(GenomicFeatures,TranscriptDb)
 
 
 ## ## MutableRanges
@@ -65,8 +67,6 @@ importMethodsFrom(MutableRanges,
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
 
-## GenomicFeatures
-importClassesFrom(GenomicFeatures,TranscriptDb)
 ## rtracklayer
 importClassesFrom(rtracklayer, BrowserView)
 importFrom(rtracklayer, browserSession, genome, "genome<-",
