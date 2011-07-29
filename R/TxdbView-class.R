@@ -2,15 +2,28 @@
 ##             For class "IntervalView"
 ##----------------------------------------------------------##
 
+## setAs("TranscriptDb", "GRanges", function(From){
+  
+## })
+
+## TxdbGRanges.gen <- setProxyGRanges("Txdb")
 TxdbView.gen <- setRefClass("TxdbView",
                             contains=c("QtVisnabView", "LinearView"),
-                            fields=list(track="TranscriptDb",
+                            fields=list(
+                              track ="TranscriptDb",
                               introns="GRangesList",
                               fiveUTR="GRangesList",
                               threeUTR="GRangesList",
                               cds="GRangesList",
                               tx="GRanges",
-                              exons = "GRanges"))
+                              exons = "GRanges"
+                              ),
+                            methods = list(
+                              fetchFromSource = function(){
+                                ## compute exons/intons/... store to operands?
+                              }
+                              
+                              ))
 
 ##----------------------------------------------------------##
 ##             "IntervalView" constructor
@@ -96,7 +109,6 @@ TxdbView <- function(track,
                           rescale = rescale, tooltipinfo = tooltips,
                           cds = cds,tx = tx, viewname = viewname,
                           eventTrace = new("EventTrace"))
-
 
   ## add default attributes
   ## addAttr(obj$track,.color=obj$pars$fill,.hover=FALSE,.brushed=FALSE)

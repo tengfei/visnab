@@ -218,7 +218,7 @@ qsetClass("ColorEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   dropList$setIconSize(Qt$QSize(40,20))  
 
   # change gp when user changes level
-  qconnect(dropList, "currentIndexChanged", function(idx) {
+  qconnect(dropList, "currentIndexChanged(QString)", function(idx) {
     eval(parse(text=paste("gp$",par,
                  " <- dropList$currentText",sep="")))
   })
@@ -266,7 +266,7 @@ qsetClass("GlyphEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL) {
   dropList$setIconSize(Qt$QSize(40,20))  
 
   # change gp when user changes level
-  qconnect(dropList, "currentIndexChanged", function(idx) {
+  qconnect(dropList, "currentIndexChanged(QString)", function(idx) {
     eval(parse(text=paste("gp$",par,
                  " <- dropList$currentText",sep="")))
   })
@@ -334,8 +334,8 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
     sl$setValue(initVal)
   }
 
-  # update slider when spinbox changes
-  qconnect(spin, "valueChanged", function(val) {
+
+  qconnect(spin, "valueChanged(double)", function(val) {
     if(type == "double") {
       sl$setValue(as.integer(100*val))
     } else {
@@ -351,7 +351,7 @@ qsetClass("RangeParWidget", Qt$QWidget, function(gp, par, type,parent = NULL)
     }
     eval(parse(text=paste("gp$",par," <- spin$value",sep="")))
   })
-
+  
   lyt <- Qt$QHBoxLayout()
   #lyt$addWidget(parLabel,1,Qt$Qt$AlignRight)
   lyt$addWidget(spin)
@@ -396,7 +396,7 @@ qsetClass("SingleEnumParWidget", Qt$QWidget, function(gp, par, parent = NULL)
   dropList$setCurrentIndex(which(levels == initLvl) - 1)
 
   # change gp when user changes level
-  qconnect(dropList, "currentIndexChanged", function(idx) {
+  qconnect(dropList, "currentIndexChanged(QString)", function(idx) {
     eval(parse(text=paste("gp$",par,
                  " <- dropList$currentText",sep="")))
   })
@@ -528,7 +528,7 @@ qsetClass("IntParWidget", Qt$QWidget, function(gp, par, type, parent = NULL)
   spin$setValue(initVal)
 
   # update gp when spinbox changes
-  qconnect(spin, "valueChanged", function(val) {
+  qconnect(spin, "valueChanged(int)", function(val) {
     eval(parse(text=paste("gp$",par," <- spin$value",sep="")))
   })
 

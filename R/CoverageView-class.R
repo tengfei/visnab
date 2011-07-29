@@ -1,12 +1,14 @@
 ##----------------------------------------------------------------------------##
 ##                    For class "CoverageView"
 ##----------------------------------------------------------------------------##
+## coverage/alignment, separate model?
 CoverageView.gen <- setRefClass("CoverageView",
                                 contains = c("QtVisnabView", "LinearView"),
-                                fields=list(track = "list",
+                                fields=list(
+                                  track = "list",
+                                  file = "character",
                                   lower = "numeric",
                                   cutbin = "numeric",
-                                  file = "character",
                                   BSgenome = "BSgenomeORNULL"
                                   ))
 

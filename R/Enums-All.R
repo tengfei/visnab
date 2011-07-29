@@ -110,7 +110,7 @@ setColorEnum <- function(name, levels = character(), contains = "ColorEnum",
 
 bgColorSingleEnum <- setColorEnum("bgColor", levels = c("black", "white", "gray"))
 shadowColorSingleEnum <- setColorEnum("ShadowColor",
-                                  levels = c("gray40", "gray",
+                                  levels = c("gray",
                                     "black", "white"))
 
 setClass("GlyphEnum", contains = "VIRTUAL")
