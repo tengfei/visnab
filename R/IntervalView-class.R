@@ -5,7 +5,6 @@ IntervalView.gen <-
   setRefClass("IntervalView",
               contains = c("QtVisnabView", "LinearView"),
               fields = c(track = "SimpleMutableGRanges",
-                flag = "logical",
                 signalingFields(list(group = "character",
                                      facetBy = "character",
                                      size = "numericORcharacter",
@@ -23,12 +22,14 @@ IntervalView <- function(track,
                          facetBy,
                          x = c("midpoint", "start", "end"),
                          y,
-                         size = 1,
+                         size,
                          alpha = 1,
                          side = c(1, 2),
+                         bin = 10,
                          viewname = "Interval Data",
-                         geom = c("full", "reduce", "point", "length",
-                           "barchart", "heatmap", "segment", "line"),
+                         geom = c("point", "reduce", "full", "length",
+                           "barchart", "heatmap", "segment",
+                           "line", "histogram"),
                          rescale = c("geometry", "transform", "none"),
                          overview = FALSE,
                          grid = TRUE){
@@ -38,9 +39,8 @@ IntervalView <- function(track,
   if(missing(seqname))
     seqname <- as.character(unique(as.character(seqnames(track)))[1])
 
-  if(missing(color))
-    color <- pars$fill
-
+  if(is.numeric(bin)&!is(bin, "PositiveInteger"))
+    bin <- new("PositiveInteger", bin)
   x <- match.arg(x)
   start <- 0
   end <- max(end(ranges(track[seqnames(track)==seqname])))
@@ -57,9 +57,12 @@ IntervalView <- function(track,
   seqlengths(viewrange) <- end
   
   pars <- GraphicPars(xlimZoom = xlimZoom, 
-                      geom = geom, color = color,
+                      geom = geom, 
                       alpha = alpha,
+                      bin = bin,
                       view = "IntervalView")
+  if(!missing(color))
+    pars$color <- color
 
   mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
   ##FIXME: a little hack of addAttr doesn't work for MutableGRanges right now
@@ -75,16 +78,19 @@ IntervalView <- function(track,
     facetBy <- character()
   if(missing(y))
     y <- character()
+
   message("Create new instance...")
   ## FIXME:
- if(!length(facetBy))
+  if(!length(facetBy))
     facetBy <- "1"
+  
   obj <- IntervalView.gen$new(track=track,pars=pars, rescale = rescale,
                               tooltipinfo = tooltips, viewname = viewname,
                               group = group, eventTrace = new("EventTrace"),
                               viewrange = viewrange, facetBy = facetBy,
                               mode = mode, size = size,
                               x = x, y = y)
+  
   obj$track$changed$connect(function(change){
     if(is(change, "GRangesChanges"))
       if(elementMetadataChanged(change))
@@ -143,6 +149,9 @@ IntervalView.gen$methods(regSignal = function(...){
     view$resetTransform()
     createView()
     regSignal()
+  })
+  pars$ThemeChanged$connect(function(name){
+    qupdate(scene)
   })
   pars$bgColorChanged$connect(function(){
     bgcol <- pars$bgColor$names()
@@ -230,15 +239,12 @@ IntervalView.gen$methods(
          pars$ylim <<- expand_range(range(yval), mul = 0.05)
          pars$xlim <<- expand_range(range(xval), mul = 0.05)
 
-
          if(length(group)){
            lv <- as.numeric(as.factor(values(mr)[idx,group]))
            pars$ylim <<- expand_range(c(0, 10*(max(lv)-1)), mul = 0.05)
          }else{
            lv <- 1
          }
-
-         flag <<- FALSE
 
          sumPainter <- function(layer,painter,exposed){
            ## check size
@@ -252,7 +258,8 @@ IntervalView.gen$methods(
                cex <- cscale(vals, rescale_pal(c(1, 3)))
              }}
            }else{
-             cex <- 5
+             cex <- as.numeric(pars$pointSize)
+             cat("cex:",cex, "\n")
            }
            ## check alpha
            if(length(pars$alpha)){
@@ -270,10 +277,15 @@ IntervalView.gen$methods(
            genColor <- function(x){
              ## continuous
              if(is.numeric(x)){
-               cscale(x, div_prox_pal())
+               if("heatmap" %in% pars$geom)
+                 cscale(x, div_prox_pal())
+               else
+                 cscale(x,
+                        seq_gradient_pal("yellow", "red"))
              }else{
-               if(length(unique(x)) <10)
-                 dscale(as.character(x), brewer_pal())
+               if(length(unique(x)) <= 12)
+                 dscale(as.character(x), brewer_pal(type = "qual",
+                                                    palette = "Set3"))
                else{
                  cols <- brewer_pal()(9)
                  cscale(as.numeric(as.factor(x)), gradient_n_pal(cols))
@@ -321,7 +333,7 @@ IntervalView.gen$methods(
              pars$xlim <<- expand_range(range(c(min(st), max(ed))), mul = 0.05)
              pars$ylim <<- expand_range(c(0, max(yval)*10), mul = 0.05)
            }
-           ## if(pars$geom == "dense"){
+           ## if(pars$geom == "reduce"){
            ##   qdrawRect(painter,start(mr.r), 10, end(mr.r), 20,
            ##             stroke=NA,fill=values(mr.r)$.color)
            ##   pars$ylim <<- c(0,30)
@@ -359,13 +371,24 @@ IntervalView.gen$methods(
              segs <- qglyphSegment(x = 20, dir = pi/2)
              qdrawGlyph(painter, segs, st, 10*(lv-1), stroke = col)
            }
+           if("histogram" %in% pars$geom){
+             bks <- pretty(range(xval), n = pars$bin)
+             lvs <- cut(xval, breaks = bks)
+             mx <- cbind(bks[-(length(bks))], bks[-1])
+             dt <- as.data.frame(table(lvs))
+             qdrawRect(painter, mx[,1], 0, mx[,2], dt$Freq,
+                       fill = pars$fill, stroke = NA)
+             .self$pars$ylim <- expand_range(c(0,max(dt$Freq)), mul = 0.05)
+           }
            if("line" %in% pars$geom){
-             idxx <- order(xval, decreasing = FALSE)
-             N <- length(idxx)
-             cols <- values(mr[idx][idxx])$.color
-             qdrawSegment(painter, xval[idxx][-N], yval[idxx][-N],
-                          xval[idxx][-1], yval[idxx][-1],
-                          stroke = col)
+             ## by(1:length(xval), values(mr[idx])[,group], function(id){
+               idxx <- order(xval, decreasing = FALSE)
+               N <- length(idxx)
+               cols <- alpha(pars$stroke, pars$alpha)
+               qdrawSegment(painter, xval[idxx][-N], yval[idxx][-N],
+                            xval[idxx][-1], yval[idxx][-1],
+                            stroke = cols)
+               ## })
              pars$ylim <<- expand_range(c(ymin, ymax), mul = 0.05)
              pars$xlim <<- expand_range(range(xval), mul = 0.05)
            }

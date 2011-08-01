@@ -1,7 +1,6 @@
 ##----------------------------------------------------------------------------##
 ##                     "TracksView"
 ##----------------------------------------------------------------------------##
-
 TracksView.gen <- setRefClass("TracksView",
                               contains="QtVisnabView",
                               fields=c(track="list",
@@ -23,7 +22,6 @@ TracksView <- function(..., seqname="chr1"){
   obj$createView()
   return(obj)
 }
-
 
 TracksView.gen$methods(createView = function(seqname=NULL){
   verticalTitleBar <- TRUE

@@ -5,17 +5,20 @@
 ## setEnum return class name not generator function
 .IntervalViewGeom <- c("full", "reduce", "point", "length",
                        "barchart", "heatmap", "segment", "line",
-                       "polygon", "mismatch")
+                       "polygon", "mismatch", "histogram")
 setSingleEnum("VisnabViewGeom", levels = character())
 setMultipleEnum("IntervalViewGeom", levels = .IntervalViewGeom)
 setSingleEnum("TxdbViewGeom", levels = c("full", "dense", "slice"))
 setSingleEnum("CoverageViewGeom", levels = c("total","mismatch","pairend","elength"))
+setSingleEnum("BamViewGeom", levels = c("CoverageAndAlignment",
+                               "Coverage","Alignment"))
 setSingleEnum("AlignmentViewGeom", levels = c("oneside","twoside","pairend"))
 setSingleEnum("ScaleViewGeom", levels = c("twoside"))
 setSingleEnum("SingleChromViewGeom", levels = c("cytoband"))
 setSingleEnum("SeqViewGeom", levels = c("default"))
 setSingleEnum("TracksViewGeom", levels = c("default"))
 setSingleEnum("CircularViewGeom", levels = c("default"))
+
 
 ## automatica constructorx
 .Geom <- function(view = "VisnabView"){
@@ -24,6 +27,7 @@ setSingleEnum("CircularViewGeom", levels = c("default"))
                  IntervalView = new("IntervalViewGeomMultipleEnum", "full"),
                  TxdbView = new("TxdbViewGeomSingleEnum", "full"),
                  CoverageView = new("CoverageViewGeomSingleEnum", "total"),
+                 BamView = new("BamViewGeomSingleEnum", "CoverageAndAlignment"),
                  AlignmentView = new("AlignmentViewGeomSingleEnum", "oneside"),
                  ScaleView = new("ScaleViewGeomSingleEnum", "twoside"),
                  SingleChromView = new("SingleChromViewGeomSingleEnum", "cytoband"),
@@ -38,7 +42,8 @@ setSingleEnum("CircularViewGeom", levels = c("default"))
                  VisnabView = "VisnabViewGeomSingleEnum",
                  IntervalView = "IntervalViewGeomMultipleEnum",
                  TxdbView = "TxdbViewGeomSingleEnum",
-                 CoverageView = "CoverageViewGeomSingleEnum", 
+                 CoverageView = "CoverageViewGeomSingleEnum",
+                 BamView = "BamViewGeomSingleEnum", 
                  AlignmentView = "AlignmentViewGeomSingleEnum",
                  ScaleView = "ScaleViewGeomSingleEnum", 
                  SingleChromView = "SingleChromViewGeomSingleEnum",

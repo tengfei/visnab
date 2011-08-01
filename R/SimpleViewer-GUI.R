@@ -1,5 +1,5 @@
 qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
-                                                parent = NULL)
+                                                parent = NULL, searchBar = TRUE)
 {
   super(parent)
 
@@ -20,7 +20,7 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
     sb$parseSearchString(sb$text, gr, ref)
   })
 
-  ## qconnect(sb, "rangeChanged", this$rangeChanged)
+  qconnect(sb, "rangeChanged", this$rangeChanged)
 
   # update table when search range updates
   #qconnect(sb, "rangeChanged", function() {
@@ -37,7 +37,8 @@ qsetClass("SimpleViewer", Qt$QWidget, function(view, gr = NULL, ref = NULL,
   windowLyt <- Qt$QVBoxLayout()
   windowLyt$addWidget(view)
   #windowLyt$addWidget(tv)
-  windowLyt$addLayout(sbLyt)
+  if(searchBar)
+    windowLyt$addLayout(sbLyt)
   setLayout(windowLyt)
   windowLyt
 })

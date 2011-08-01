@@ -35,6 +35,7 @@ Collate: AllClasses.R
 	 IntervalView-class.R
 	 CoverageView-class.R
 	 AlignmentView-class.R
+	 BamView-class.R
 	 GrandLinearView-class.R
 	 StackedView-class.R
 	 TxdbView-class.R
@@ -48,5 +49,6 @@ Collate: AllClasses.R
 	 ControlPanel-GUI.R
          AppWindow-GUI.R
 	 widget-method.R
+	 visplot-method.R
 
 

@@ -91,13 +91,14 @@ qsetClass("ControlPanel", Qt$QWidget, function(gp, parent = NULL) {
   
   # single enum widgets (not color or glyph enum)
   sapply(gp$output()$pars[gp$output()$exposed & 
-          (sapply(gp$output()$value, function(i) is(i,"SingleEnum"))) &
-          (sapply(gp$output()$value, function(i) !is(i,"ColorEnum"))) &                (sapply(gp$output()$value, function(i) !is(i,"GlyphEnum")))],
-    function(i) {
-      l.wid[[i]] <<- SingleEnumParWidget(gp, i)
-      l.lab[[i]] <<- ParLabel(gp, i)
-      lyt$addRow(l.lab[[i]], l.wid[[i]])
-  })  
+                          (sapply(gp$output()$value, function(i) is(i,"SingleEnum"))) &
+                          (sapply(gp$output()$value, function(i) !is(i,"ColorEnum"))) &
+                          (sapply(gp$output()$value, function(i) !is(i,"GlyphEnum")))],
+         function(i) {
+           l.wid[[i]] <<- SingleEnumParWidget(gp, i)
+           l.lab[[i]] <<- ParLabel(gp, i)
+           lyt$addRow(l.lab[[i]], l.wid[[i]])
+         })  
 
   # multiple enum widgets
   sapply(gp$output()$pars[gp$output()$exposed & 
@@ -696,7 +697,14 @@ qsetClass("ParametersControlPanel", Qt$QWidget, function(gp, parent = NULL) {
     l.lab[[i]] <<- ParsLabel(gp, i)
     lyt$addRow(l.lab[[i]], l.wid[[i]])
   })  
-  
+
+  sapply(names(gp$parameters())[gp$parameters() == "AsIsOrnumeric"],
+         function(i) {
+    l.wid[[i]] <<- CharParWidget(gp, i)
+    l.lab[[i]] <<- ParsLabel(gp, i)
+    lyt$addRow(l.lab[[i]], l.wid[[i]])
+  })  
+
   # single enum widgets (not color or glyph enum)
   sapply(names(gp$parameters())[(sapply(names(gp$parameters()),
                             function(i) is(gp$field(i),"SingleEnum"))) &

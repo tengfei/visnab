@@ -150,6 +150,7 @@ hoverLeaveFun <- function(layer, event){
     viewrange$ranges <<- IRanges(pars$xlimZoom[1], pars$xlimZoom[2])
     qupdate(rectLayer)
   })
+  rootLayer$setGeometry(0,0,800, 50)
   ## layout <- rootLayer$gridLayout()
   ## layout$setRowStretchFactor(0,1)
 })

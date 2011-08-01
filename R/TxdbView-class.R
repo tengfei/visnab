@@ -303,30 +303,31 @@ TxdbView.gen$methods(createView = function(){
       if(length(st.int.r)>0)
         qdrawSegment(painter,st.int.r,10,ed.int.r,10,stroke="black")
 
-      if(diff(xlimZoom)<8e5){
-        unit <- as.integer(diff(xlimZoom)/50)
-      ## draw arrow to indicate strand
-        ## subset first
-        grsub <- GRanges(seqnames(viewrange), ranges = ranges(viewrange))
-        intsub <- subsetByOverlaps(int, grsub)
-        st.int <- start(intsub)
-        ed.int <- end(intsub)
-        lv.int <- values(intsub)$.level
-        ardf <- lapply(seq_along(st.int), function(i){
-          n <- round((ed.int[i]-st.int[i])/unit, dig = 0)
-          xs <- cbreaks(c(st.int[i], ed.int[i]), pretty_breaks(n))$breaks
-          xs <- xs[xs >= st.int[i] & xs <= ed.int[i]]
-          df <- data.frame(x = xs, y = rep(10, length(xs)))
-        })
-        ardf <- do.call("rbind", ardf)
-        ## negative strand
-        idx <- as.character(strand(intsub)) == "-"
-        arrow <- qglyphArrow(dir = "left")
-        qdrawGlyph(painter, arrow, ardf[idx, "x"], ardf[idx, "y"], cex = 0.5, fill = NA)
-        arrow <- qglyphArrow(dir = "right")
-        qdrawGlyph(painter, arrow, ardf[!idx, "x"], ardf[!idx, "y"], cex = 0.5, fill = NA)
-        ## positive strand
-      }
+      ## if(diff(xlimZoom)<8e5){
+      ##   unit <- as.integer(diff(xlimZoom)/50)
+      ## ## draw arrow to indicate strand
+      ##   ## subset first
+      ##   grsub <- GRanges(seqnames(viewrange), ranges = ranges(viewrange))
+      ##   intsub <- subsetByOverlaps(int, grsub)
+      ##   st.int <- start(intsub)
+      ##   ed.int <- end(intsub)
+      ##   lv.int <- values(intsub)$.level
+      ##   ardf <- lapply(seq_along(st.int), function(i){
+      ##     n <- round((ed.int[i]-st.int[i])/unit, dig = 0)
+      ##     xs <- cbreaks(c(st.int[i], ed.int[i]), pretty_breaks(n))$breaks
+      ##     xs <- xs[xs >= st.int[i] & xs <= ed.int[i]]
+      ##     df <- data.frame(x = xs, y = rep(10, length(xs)))
+      ##   })
+      ##   ardf <- do.call("rbind", ardf)
+      ##   ## negative strand
+      ##   idx <- as.character(strand(intsub)) == "-"
+      ##   ## reduce with no arrow
+      ##   ## arrow <- qglyphArrow(dir = "left")
+      ##   ## qdrawGlyph(painter, arrow, ardf[idx, "x"], ardf[idx, "y"], cex = 0.5, fill = NA)
+      ##   ## arrow <- qglyphArrow(dir = "right")
+      ##   ## qdrawGlyph(painter, arrow, ardf[!idx, "x"], ardf[!idx, "y"], cex = 0.5, fill = NA)
+      ##   ## positive strand
+      ## }
 
       pars$ylim <<- c(-20,40)
     }
@@ -372,6 +373,8 @@ TxdbView.gen$methods(createView = function(){
   pars$ylimChanged$connect(function(){
     rootLayer[0,0]$setLimits(qrect(pars$xlim,pars$ylim))
   })
+  if(pars$geom == "dense")
+    rootLayer$setGeometry(0, 0, 800, 50)
 })
 
 TxdbView.gen$methods(regSignal = function(){

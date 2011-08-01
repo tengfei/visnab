@@ -46,7 +46,12 @@ qsetMethod("parseSearchString", SearchBar, function(text, gr = NULL, ref = NULL)
   colon <- grepl(":",text,fixed=TRUE)
   minus <- grepl("-",text,fixed=TRUE)
   plus <- grepl("+",text,fixed=TRUE)
-
+  if((!colon) & (minus) ){
+  start <- as.numeric(unlist(strsplit(text, "-")))[1]
+  end <- as.numeric(unlist(strsplit(text, "-")))[2]
+  this$searchRange <- c(start, end)
+  this$rangeChanged()
+  }
   if(colon & minus) {  # seqname and interval specified
     # obtain seqname, start, end
     colonIdx <- regexpr(":",text,fixed=TRUE)

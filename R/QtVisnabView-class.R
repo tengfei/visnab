@@ -1,13 +1,13 @@
 ##----------------------------------------------------------##
 ##             For class "QtVisnabView"
 ##----------------------------------------------------------##
-setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
+setRefClass("QtVisnabView",
+            contains=c("VisnabView", "VIRTUAL"),
             fields=list(
               scene = "QGraphicsSceneORNULL",
               view = "Qanviz::PlotViewORNULL",
-              facetLayer = "Qanviz::RLayerORNULL",
+              facetLayer = "Qanviz::RLayerORNULL", # used for arranging facet?
               rootLayer = "Qanviz::RLayerORNULL",
-              ## hack, because current cache mode fail
               gridLayer = "Qanviz::RLayerORNULL",
               tooltipLayer = "Qanviz::RLayerORNULL",
               mode = "IModeGroup",
@@ -462,7 +462,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
               ## ----------------------------------------
               ##   GUI level
               ## ----------------------------------------
-              widget = function(gr, title, show = TRUE){
+              widget = function(gr, title, show = TRUE, searchBar = TRUE){
                 if(missing(title))
                   title <- paste(class(.self), "GUI")
                 if(missing(gr))
@@ -526,10 +526,17 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                   cpanel$setCurrentIndex(N-1)
                   leftDock$show()
                 })
-                ## toolsMenu$addSeparator()
-                legend <- 
-                menubar$addMenu(toolsMenu)
+
+                legendAction <- Qt$QAction("Graphic Legend", w)
+                toolsMenu$addAction(legendAction)
+                qconnect(legendAction, "triggered", function(){
+                  print("not implemented")
+                  ## cpanel$setCurrentIndex(N-1)
+                  ## leftDock$show()
+                })
                 
+                ## toolsMenu$addSeparator()
+                menubar$addMenu(toolsMenu)
                 menubar$addMenu(mode$menu(w))
 
                 ## reg signal for imode group
@@ -542,7 +549,7 @@ setRefClass("QtVisnabView",contains=c("VisnabView", "VIRTUAL"),
                 ## toolbar$addWidget(searchWid)
                 ## main widget
                 if(!is(.self, "TracksView")){
-                viewsearch <- SimpleViewer(view, gr = gr)
+                viewsearch <- SimpleViewer(view, gr = gr, searchBar = searchBar)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
                   if(length(vgr))

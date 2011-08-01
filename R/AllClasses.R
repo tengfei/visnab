@@ -1,4 +1,5 @@
 setClassUnion("AsIsORcharacter", c("AsIs","character"))
+## setClassUnion("AsIsORnumeric", c("AsIs","numeric"))
 
 setOldClass("QIcon")
 
@@ -8,29 +9,6 @@ setOldClass("QStackedWidget")
 setOldClass("QMainWindow")
 setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
 setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
-
-
-
-
-
-## qsetRefClass(Qt$QColor)
-## setOldClass("QColor")
-
-## setMethod("values", "QColor", function(x, ...){
-##   x$names()
-## })
-## ## suppose values only accepted characters
-## setReplaceMethod("values", "QColor", function(x, value){
-##   if(is(value, "QColor"))
-##     x <- value
-##   if(is.character(value)){
-##     x <- col2qcol(value)
-##   }else{
-##     stop("Values need to be a character or QColor object.")
-##   }
-##   x
-## })
-
 
 
 setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))

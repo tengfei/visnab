@@ -36,7 +36,7 @@ setRefClass("GraphicParameters",
                 ## hard coded exclued variables
                 idx <- !(names(flds) %in%
                          paste(".",  c("view", "parinfo", "tooltipinfo",
-                                       "exposed", "xlim", "ylim" ,
+                                       "exposed", "xlim", "ylim" , 
                                        "xlimZoom", "ylimZoom", "cpanel", "view"),
                                sep = ""))
                 flds <- flds[idx]
@@ -58,8 +58,8 @@ setRefClass("GraphicParameters",
                 lst <- list(pars = valnames, value = vals,
                             listeners = sigs, class = cls,
                             parinfo = parinfo2, tooltipinfo = tooltipinfo2,
-                            exposed = exposed2
-                            )
+                            exposed = exposed2)
+
                 return(lst)
               },
 
@@ -112,6 +112,7 @@ setGraphicPars <- function(viewname, gparslst,
                      "IntervalView",
                      "TxdbView",
                      "CoverageView",
+                     "BamView",
                      "AlignmentView",
                      "ScaleView",
                      "SingleChromView",
@@ -125,6 +126,7 @@ sapply(.AllVisnabViews, function(viewname){
                    xlim = "numeric",
                    ylim = "numeric",
                    view = "character",
+
                    ## fix on active binding of this geom
                    geom = .GeomName(viewname))
 

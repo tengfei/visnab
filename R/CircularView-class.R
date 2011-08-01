@@ -98,49 +98,6 @@ CircularView <- function(grl,
 CircularView.gen$methods(createView = function(){
   setDislayWidgets()
   setBgColor()
-  ## graphic device
-  ## if(is.null(scene)){
-  ##   scene <<- qscene()
-  ##   view <<- qplotView(scene,rescale = rescale)
-  ##   view$setDragMode(Qt$QGraphicsView$ScrollHandDrag)
-  ##   library(qtpaint)
-  ##   args(qlayer)
-  ##   rootLayer <<- qlayer(scene,
-  ##                 ## limits=qrect(c(-len,len),c(-len,len)),
-  ##                 keyPressFun=function(layer,event){
-  ##                   if(event$modifiers() == Qt$Qt$ControlModifier){
-  ##                     if(event$key() == Qt$Qt$Key_Equal)
-  ##                       view$scale(1.5,1.5)
-  ##                     if(event$key() == Qt$Qt$Key_Minus)
-  ##                       view$scale(1/1.5,1/1.5)
-  ##                     if(event$key() == Qt$Qt$Key_0)
-  ##                       view$resetTransform()
-  ##                     ## if(event$key() == Qt$Qt$Key_u)
-  ##                     ##    viewInUCSC(obj)
-  ##                   }},
-  ##                 ## mouseMoveFun=function(layer,event){
-  ##                 ##   pos <- as.numeric(event$pos())
-  ##                 ##   if(!is.null(visenv$new.view)){
-  ##                 ##     scene.pos <- layer$mapToScene(pos[1],pos[2])
-  ##                 ##     spos <- as.numeric(scene.pos)
-  ##                 ##     visenv$new.view$centerOn(spos[1],spos[2])
-  ##                 ##   }
-  ##                 ## },
-  ##                 wheelFun= function(layer, event) {
-  ##                   zoom_factor <- 1.5
-  ##                   if(event$delta()<0)
-  ##                     zoom_factor <- 1/1.5
-  ##                   view$scale(zoom_factor,zoom_factor)
-  ##                 },
-  ##                 geometry=qrect(0,0,700,700),cache=FALSE)
-
-  ## }
-  ## event
-  ## background
-  ## bgcol <- pars$bgColor
-  ## bgalpha <- pars$alpha
-  ## qcol <- col2qcol(bgcol,bgalpha)
-  ## scene$setBackgroundBrush(qbrush(qcol))
   ## ## settings
   length <- 100
   skip <- 3
@@ -492,7 +449,7 @@ CircularView.gen$methods(createView = function(){
     layer <- qlayer(rootLayer,paintFun=paintFun,
                     keyPressFun = keyPressEventZoom(),
                     limits=qrect(c(-len,len),c(-len,len)),cache=FALSE)
-
+    layer$setGeometry(0, 0, 600, 600)
     ## tracks[[n]]$elementMetadataChanged$connect(function(){
     ##   qupdate(layer)
     ## })

@@ -5,7 +5,7 @@
 VisnabView.gen <- setRefClass("VisnabView",
                               contains = c("VIRTUAL"),
                               fields = c(
-                                signalingField("colorLegend", "ColorLegendList"),
+                                signalingField("legend", "LegendList"),
                                 signalingField("viewrange", "SimpleMutableGRanges"),
                                 pars = "GraphicParameters",
                                 eventTrace = "EventTrace",

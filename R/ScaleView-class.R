@@ -152,6 +152,7 @@ hoverLeaveFun <- function(layer, event){
   rootLayer[0,0]$setLimits(qrect(0, -h/2-h/9-h/2,
                                  as.numeric(seqlengths(viewrange)), -h/2+h/9+h))
   pars$ylim <<- c(-h/2-h/9-h/2, -h/2+h/9+h)
+  rootLayer$setGeometry(0,0,800, 50)
   ## not define selectedDataModel in this one, do we need it?
   ## layer$setGeometry(0,0,600,100)
 })

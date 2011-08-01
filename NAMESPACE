@@ -76,7 +76,7 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
 
 ## Rsamtools
 importFrom(Rsamtools, ScanBamParam, scanBam, scanBamHeader,
-           PileupFiles, PileupParam)
+           PileupFiles, PileupParam , countBam)
 importMethodsFrom(Rsamtools, applyPileups)
 
 
