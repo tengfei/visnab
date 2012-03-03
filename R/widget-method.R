@@ -6,7 +6,7 @@ setGeneric("widget", function(obj, ...) standardGeneric("widget"))
 ## })
 
 ## graphic parameters kind of special..
-setMethod("widget", "GraphicParameters", function(obj){
+setMethod("widget", "Parameters", function(obj){
   obj$widget()
 })
 

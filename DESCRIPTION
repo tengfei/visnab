@@ -5,20 +5,17 @@ Description: VisNAB(VisNAB is Not A Browser) is a package developed in R, which 
 Author: Tengfei Yin, Michael Lawrence, Jason Crowley, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
 Depends: methods, utils, stats
-Imports: methods, utils, stats, IRanges(>= 1.11.10), GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-17), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals(>= 0.5.1), Biobase
+Imports: methods, utils, stats, BiocGenerics, IRanges(>= 1.11.10), GenomicRanges, MutableRanges, GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-17), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals, objectProperties, Biobase
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: AllClasses.R
+	 AllGenerics.R
 	 Enums-All.R
 	 AnnotatedWidget-class.R
-	 Item-class.R
-	 iMode-class.R
+	 Item-class.R	
 	 Group-class.R
+	 iMode-class.R
 	 EventTrace-class.R
-	 AllGenerics.R
-	 LinearView-class.R
-	 OverView-class.R
-	 visnab.R
          painter-utils.R
 	 utils.R	
 	 event-utils.R		
@@ -26,29 +23,14 @@ Collate: AllClasses.R
 	 GraphicPars-class.R
 	 ColorLegend-class.R
 	 ColorLegendList-class.R
+	 LinearView-class.R
 	 VisnabView-class.R
 	 QtVisnabView-class.R
-	 ScaleView-class.R
-	 SeqView-class.R	 
-	 SingleChromView-class.R
-         CircularView-class.R
-	 IntervalView-class.R
 	 CoverageView-class.R
-	 AlignmentView-class.R
-	 BamView-class.R
-	 GrandLinearView-class.R
-	 StackedView-class.R
-	 TxdbView-class.R
-	 TracksView-class.R
 	 Painter-class.R
-	 VisnabViewList-class.R
-	 VisnabProject-class.R
-	 SimpleViewer-GUI.R
-	 SearchBar-GUI.R
-         SearchBarList-GUI.R
-	 ControlPanel-GUI.R
-         AppWindow-GUI.R
 	 widget-method.R
 	 visplot-method.R
+	 visnab.R
+
 
 

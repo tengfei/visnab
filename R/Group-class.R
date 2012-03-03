@@ -1,17 +1,16 @@
 setRefClass("Group", contains = c("AnnotatedWidget", "VIRTUAL"))
-## items should be a mutalist of Item object
 setGroup <- function(name, 
                      contains = character(),
                      where = topenv(parent.frame())){
   nm <- paste(name, "Group", sep = "")
-  setRefClass(nm, contains = c("Group", contains),
-              where = where,
-              fields = c(
-                defaultId = "numeric",
-                signalingField("exclusive", "logical"),
-                signalingField("curId", "numeric"), #hack to register signal later
-                items = "SimpleItemList"
-                ),
+  setRefClass(nm, 
+              properties(
+                         fields = list(
+                           defaultId = "numeric",
+                           exclusive = "logical",
+                           curId = "numeric",
+                           items = "SimpleItemList"
+                           )),
               methods = list(
                 checkedId = function(){
                   which(unlist(lapply(items, function(item){
@@ -73,8 +72,8 @@ setGroup <- function(name,
                   actionList[[dID]]$setCheckable(TRUE)
                   actionList[[dID]]$setChecked(TRUE)
                   qconnect(actionList[[dID]], "triggered", function(){
-                           setId(dID)
-                         })
+                    setId(dID)
+                  })
                   
                   actionGroup$addAction(actionList[[dID]])
                   m$addAction(actionList[[dID]])
@@ -106,13 +105,10 @@ setGroup <- function(name,
                   exclusiveChanged$connect(function(){
                     .self$setId(defaultId)
                   })
-                }))
+                }),contains = c("Group", contains),
+              where = where)
 }
 
-
-## items <- ItemList(scale = ScaleMode(),
-##                   brush = BrushMode(),
-##                   identify = IdentifyMode())
 
 IModeGroup.gen <- setGroup("IMode")
 IModeGroup <- function(scaleMode = ScaleMode(),

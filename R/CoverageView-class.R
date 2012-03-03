@@ -15,7 +15,6 @@ CoverageView.gen <- setRefClass("CoverageView",
 ##----------------------------------------------------------------------##
 ##                   "CoverageView" constructor
 ##----------------------------------------------------------------------##
-
 CoverageView <- function(file,
                          seqname,
                          BSgenome = NULL,
@@ -45,15 +44,19 @@ CoverageView <- function(file,
   xlimZoom <- c(1, seqlength)
 
   viewrange <- MutableGRanges(seqname, IRanges(1, seqlength))
-  seqlengths(viewrange) <- seqlength
-  
+  ## seqlengths(viewrange) <- seqlength
+  viewrange$seqinfo@seqlengths <- as.integer(seqlength)
   pars <- GraphicPars(geom = geom, xlimZoom = xlimZoom, view = "CoverageView")
-  mode <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
-  obj <- CoverageView.gen$new(file = file, BSgenome = BSgenome, mode = mode,
+  md <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
+  CoverageView.gen$new(file = file)
+  obj <- CoverageView.gen$new(file = file,
+                              BSgenome = BSgenome, mode = md,
                               rescale = rescale,
                               eventTrace = new("EventTrace"),
                               viewrange = viewrange,
-                              pars = pars, lower = lower, cutbin = cutbin)
+                              pars = pars,
+                              lower = lower, cutbin = cutbin
+                              )
 
   obj$createView()
   obj$regSignal()
@@ -65,8 +68,7 @@ CoverageView <- function(file,
 ##---------------------------------------------------------##
 
 CoverageView.gen$methods(createView = function(){
-
-  seqname <- as.character(seqnames(viewrange))
+  seqname <- as.character(viewrange$seqnames)
   setDislayWidgets()
   setBgColor()
 
@@ -93,39 +95,42 @@ CoverageView.gen$methods(createView = function(){
   ## seqname <- sort(names(hd[[1]]$targets))[1]
   ## pars$seqlength <<- hd[[1]]$targets[seqname]
   pars$xlim <<- c(1, seqlengths(viewrange))
+  
   ## pars$xlimZoom <<- c(1, pars$seqlength)
-
 
   ## preset the level
   zoomLevel <- c(1e5, 1000,0)
   ## FIXME: make it flexible
+  message("Scanning bam files ...")
   bam <- scanBam(file, param = ScanBamParam(which = GRanges(seqnames = seqname,
                                               IRanges(1, seqlengths(viewrange))),
                          what = c("pos", "qwidth")))
   bam <- bam[[1]]
+  message("Parsing coverage")  
   ir <- GRanges(seqnames=seqname,
                 ranges=IRanges(start=bam$pos, width=bam$qwidth))
-  covg <- coverage(ir)
+  covg <- coverage(ir)[[1]]
   ## load("~/Datas/rdas/covlst.rda")
   ## covg <- covlst[[seqname]]
-  ir.v <- slice(covg,lower = lower)
+  ir.v <- slice(covg, lower = 10)
   xpos <- viewWhichMaxs(ir.v)
   ypos <- viewMaxs(ir.v)
-  
   ## take log?make transformation formal
   pars$ylim <<- expand_range(c(0, max(log(ypos+1))), mul = 0.05)
   ## pars$ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
   ## pars$ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
+  
   pfunCov <- function(layer,painter,exposed){
     pars$xlimZoomChanged$block()
     pars$xlimZoom <<- as.matrix(exposed)[,1]
     ## viewrange$ranges <<- pars$xlimZoom 
     if(!eventTrace$selfSignal){
-      viewrange$rangesChanged$unblock()
+      ## viewrange$changed$connect(function)
+      viewrange$changed$unblock()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
     }
     if(eventTrace$selfSignal){
-      viewrange$rangesChanged$block()
+      viewrange$changed$block()
       viewrange$ranges <<- IRanges(pars$xlimZoom[1] , pars$xlimZoom[2])
     }
     
@@ -223,17 +228,18 @@ CoverageView.gen$methods(regSignal = function(){
   pars$geomChanged$connect(function(){
     qupdate(scene)
   })
-  viewrange$seqnamesChanged$connect(function(){
-    hd <- scanBamHeader(file)
-    viewrange$seqnamesChanged$block()
-    seqlengths(viewrange) <<- hd[[1]]$targets[as.character(viewrange$seqnames)]
-    viewrange$seqnamesChanged$unblock()
-    rootLayer[0,0]$close()
-    view$resetTransform()
-    createView()
-    regSignal()
-  })
-  pars$bgColorChanged$connect(function(){
+  ## viewrange$seqnamesChanged$connect(function(){
+  ##   hd <- scanBamHeader(file)
+  ##   viewrange$seqnamesChanged$block()
+  ## viewrange$seqinfo@seqlengths <<- as.integer(hd[[1]]$targets[as.character(viewrange$seqnames)])
+  ##   ## seqlengths(viewrange) <<- 
+  ##   viewrange$seqnamesChanged$unblock()
+  ##   rootLayer[0,0]$close()
+  ##   view$resetTransform()
+  ##   createView()
+  ##   regSignal()
+  ## })
+  theme$bgColorChanged$connect(function(){
     bgcol <- pars$bgColor
     bgalpha <- pars$alpha
     qcol <- col2qcol(bgcol,bgalpha)
@@ -315,18 +321,12 @@ CoverageView.gen$methods(paintCovMismatch = function(painter){
            }))
            miscols[ism] <- "gray40"
 
-    ## assign color
-    ## cols <- genLegend(lgr, color = "read")$color
+
     dnacol <- baseColor(IRanges:::safeExplode("ACTGN"))
     cols <- unlist(lapply(rds, function(rd){
       dnacol[[rd]]
     }))
     cols[ism] <- "gray40"
-    ## values(lgr)$.color <- cols
-    ## FIXME: need flexible way to make transformation
-    ## paint coverage
-    ## .self$paintCovRect(painter)
-    ## only paint mismatch
     pars$ylim <<- expand_range(range(log(eds + 1)), mul = 0.05)
     ## qdrawRect(painter, start(lgr), sts,
     ##           start(lgr)+1, eds,

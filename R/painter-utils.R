@@ -1,8 +1,6 @@
 ##----------------------------------------------------------------------
 ##  These utils should be moved to qtpaint later
 ##----------------------------------------------------------------------
-
-
 ##' .. content for \description{} (no empty lines) ..
 ##'
 ##' .. content for \details{} ..
@@ -27,8 +25,6 @@ qglyphArrow <- function(x = 5, direction = c("left", "right")){
   glyph$lineTo(x,-x)
   glyph
 }
-
-
 
 qpathSector <- function(x,y,length,width,startAngle,sweepLength){
   len <- (length+width)*2
@@ -82,7 +78,6 @@ qpathCurveBundle <- function(startpoint1,controlpoint1,endpoint1,
 ##----------------------------------------------------------------------
 ##  own defined palletes
 ##----------------------------------------------------------------------
-
 bluered_pal <- function(){
   function(x){
     x <- cscale(x,rescale_pal())
@@ -128,10 +123,3 @@ div_prox_pal <- function(low = "blue", mid = "white", high = "red",
   }
 }
 
-
-## data should be MutalbeGRanges
-## painter utils
-## support floating first
-tooltipPainter <- function(pos, text){
- 
-}

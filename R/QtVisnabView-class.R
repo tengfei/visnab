@@ -23,7 +23,6 @@ setRefClass("QtVisnabView",
                 vals <- getQtEnum(mode$items$scaleMode$pars$dragMode)
                 view$setDragMode(vals)
               },
-              
               setDislayWidgets = function(dragMode = TRUE){
                 if(is.null(scene)){
                   scene <<- qscene()
@@ -40,8 +39,8 @@ setRefClass("QtVisnabView",
               
               setBgColor = function(bgcol = NULL){
                 if(is.null(bgcol))
-                  bgcol <- pars$bgColor
-                bgalpha <- pars$alpha
+                  bgcol <- theme$bgColor
+                bgalpha <- theme$alpha
                 qcol <- col2qcol(bgcol,bgalpha)
                 scene$setBackgroundBrush(qbrush(qcol))
               },
@@ -346,7 +345,7 @@ setRefClass("QtVisnabView",
 
               drawGrid = function(color) {
                 if(!missing(color))
-                  pars$gridBgColor <<- color
+                  theme$gridBgColor <<- color
                 rootLayer[3, 2] <<- gridLayer <<-
                   qlayer(scene, paintFun = gridPainter(), cache = TRUE)
                 pars$xlimChanged$connect(function(){
@@ -552,16 +551,16 @@ setRefClass("QtVisnabView",
                 viewsearch <- SimpleViewer(view, gr = gr, searchBar = searchBar)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
-                  if(length(vgr))
-                    range(.self) <- vgr
+                  ## if(length(vgr))
+                    ## range(.self) <- vgr
                 })
                 w$setCentralWidget(viewsearch)
               }else{
                 viewsearch <- SimpleViewer(view, gr = gr)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
-                  if(length(vgr))
-                    range(.self) <- vgr
+                  ## if(length(vgr))
+                    ## range(.self) <- vgr
                 })
               }
                 ## Status bar ###

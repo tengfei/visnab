@@ -2,26 +2,25 @@
 ## theme doesn't specify any signal events,
 ## use GraphicPars to decide which to emit signals
 ThemeSingleEnum <- setSingleEnum("Theme", levels = c("default", "dark"))
-setRefClass("Theme", fields = signalingFields(list(theme = "ThemeSingleEnum")),
-            contains = "VIRTUAL")
+## class ThemeSingleEnum@className
+## ClassName:: ThemeSingleEnum
+setClass("Theme", contains = "VIRTUAL")
+## setPropertySet("Theme", fields = properties(list(theme = "ThemeSingleEnum")))
 
-## setTheme gives no default
+## setTheme gives no default, help you 
 ## use constructor to define default
 setTheme <- function(prefix, pars=list(),
-                     where = topenv(parent.frame()),
-                     signalName = "ThemeChanged"){
+                     where = topenv(parent.frame())){
   if(!is.list(pars))
     stop("Parameters passed must be list")
   themename <- paste(prefix, "Theme", sep = "")
-  contains <- "Theme"
   if(length(pars))
-    pretheme.gen <- setRefClass(themename, fields = signalingFields(pars,
-                                             signalName = signalName),
-                                contains = contains,
-                                where = where)
+    pretheme.gen <- setPropertySet(themename, fields = c(pars, list(theme = "ThemeSingleEnum")),
+                                   where = where, contains = c("Theme", "PropertySet"))
   else
-    pretheme.gen <- setRefClass(themename,
-                                contains = contains, where = where)
+    pretheme.gen <- setPropertySet(themename, where = where,
+                                   contains = c("Theme", "PropertySet"))
+
   
   pretheme.gen$methods(update = function(...){
     new <- list(...)
@@ -45,6 +44,7 @@ setTheme <- function(prefix, pars=list(),
   return(pretheme.gen)
 }
 
+
 .DefaultTheme <- function(){
   ## parinfo used for showing actual name, easy to read
   parinfolst <- list(bgColor = "Background color",
@@ -57,7 +57,7 @@ setTheme <- function(prefix, pars=list(),
                      fill = "Fill color",
                      bin = "Histogram bin number",
                      stroke = "Stroke color",
-                     pointSize = "Point Size",
+                     ## pointSize = "Point Size",
                      alpha = "Alhpha blending(glyphs if any)",
                      bgAlpha = "Alpha blending(Background)",
                      hoverColor = "Color(when mouse hover)",
@@ -88,7 +88,7 @@ setTheme <- function(prefix, pars=list(),
                          fill = "no tool tip defined yet",
                          bin = "PositiveInteger",
                          stroke = "no tool tip defined yet",
-                         pointSize = "Point size",
+                         ## pointSize = "Point size",
                          alpha = "no tool tip defined yet",
                          bgAlpha = "no tool tip defined yet",
                          hoverColor = "no tool tip defined yet",
@@ -120,7 +120,7 @@ setTheme <- function(prefix, pars=list(),
                      color = FALSE,
                      fill = TRUE,
                      stroke = TRUE,
-                     pointSize = TRUE,
+                     ## pointSize = TRUE,
                      alpha = TRUE,
                      bgAlpha = FALSE,
                      hoverColor = TRUE,
@@ -151,7 +151,7 @@ setTheme <- function(prefix, pars=list(),
               color = I("black"),
               fill = new("Color","black"),
               stroke = new("Color","black"),
-              pointSize = new("PointSizeSingleEnum", "1"),
+              ## pointSize = new("PointSizeSingleEnum", "1"),
               alpha = new("NumericWithMin0Max1", 1),
               bgAlpha = new("NumericWithMin0Max1", 1),
               hoverColor = new("Color","blue"),
@@ -186,7 +186,7 @@ setTheme <- function(prefix, pars=list(),
                     color = "AsIsORcharacter",
                     fill = "Color",
                     stroke = "Color",
-                    pointSize = "PointSizeSingleEnum",
+                    ## pointSize = "PointSizeSingleEnum",
                     alpha = "NumericWithMin0Max1",
                     bin = "PositiveInteger",
                     hoverColor = "Color",
@@ -232,15 +232,17 @@ update_opts <- function(..., data){
   return(data)
 }
 
+
 DefaultTheme.gen <- setTheme("Default", pars = .defFields())
 ## Constructor
 DefaultTheme <- function(...){
   lst <- .DefaultTheme()
-  obj <- DefaultTheme.gen$new(theme = new("ThemeEnum", "default"))
+  obj <- DefaultTheme.gen$new(theme = new("ThemeSingleEnum", "default"))
   obj$update(lst)
   obj$update(...)
   obj
 }
+
 ## following theme only revise a little bit
 .DarkTheme <- function(){
   lst <- .DefaultTheme()
@@ -250,10 +252,9 @@ DefaultTheme <- function(...){
 
 DarkTheme <- function(...){
   lst <- .DarkTheme()
-  obj <- DefaultTheme.gen$new(theme = new("ThemeEnum", "dark"))
+  obj <- DefaultTheme.gen$new(theme = new("ThemeSingleEnum", "dark"))
   obj$update(lst)
   obj$update(...)
   obj
 }
-
 

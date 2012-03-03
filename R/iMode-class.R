@@ -21,20 +21,24 @@ setMethod("getQtEnum", "DragModeSingleEnum", function(x){
                 RubberBandDrag = Qt$QGraphicsView$RubberBandDrag)
 })
 
+
 setSingleEnum("ZoomMode", levels = c("Vertical", "Horizontal", "Both", "Off"))
 
 ## ======================================================================
 ## iMode class
 ## ======================================================================
 setClass("iMode", contains = "VIRTUAL")
+
 setMode <- function(name, modes,
                     contains = character(),
                     where = topenv(parent.frame())){
   nm <- paste(name, "Mode", sep = "")
-  pars <- setParameters(nm, modes)
+  ## contains <- c("PropertySet", contains)
   parsName <- paste(nm, "Parameters", sep = "")
-  setRefClass(nm, fields = list(pars = parsName),
-              contains = c("iMode", "Item", contains),
+  pars <- setPropertySet(parsName, modes)
+  ## parsName <- pars$className
+  setRefClass(nm, fields = list(pars = pars$className),
+              contains = c("iMode",  "Item", contains),
               where = where,
               methods = list(
                 initialize = function(t = as.character(class(.self)), ...){
@@ -43,13 +47,12 @@ setMode <- function(name, modes,
                 }))
 }
 
+
+
 ScaleMode.gen <- setMode("Scale",
                           list(dragMode = "DragModeSingleEnum",
                                zoomMode = "ZoomModeSingleEnum"))
-## ScaleMode.gen$methods(setScaleMode =
-##                       function(md = c("dragMode", "zoomMode"), value){
-##   .self$pars$field(md, value)
-## })
+
 ScaleMode <- function(dragMode = "ScrollHandDrag",
                       zoomMode = "Vertical",
                       ...){
@@ -58,17 +61,10 @@ ScaleMode <- function(dragMode = "ScrollHandDrag",
 }
 
 
-
 BrushMode.gen <- setMode("Brush",
                           list(brushMode = "BrushModeSingleEnum",
                                pointBrushMode = "PointBrushModeSingleEnum",
                                edgeBrushMode = "EdgeBrushModeSingleEnum"))
-
-## BrushMode.gen$methods(setBrushMode =
-##                       function(md = c("brushMode", "pointBrushMode", "edgeBrushMode"),
-##                                value){
-##   .self$pars$field(md, value)
-## })
 
 BrushMode <- function(brushMode = "Off",
                       pointBrushMode = "Off",
@@ -85,11 +81,6 @@ IdentifyMode.gen <- setMode("Identify",
                             list(tooltipMode = "TooltipModeSingleEnum",
                                  tooltipPos = "TooltipPosSingleEnum",
                                  hoverMode = "LogicalSingleEnum"))
-## IdentifyMode.gen$methods(setIdentifyMode =
-##                       function(md = c("tooltipMode", "tooltipPos", "hoverMode"),
-##                                value){
-##   .self$pars$field(md, value)
-## })
 
 IdentifyMode <- function(tooltipMode = "Off",
                          tooltipPos = "Float",

@@ -4,13 +4,14 @@
 importFrom(methods, show)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
-importFrom(objectSignals, signalingField, signalingFields, Signal)
-importMethodsFrom(objectSignals, length, listeners)
-importClassesFrom(objectSignals, Signal)
+import(objectSignals)
+import(objectProperties)
 importFrom(plumbr, mutaframe, mutalist)
 import(qtbase)
 import(qtpaint)
 import(scales)
+importFrom(BiocGenerics, cbind, rbind, unique,
+           lapply, sapply, setdiff, Reduce)
 ## Biobase
 importClassesFrom(Biobase, AssayData)
 
@@ -37,6 +38,7 @@ importMethodsFrom(IRanges,
 
 importClassesFrom(IRanges, AsIs, Annotated, List, Vector, SimpleList)
 
+
 ## ## GenomicRanges
 ############################################################
 importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo,
@@ -52,17 +54,14 @@ importClassesFrom(GenomicFeatures,TranscriptDb)
 
 
 ## ## MutableRanges
-importClassesFrom(MutableRanges, MutableGRanges,Parameters, 
-                  PositiveInteger, NonnegativeInteger,
-                  NegativeInteger, NonpositiveInteger,
-                  NumericWithMin0Max1, Enum,
-                  SingleEnum, MultipleEnum, OverlapTypeSingleEnum)
+import(MutableRanges)
+## importClassesFrom(MutableRanges, MutableGRanges,
+##                   OverlapTypeSingleEnum)
 
-importFrom(MutableRanges, setSingleEnum, setMultipleEnum,
-           setParameters, MutableGRanges, setNumericWithRange)
+## importFrom(MutableRanges, MutableGRanges)
 
-importMethodsFrom(MutableRanges, 
-                  elementMetadataChanged, rangesChanged)
+## importMethodsFrom(MutableRanges, 
+##                   elementMetadataChanged, rangesChanged)
 ## BSgenome
 importClassesFrom(BSgenome, BSgenome)
 importMethodsFrom(BSgenome, getSeq)
@@ -83,44 +82,33 @@ importMethodsFrom(Rsamtools, applyPileups)
 ############################################################
 ## Export
 ############################################################
-exportMethods(
-              ## removePrefix,
-              ## validateChr,
-              ## addPrefix,
-              ## sortChr,
-              ## orderChr,
-              ## replaceChr,
-              ## "[[",
-              unlist,
-              lapply,
-              c,
+exportMethods(unlist,lapply,
               length,
-              names,
-              print,
-              icons,
+              print)
+              ## icons,
               ## viewInBrowser,
               ## visnabGUI,
-              range,
-              "range<-",
+              ## range,
+              ## "range<-",
               ## selectedRangesModel,
               ## "selectedRangesModel<-",
-              geom,
-              "geom<-",
-              aes)
+              ## geom,
+              ## "geom<-",
+              ## aes)
 
 
 ## ## Constructor
 export(GraphicPars,
-       IntervalView,
-       CircularView,
-       AlignmentView,
-       CoverageView,
-       SeqView,
-       StackedView,
-       TracksView,
-       TxdbView,
-       VisnabViewList,
-       VisnabProject)
+       ## IntervalView,
+       ## CircularView,
+       ## AlignmentView,
+       CoverageView)
+       ## SeqView,
+       ## StackedView,
+       ## TracksView,
+       ## TxdbView,
+       ## VisnabViewList,
+       ## VisnabProject)-
 
 ## exportClasses("numericORNULL",
 ##               "characterORNULL",
@@ -132,11 +120,11 @@ exportClasses(ColorEnum, GlyphEnum)
 ## GUI
 ##exportClasses(SearchBar)
 ## exportMethods(SearchBar)
-export(SearchBar, ControlPanel, SimpleViewer,
-       setGraphicPars)
+## export(SearchBar, ControlPanel, SimpleViewer,
+##        setGraphicPars)
 
 ## ## utils method
-export("getIdeogram")
+## export("getIdeogram")
 
 ## for temporary
 exportPattern("^[^\\.]")

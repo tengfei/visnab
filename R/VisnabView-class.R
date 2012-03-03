@@ -1,19 +1,23 @@
 ##------------------------------------------------------------##
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
-
 VisnabView.gen <- setRefClass("VisnabView",
-                              contains = c("VIRTUAL"),
-                              fields = c(
-                                signalingField("legend", "LegendList"),
-                                signalingField("viewrange", "SimpleMutableGRanges"),
-                                pars = "GraphicParameters",
+                              fields = list(
+                                ## legend = "LegendList",
+                                viewrange = "SimpleMutableGRanges",
+                                pars = "Parameters",
+                                theme = "Theme",
                                 eventTrace = "EventTrace",
                                 tooltipinfo = "character",
                                 viewname = "character"
-                                ))
+                                ),contains = c("VIRTUAL"),
+                                methods = list(initialize = function(...){
+                                  .self$theme <<- DefaultTheme()
+                                  callSuper(...)
+                              }))
 
 
+## TODO: need to make a aes list
 setMethod("aes", "VisnabView", function(x){
   cat("Graphic Parameters:\n")
   cat("--------------------\n")
@@ -43,48 +47,47 @@ setMethod("show","VisnabView",function(object){
 ##' @param ... 
 ##' @return \code{GRanges} object which indicate the visualized region.
 ##' @author tengfei
-setMethod("range", "VisnabView", function(x,...){
-  return(x$viewrange)
-})
+## setMethod("range", "VisnabView", function(x,...){
+##   return(x$viewrange)
+## })
 
-setReplaceMethod("range", "VisnabView", function(x, value){
-  if(is(value, "IRanges")){
-    if(length(value)>1)
-      stop("Viewed range can only be of length 1")
-    x$pars$xlimZoom <- c(start(value), end(value))
-    ## ranges(x$viewrange) <- value
-  }
-  if(is(value, "numeric")){
-    if(length(value)!=2)
-      stop("Please specify start and end value")
-    if(diff(value)<=0)
-      stop("Viewed range cannot be less than 0")
-    x$pars$xlimZoom <- value
-    ## ranges(x$viewrange) <- IRanges(value[1], value[2])
-  }
-  if(is(value, "character")){
-    if(substr(value,1,3) != "chr")
-      stop("Please follow the routine when naming the seqnames,
-            with prefix 'chr',such as chr1, chrX ...")
-    ## seqnames(x$seqinfo) <- value
-    seqnames(x$viewrange) <- value
-  }
-  if(extends(class(value),"GenomicRanges")){
-    if(length(value)>1)
-      stop("Viewed range can only be of length 1")
-    seqname <- as.character(seqnames(value))
-    if(substr(as.character(seqname),1,3) != "chr")
-      stop("Please follow the routine when naming the seqnames,
-            with prefix 'chr',such as chr1, chrX ...")
-    ## x$pars$xlimZoomChanged$block()
-    ## x$pars$seqname <- seqname
-    seqnames(x$viewrange) <- seqname
-    x$pars$xlimZoom <- c(start(value), end(value))
-    ## x$pars$xlimZoomChanged$unblock()
-  }
-  x
-})
-
+## setReplaceMethod("range", "VisnabView", function(x, value){
+##   if(is(value, "IRanges")){
+##     if(length(value)>1)
+##       stop("Viewed range can only be of length 1")
+##     x$pars$xlimZoom <- c(start(value), end(value))
+##     ## ranges(x$viewrange) <- value
+##   }
+##   if(is(value, "numeric")){
+##     if(length(value)!=2)
+##       stop("Please specify start and end value")
+##     if(diff(value)<=0)
+##       stop("Viewed range cannot be less than 0")
+##     x$pars$xlimZoom <- value
+##     ## ranges(x$viewrange) <- IRanges(value[1], value[2])
+##   }
+##   if(is(value, "character")){
+##     if(substr(value,1,3) != "chr")
+##       stop("Please follow the routine when naming the seqnames,
+##             with prefix 'chr',such as chr1, chrX ...")
+##     ## seqnames(x$seqinfo) <- value
+##     seqnames(x$viewrange) <- value
+##   }
+##   if(extends(class(value),"GenomicRanges")){
+##     if(length(value)>1)
+##       stop("Viewed range can only be of length 1")
+##     seqname <- as.character(seqnames(value))
+##     if(substr(as.character(seqname),1,3) != "chr")
+##       stop("Please follow the routine when naming the seqnames,
+##             with prefix 'chr',such as chr1, chrX ...")
+##     ## x$pars$xlimZoomChanged$block()
+##     ## x$pars$seqname <- seqname
+##     seqnames(x$viewrange) <- seqname
+##     x$pars$xlimZoom <- c(start(value), end(value))
+##     ## x$pars$xlimZoomChanged$unblock()
+##   }
+##   x
+## })
 
 
 ## setReplaceMethod("selectedRangesModel", "VisnabView", function(x,value){

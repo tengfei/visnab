@@ -1,6 +1,5 @@
+setOldClass("AsIs")
 setClassUnion("AsIsORcharacter", c("AsIs","character"))
-## setClassUnion("AsIsORnumeric", c("AsIs","numeric"))
-
 setOldClass("QIcon")
 
 setOldClass("QWidget")
@@ -28,8 +27,6 @@ setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("characterORNULL", c("character", "NULL"))
 setClassUnion("functionORNULL", c("function","NULL"))
 setClassUnion("logicalORNULL", c("logical","NULL"))
-
-setClass("Color", contains = "character")
 
 setOldClass("mutaframe")
 setAs("MutableGRanges", "mutaframe", function(from) {
