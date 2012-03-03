@@ -1,1 +1,0 @@
-setRefClass("OverView", contains = "VIRTUAL")
