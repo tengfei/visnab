@@ -1,7 +1,7 @@
 ############################################################
 ## Import
 ############################################################
-importFrom(methods, show)
+import(methods)
 importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
 import(objectSignals)
