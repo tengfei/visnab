@@ -144,7 +144,7 @@ CoverageView.gen$methods(createView = function(){
       viewrange$ranges <<- IRanges(xlimZoom[1] , xlimZoom[2])
     }
     xlimZoomChanged$unblock()
-    xlimZoom <- as.matrix(exposed)[,1]
+    xlimZoom <<- as.matrix(exposed)[,1]
     ##======================================================================
     ## geom == "total"
     ##======================================================================
