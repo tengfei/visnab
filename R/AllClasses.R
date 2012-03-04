@@ -24,8 +24,6 @@ setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
 
 setClassUnion("numericORcharacter", c("numeric", "character"))
 setClassUnion("numericORNULL", c("numeric","NULL"))
-setClassUnion("characterORNULL", c("character", "NULL"))
-setClassUnion("functionORNULL", c("function","NULL"))
 setClassUnion("logicalORNULL", c("logical","NULL"))
 
 setOldClass("mutaframe")

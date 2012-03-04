@@ -38,7 +38,8 @@ importMethodsFrom(IRanges,
                   aggregate, append,
                   colnames, "colnames<-", lapply, sapply)
 
-importClassesFrom(IRanges, AsIs, Annotated, List, Vector, SimpleList)
+importClassesFrom(IRanges, AsIs, Annotated, List, Vector, SimpleList,
+                  characterORNULL, functionORNULL)
 
 
 ## ## GenomicRanges
