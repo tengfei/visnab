@@ -1,8 +1,14 @@
 ##------------------------------------------------------------##
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
+
 VisnabView.gen <- setRefClass("VisnabView",
-                              fields = list(
+                              fields = c(properties(list(
+                                xlimZoom = "numeric",
+                                ylimZoom= "numeric",
+                                xlim = "numeric",
+                                ylim = "numeric")),
+                                list(
                                 ## legend = "LegendList",
                                 viewrange = "SimpleMutableGRanges",
                                 pars = "Parameters",
@@ -10,7 +16,7 @@ VisnabView.gen <- setRefClass("VisnabView",
                                 eventTrace = "EventTrace",
                                 tooltipinfo = "character",
                                 viewname = "character"
-                                ),contains = c("VIRTUAL"),
+                                )),contains = c("VIRTUAL"),
                                 methods = list(initialize = function(...){
                                   .self$theme <<- DefaultTheme()
                                   callSuper(...)
@@ -51,43 +57,47 @@ setMethod("show","VisnabView",function(object){
 ##   return(x$viewrange)
 ## })
 
-## setReplaceMethod("range", "VisnabView", function(x, value){
-##   if(is(value, "IRanges")){
-##     if(length(value)>1)
-##       stop("Viewed range can only be of length 1")
-##     x$pars$xlimZoom <- c(start(value), end(value))
-##     ## ranges(x$viewrange) <- value
-##   }
-##   if(is(value, "numeric")){
-##     if(length(value)!=2)
-##       stop("Please specify start and end value")
-##     if(diff(value)<=0)
-##       stop("Viewed range cannot be less than 0")
-##     x$pars$xlimZoom <- value
-##     ## ranges(x$viewrange) <- IRanges(value[1], value[2])
-##   }
-##   if(is(value, "character")){
-##     if(substr(value,1,3) != "chr")
-##       stop("Please follow the routine when naming the seqnames,
-##             with prefix 'chr',such as chr1, chrX ...")
-##     ## seqnames(x$seqinfo) <- value
-##     seqnames(x$viewrange) <- value
-##   }
-##   if(extends(class(value),"GenomicRanges")){
-##     if(length(value)>1)
-##       stop("Viewed range can only be of length 1")
-##     seqname <- as.character(seqnames(value))
-##     if(substr(as.character(seqname),1,3) != "chr")
-##       stop("Please follow the routine when naming the seqnames,
-##             with prefix 'chr',such as chr1, chrX ...")
-##     ## x$pars$xlimZoomChanged$block()
-##     ## x$pars$seqname <- seqname
-##     seqnames(x$viewrange) <- seqname
-##     x$pars$xlimZoom <- c(start(value), end(value))
-##     ## x$pars$xlimZoomChanged$unblock()
-##   }
-##   x
-## })
+setReplaceMethod("range", "VisnabView", function(x, value){
+  if(is(value, "IRanges")){
+    if(length(value)>1)
+      stop("Viewed range can only be of length 1")
+    x$xlimZoom <- c(start(value), end(value))
+    ## ranges(x$viewrange) <- value
+  }
+  if(is(value, "numeric")){
+    if(length(value)!=2)
+      stop("Please specify start and end value")
+    if(diff(value)<=0)
+      stop("Viewed range cannot be less than 0")
+   x$xlimZoom <- value
+    ## ranges(x$viewrange) <- IRanges(value[1], value[2])
+  }
+  if(is(value, "character")){
+    x$viewrange$changed$block()
+    seqnames(x$viewrange) <- factor(value, levels = levels(seqnames(x$viewrange)))
+    start(x$viewrange) <- 1
+    x$viewrange$changed$unblock()    
+    end(x$viewrange) <- seqlengths(x$viewrange)[value]
+  }
+  if(extends(class(value),"GenomicRanges")){
+    if(length(value)>1)
+      stop("Viewed range can only be of length 1")
+    seqname <- as.character(seqnames(value))
+    .back <- x$viewrange
+    x$viewrange$changed$block()
+    seqnames(x$viewrange) <- factor(seqname, levels = levels(seqnames(.back)))
+    ## x$viewrange$seqnames <- factor(seqname, levels = levels(seqnames(.back)))
+    start(x$viewrange) <- start(value)
+    x$viewrange$changed$unblock()    
+    end(x$viewrange) <- end(value)
+    ## seqnames(x$viewrange) <- seqname
+    ## x$viewrange$seqnames <- seqnames
+    ## x$viewrange <- .back
+    x$xlimZoom <- c(start(value), end(value))
+    ## x$xlimZoomChanged$unblock()
+  }
+  x
+})
 
 
 ## setReplaceMethod("selectedRangesModel", "VisnabView", function(x,value){

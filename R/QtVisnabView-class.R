@@ -530,8 +530,7 @@ setRefClass("QtVisnabView",
                 toolsMenu$addAction(legendAction)
                 qconnect(legendAction, "triggered", function(){
                   print("not implemented")
-                  ## cpanel$setCurrentIndex(N-1)
-                  ## leftDock$show()
+
                 })
                 
                 ## toolsMenu$addSeparator()
@@ -551,16 +550,16 @@ setRefClass("QtVisnabView",
                 viewsearch <- SimpleViewer(view, gr = gr, searchBar = searchBar)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
-                  ## if(length(vgr))
-                    ## range(.self) <- vgr
+                  if(length(vgr))
+                    range(.self) <- vgr
                 })
                 w$setCentralWidget(viewsearch)
               }else{
                 viewsearch <- SimpleViewer(view, gr = gr)
                 qconnect(viewsearch, "rangeChanged", function(){
                   vgr <- viewsearch$getSearchRange()
-                  ## if(length(vgr))
-                    ## range(.self) <- vgr
+                  if(length(vgr))
+                    range(.self) <- vgr
                 })
               }
                 ## Status bar ###
@@ -572,11 +571,11 @@ setRefClass("QtVisnabView",
                 w
               },
               gcp = function(){
-                cpanel <<- pars$widget(FALSE)
+                cpanel <<- pars$widget()
                 cpanel$show()
               },
               regSignal = function(){
-                pars$ThemeChanged$connect(function(){
+                theme$changed$connect(function(){
                   qupdate(scene)
                 })
               },

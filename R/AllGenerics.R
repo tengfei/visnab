@@ -3,7 +3,7 @@ setGeneric("print")
 setGeneric("geom",function(x,...) standardGeneric("geom"))
 setGeneric("geom<-",function(x,value) standardGeneric("geom<-"))
 
-## setGeneric("range<-",function(x,value) standardGeneric("range<-"))
+setGeneric("range<-",function(x,value) standardGeneric("range<-"))
 ## with "s"
 setGeneric("selectedRangesModel", function(obj,...)
            standardGeneric("selectedRangesModel"))

@@ -6,12 +6,14 @@ importFrom(utils, head, tail)
 importFrom(stats, start, end, update, aggregate)
 import(objectSignals)
 import(objectProperties)
+import(objectWidgets)
 importFrom(plumbr, mutaframe, mutalist)
 import(qtbase)
 import(qtpaint)
 import(scales)
 importFrom(BiocGenerics, cbind, rbind, unique,
            lapply, sapply, setdiff, Reduce)
+import(biovizBase)
 ## Biobase
 importClassesFrom(Biobase, AssayData)
 

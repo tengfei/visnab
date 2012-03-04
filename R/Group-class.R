@@ -47,7 +47,7 @@ setGroup <- function(name,
                     id <- id[1]
                   }
                   ## cp <- Qt$QDockWidget()
-                  ParametersControlPanel(items[[id]]$pars)
+                 ControlPanel(items[[id]]$pars)
                   ## items$pars
                   ## par <- item$.pars
                   

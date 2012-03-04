@@ -68,14 +68,9 @@ setTheme <- function(prefix, pars=list(),
                      theme = "Theme",
                      geom = "Geometry",
                      cpal = "Palletes(Continuous variables)",
-                     dpal = "Palletes(Discrete variables)",
-                      ## fake for GUI test
-                     fake1 = "PositiveInteger",
-                     fake2 = "NonnegativeInteger",
-                     fake3 = "NegativeInteger",
-                     fake4 = "NonpositiveInteger",
-                     fake6 = "MultipleEnum",
-                     fake7 = "character")
+                     dpal = "Palletes(Discrete variables)")
+
+
 
   ## tooltipinfo used for showing tooltip, wihch is descriptive
   tooltipinfolst <- list(bgColor = "no tool tip defined yet",
@@ -99,15 +94,9 @@ setTheme <- function(prefix, pars=list(),
                          theme = "no tool tip defined yet",
                          geom = "no tool tip defined yet",
                          cpal = "no tool tip defined yet",
-                         dpal = "no tool tip defined yet",
+                         dpal = "no tool tip defined yet")
                          ## fake for GUI test
                          ## fake for GUI test
-                         fake1 = "PositiveInteger",
-                         fake2 = "NonnegativeInteger",
-                         fake3 = "NegativeInteger",
-                         fake4 = "NonpositiveInteger",
-                         fake6 = "MultipleEnum",
-                         fake7 = "character")
 
 
   ## exposed decide which parameters exposed to users
@@ -132,14 +121,7 @@ setTheme <- function(prefix, pars=list(),
                      theme = TRUE,
                      geom = TRUE,
                      cpal = FALSE,
-                     dpal = FALSE,
-                     ## fake for GUI test
-                     fake1 = FALSE,
-                     fake2 = FALSE,
-                     fake3 = FALSE,
-                     fake4 = FALSE,
-                     fake6 = FALSE,
-                     fake7 = TRUE)
+                     dpal = FALSE)
 
   ## default is "white", light them
   def <- list(bgColor = new("bgColorSingleEnum","white"),
@@ -151,29 +133,18 @@ setTheme <- function(prefix, pars=list(),
               color = I("black"),
               fill = new("Color","black"),
               stroke = new("Color","black"),
-              ## pointSize = new("PointSizeSingleEnum", "1"),
               alpha = new("NumericWithMin0Max1", 1),
               bgAlpha = new("NumericWithMin0Max1", 1),
               hoverColor = new("Color","blue"),
               bin = new("PositiveInteger",10),
-              ## xlimZoom = numeric(),
-              ## ylimZoom = numeric(),
-              ## xlim = numeric(),
-              ## ylim = numeric(),
-              ## geom = new("Enum"),
               theme = new("ThemeSingleEnum", "default"),
               cpal = new("CPalSingleEnum", "identity"),
               dpal = new("DPalSingleEnum", "brewer"),
               parinfo = parinfolst,
               tooltipinfo = tooltipinfolst,
-              exposed = exposedlst,
-              ## fake for GUI test
-              fake1 = new("PositiveInteger", 1L),
-              fake2 = new("NonnegativeInteger", 0L),
-              fake3 = new("NegativeInteger", -1L),
-              fake4 = new("NonpositiveInteger", 0L),
-              fake6 = new("MultipleEnum", levels = LETTERS[1:10], c("A", "B")),
-              fake7 = "input text")
+              exposed = exposedlst)
+
+
 }
 
 .defFields <- function(){
@@ -197,14 +168,8 @@ setTheme <- function(prefix, pars=list(),
                     tooltipinfo = "list",
                     ## geom = "enum",
                     ## theme = "ThemeEnum",
-                    exposed = "list",
+                    exposed = "list")
                     ## fake for GUI test
-                    fake1 = "PositiveInteger",
-                    fake2 = "NonnegativeInteger",
-                    fake3 = "NegativeInteger",
-                    fake4 = "NonpositiveInteger",
-                    fake6 = "MultipleEnum",
-                    fake7 = "character")
 }
 
 

@@ -1,16 +1,17 @@
 ##-----------------------------------------------------------------##
 ##                Class GrahpicPars
 ##-----------------------------------------------------------------##
-setOldClass("R::visnab::ControlPanel")
+## setOldClass("R::visnab::ControlPanel")
 
 setClass("Parameters", contains = c("VIRTUAL"))
 
-setPars <- function(viewname, pars = list(), prototype = list(),
+setPars <- function(viewname, pars = list(), prototype = list(), ..., 
                            contains = c("Parameters", "PropertySet"),
                            where = topenv(parent.frame())){
   names <- paste(viewname, "Pars", sep = "")
-    setPropertySet(names, pars, prototype,
+    setPropertySet(names, pars, prototype, ..., 
                    contains = contains)
+
 }
 
 .AllVisnabViews <- c("VisnabView",
@@ -25,16 +26,16 @@ setPars <- function(viewname, pars = list(), prototype = list(),
                      "TracksView",
                      "CircularView")
 
-sapply(.AllVisnabViews, function(viewname){
-  gparslst <- list(xlimZoom = "numeric",
-                   ylimZoom= "numeric",
-                   xlim = "numeric",
-                   ylim = "numeric",
-                   view = "character",
-                   ## fix on active binding of this geom
-                   geom = .GeomName(viewname))
-  setPars(viewname, gparslst)
-})
+## sapply(.AllVisnabViews, function(viewname){
+##   gparslst <- list(xlimZoom = "numeric",
+##                    ylimZoom= "numeric",
+##                    xlim = "numeric",
+##                    ylim = "numeric",
+##                    view = "character",
+##                    ## fix on active binding of this geom
+##                    geom = .GeomName(viewname))
+##   setPars(viewname, gparslst)
+## })
 
 .GParsName <- function(viewname){
   paste(viewname, "Pars", sep = "")
@@ -63,7 +64,7 @@ GraphicPars <- function(..., view = "VisnabView", theme = "default"){
   ## switch geom
   geom <- .Geom(view)
   cls <- .GParsName(view)
-  gp <- new(cls, geom = geom)
+  gp <- new(cls, ..., geom = geom)
   ## gp$setTheme(theme)
   ## gp$update(...)
   return(gp)
