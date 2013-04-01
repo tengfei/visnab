@@ -11,15 +11,10 @@ LazyLoad: Yes
 Collate: AllClasses.R
 	 AllGenerics.R
 	 Enums-All.R
-	 AnnotatedWidget-class.R
-	 Item-class.R	
-	 Group-class.R
-	 iMode-class.R
 	 EventTrace-class.R
          painter-utils.R
 	 utils.R	
 	 event-utils.R		
-	 Theme-class.R
 	 GraphicPars-class.R
 	 ColorLegend-class.R
 	 ColorLegendList-class.R

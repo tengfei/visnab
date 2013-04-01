@@ -1,32 +1,29 @@
 setOldClass("AsIs")
 setClassUnion("AsIsORcharacter", c("AsIs","character"))
-setOldClass("QIcon")
+setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 
+setOldClass("QIcon")
 setOldClass("QWidget")
 setOldClass("QDockWidget")
 setOldClass("QStackedWidget")
 setOldClass("QMainWindow")
-setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
-setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
-
-
-setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
-
 setOldClass("mutalist")
 setOldClass("QGraphicsScene")
 setOldClass("QGraphicsView")
 setOldClass("Qanviz::RLayer")
 setOldClass("Qanviz::PlotView")
+setOldClass("mutaframe")
 
+setClassUnion("QWidgetORNULL",c("QWidget","NULL"))
+setClassUnion("QMainWindowORNULL",c("QMainWindow","NULL"))
 setClassUnion("QGraphicsSceneORNULL", c("QGraphicsScene","NULL"))
 setClassUnion("Qanviz::RLayerORNULL", c("Qanviz::RLayer","NULL"))
 setClassUnion("Qanviz::PlotViewORNULL", c("Qanviz::PlotView","NULL"))
-
 setClassUnion("numericORcharacter", c("numeric", "character"))
 setClassUnion("numericORNULL", c("numeric","NULL"))
 setClassUnion("logicalORNULL", c("logical","NULL"))
 
-setOldClass("mutaframe")
+
 setAs("MutableGRanges", "mutaframe", function(from) {
   makeValueBindingFun <- function(cn) {
     function(val) {
