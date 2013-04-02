@@ -32,6 +32,7 @@ CoverageView.gen <- setRefClass("CoverageView",
 ##----------------------------------------------------------------------##
 ##                   "CoverageView" constructor
 ##----------------------------------------------------------------------##
+
 CoverageView <- function(file,
                          seqname,
                          BSgenome = NULL,
@@ -42,6 +43,7 @@ CoverageView <- function(file,
                          binNum = 50L, 
                          hint = FALSE,  #not implemented
                          ...){
+
 
   ## get params
   geom <- match.arg(geom)
@@ -60,7 +62,6 @@ CoverageView <- function(file,
   seqlength <- hd[[1]]$targets
 
   xlimZoom <- c(1, seqlength[seqname])
-
   viewrange <- MutableGRanges(factor(seqname, levels = sort(.levels)),
                               IRanges(1, seqlength[seqname]),
                               seqlengths = seqlength)
@@ -70,7 +71,7 @@ CoverageView <- function(file,
                       lower = lower, binNum  = PositiveInteger(binNum), 
                       view = "CoverageView")
 
-  md <- IModeGroup(scaleMode = ScaleMode(zoomMode = "Horizontal"))
+  md <- IModeGroupWidget(scaleMode = ScaleMode(zoomMode = "Horizontal"))
   obj <- CoverageView.gen$new(file = file,
                               xlimZoom = xlimZoom,
                               BSgenome = BSgenome, mode = md,
@@ -96,8 +97,7 @@ CoverageView.gen$methods(createView = function(){
   setDislayWidgets()
   setBgColor()
   hd <- scanBamHeader(file)
-  xlim <<- c(1, seqlengths(viewrange)[seqname])
-  ## xlimZoom <<- c(start(viewrange), end(viewrange))
+    xlim <<- c(1, seqlengths(viewrange)[seqname])
   pars$zoomLevel <<- c(1e6, 1e5,0)
   pars$zoomLevel.cur <<- 1
   ## if(width(viewrange) > pars$zoomLevel[1]){

@@ -4,8 +4,8 @@ Title: VisNAB: An Interactive Toolkit for Visualizing and Exploring Genomic Data
 Description: VisNAB(VisNAB is Not A Browser) is designed for visualization of genomic data, especially for next generation sequencing data. Besides traditional track-based views,VisNAB also aims to offer alternative views, including Bird-Eye overview, circular view, etc. At the same time, it also provides statistical cues and analytical tools for guiding scientists to find he information of interests. With support of QT library and related API in R, it's possible to make interactive graphics for visualizing and exploring huge amount of data with high performance. This toolkit with other packages in Bioconductor could form a powerful analytical pipeline for exploring the genomic data.
 Author: Tengfei Yin, Michael Lawrence, Jason Crowley, Nicholas Lewin-Koh, Dianne Cook, Robert Gentleman
 Maintainer: Tengfei Yin <yintengfei@gmail.com>
-Depends: methods, utils, stats
-Imports: methods, utils, stats, BiocGenerics, IRanges(>= 1.13.28), GenomicRanges, MutableRanges (>= 0.6.1), GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-17), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals, objectProperties, objectWidgets, Biobase, biovizBase
+Depends: methods, utils, stats, objectWidgetsQt
+Imports: methods, utils, stats, BiocGenerics, IRanges(>= 1.13.28), GenomicRanges, MutableRanges (>= 0.6.1), GenomicFeatures, rtracklayer, Rsamtools, qtbase (>= 0.8-17), qtpaint, plumbr, scales, BSgenome(>= 1.21.3), objectSignals, objectProperties, objectWidgets, objectWidgetsQt, Biobase, biovizBase
 License: GPL (>=2)
 LazyLoad: Yes
 Collate: AllClasses.R
@@ -24,9 +24,6 @@ Collate: AllClasses.R
 	 CoverageView-class.R
 	 Painter-class.R
 	 widget-method.R
-	 SearchBar-GUI.R
-	 SearchBarList-GUI.R
-	 SimpleViewer-GUI.R
 	 visplot-method.R
 	 visnab.R
 

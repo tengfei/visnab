@@ -1,4 +1,4 @@
-setGeneric("widget", function(obj, ...) standardGeneric("widget"))
+## setGeneric("widget", function(obj, ...) standardGeneric("widget"))
 
 ## for parameters
 ## setMethod("widget", "Parameters", function(obj){

@@ -53,46 +53,8 @@ setSingleEnum("CircularViewGeom", levels = c("default"))
 }
 
 
-##-----------------------------------------------------------------##
-##                Class CPalEnum
-##-----------------------------------------------------------------##
-CPalSingleEnum <- setSingleEnum("CPal", levels = c("area", "gradient", "grey",
-                              "identity", "manual", "rescales"))
-
-##-----------------------------------------------------------------##
-##                Class DPalEnum
-##-----------------------------------------------------------------##
-DPalSingleEnum <- setSingleEnum("DPal", levels = c("brewer", "dichromat", "hue",
-                              "identity", "manual"))
-
-##-----------------------------------------------------------------##
-##                Class RescaleSingleEnum
-##-----------------------------------------------------------------##
-RescaleSingleEnum <- setSingleEnum("Rescale",
-                                   levels = c("geometry", "transform", "none"))
 
 
-##-----------------------------------------------------------------##
-##                Class ImodeEnum
-##-----------------------------------------------------------------##
-## TODO
-
-
-##-----------------------------------------------------------------##
-##                Class ThemeEnum
-##-----------------------------------------------------------------##
-## TODO
-
-##==================================================================
-##                 
-##==================================================================
-##-----------------------------------------------------------------##
-## ##                Class ColorEnum for limited paletes
-## ##-----------------------------------------------------------------##
-bgColorSingleEnum <- setColorEnum("bgColor", levels = c("black", "white", "gray"))
-shadowColorSingleEnum <- setColorEnum("ShadowColor",
-                                  levels = c("gray",
-                                    "black", "white"))
 
 ## setClass("GlyphEnum", contains = "VIRTUAL")
 ## setSingleEnum("PointSize", levels = c("1", "2", "5", "10"), contains = "GlyphEnum")
