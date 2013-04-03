@@ -1,5 +1,3 @@
-setOldClass("AsIs")
-setClassUnion("AsIsORcharacter", c("AsIs","character"))
 setClassUnion("BSgenomeORNULL",c("BSgenome","NULL"))
 
 setOldClass("QIcon")

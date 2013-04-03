@@ -14,7 +14,7 @@ import(qtpaint)
 import(scales)
 importFrom(BiocGenerics, cbind, rbind, unique,
            lapply, sapply, setdiff, Reduce)
-importClassesFrom(BiocGenerics, AsIs)
+## importClassesFrom(BiocGenerics, AsIs)
 import(biovizBase)
 ## Biobase
 importClassesFrom(Biobase, AssayData)
@@ -50,7 +50,7 @@ importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo
            seqlengths, "seqlengths<-")
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   start, end, width, "start<-", "end<-", "width<-",
-                  seqnames, strand, seqinfo, show,
+                  seqnames, strand, seqinfo, show, seqlevels,
                    "elementMetadata<-", elementMetadata,
                   as.data.frame)
 importClassesFrom(GenomicRanges, GRanges, GenomicRanges, Seqinfo)
@@ -80,7 +80,7 @@ importFrom(rtracklayer, browserSession, genome, "genome<-",
 
 ## Rsamtools
 importFrom(Rsamtools, ScanBamParam, scanBam, scanBamHeader,
-           PileupFiles, PileupParam , countBam)
+           PileupFiles, PileupParam , countBam, BamFile)
 importMethodsFrom(Rsamtools, applyPileups)
 
 

@@ -10,7 +10,7 @@ setRefClass("QtVisnabView",
               rootLayer = "Qanviz::RLayerORNULL",
               gridLayer = "Qanviz::RLayerORNULL",
               tooltipLayer = "Qanviz::RLayerORNULL",
-              mode = "IModeGroupWidget",
+              mode = "IModeGroupWidgetQt",
               leftDock = "QDockWidget",
               cpanel = "QStackedWidget",
               rescale = "RescaleSingleEnum"),
@@ -22,6 +22,7 @@ setRefClass("QtVisnabView",
                 mode$items$scaleMode$pars$dragMode <<- value
                 vals <- getQtEnum(mode$items$scaleMode$pars$dragMode)
                 view$setDragMode(vals)
+                qupdate(scene)
               },
               setDislayWidgets = function(dragMode = TRUE){
                 if(is.null(scene)){
@@ -492,7 +493,7 @@ setRefClass("QtVisnabView",
                 loadFileAction <- Qt$QAction("Load from file", w)
                 qconnect(loadFileAction, "triggered", function() {
                   nameFilter <- paste("BAM files (*.bam *.bai)",
-                                      "vCard files (*.vcf)",
+                                      "vcf files (*.vcf)",
                                       "All files (*.*)", 
                                       sep=";;")
 
@@ -509,7 +510,6 @@ setRefClass("QtVisnabView",
                 ## Menubar ###
                 menubar <- Qt$QMenuBar()
                 w$setMenuBar(menubar)
-                
                 fileMenu <- Qt$QMenu("File")
                 fileMenu$addAction(loadWSAction)
                 fileMenu$addAction(loadFileAction)

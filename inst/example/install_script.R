@@ -1,0 +1,7 @@
+source("http://bioconductor.org/biocLite.R")
+## biocLite(c("biovizBase", "GenomicRanges", "GenomicFeatures", "rtracklayer", "Rsamtools"))
+if(!require(devtools)) install.packages("devtools")
+library(devtools)
+install_github("objectWidgetsQt", "tengfei")
+install("https://hedgehog.fhcrc.org/bioconductor/trunk/madman/Rpacks/MutableRanges")
+install_github("visnab", "tengfei")

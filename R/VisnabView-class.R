@@ -1,7 +1,6 @@
 ##------------------------------------------------------------##
 ## Top defined strucutrue to store fixed slots
 ##------------------------------------------------------------##
-
 VisnabView.gen <- setRefClass("VisnabView",
                               fields = c(properties(list(
                                 xlimZoom = "numeric",
@@ -62,21 +61,19 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     if(length(value)>1)
       stop("Viewed range can only be of length 1")
     x$xlimZoom <- c(start(value), end(value))
-    ## ranges(x$viewrange) <- value
   }
   if(is(value, "numeric")){
     if(length(value)!=2)
       stop("Please specify start and end value")
     if(diff(value)<=0)
       stop("Viewed range cannot be less than 0")
-   x$xlimZoom <- value
-    ## ranges(x$viewrange) <- IRanges(value[1], value[2])
+   x$xlimZoom <- c(min(value), max(value))
   }
   if(is(value, "character")){
-    x$viewrange$changed$block()
+    signal(x$viewrange)$block()
     seqnames(x$viewrange) <- factor(value, levels = levels(seqnames(x$viewrange)))
     start(x$viewrange) <- 1
-    x$viewrange$changed$unblock()    
+    signal(x$viewrange)$unblock()    
     end(x$viewrange) <- seqlengths(x$viewrange)[value]
   }
   if(extends(class(value),"GenomicRanges")){
@@ -84,17 +81,12 @@ setReplaceMethod("range", "VisnabView", function(x, value){
       stop("Viewed range can only be of length 1")
     seqname <- as.character(seqnames(value))
     .back <- x$viewrange
-    x$viewrange$changed$block()
+    signal(x$viewrange)$block()
     seqnames(x$viewrange) <- factor(seqname, levels = levels(seqnames(.back)))
-    ## x$viewrange$seqnames <- factor(seqname, levels = levels(seqnames(.back)))
     start(x$viewrange) <- start(value)
-    x$viewrange$changed$unblock()    
+    signal(x$viewrange)$unblock()    
     end(x$viewrange) <- end(value)
-    ## seqnames(x$viewrange) <- seqname
-    ## x$viewrange$seqnames <- seqnames
-    ## x$viewrange <- .back
     x$xlimZoom <- c(start(value), end(value))
-    ## x$xlimZoomChanged$unblock()
   }
   x
 })

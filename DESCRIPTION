@@ -23,6 +23,9 @@ Collate: AllClasses.R
 	 QtVisnabView-class.R
 	 CoverageView-class.R
 	 Painter-class.R
+         SearchBar-GUI.R	
+	 SearchBarList-GUI.R	 
+         SimpleViewer-GUI.R		 
 	 widget-method.R
 	 visplot-method.R
 	 visnab.R
