@@ -21,6 +21,7 @@ Install object* and visnab
 ```r
 if(!require(devtools)) install.packages("devtools")
 library(devtools)
+install_github("objectWidgets", "ggobi")
 install_github("objectWidgetsQt", "tengfei")
 install_github("visnab", "tengfei")
 ```
