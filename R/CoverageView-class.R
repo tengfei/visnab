@@ -106,22 +106,8 @@ CoverageView.gen$methods(createView = function(){
   setBgColor()
   hd <- scanBamHeader(file)
   xlim <<- c(1, seqlengths(viewrange)[seqname])
-  pars$zoomLevel <<- c(1e6, 1e4, 1e3, 0)
+  pars$zoomLevel <<- c(1e6, 5e4, 5e4-1, 1e3, 0)
   pars$zoomLevel.cur <<- 1
-  ## if(width(viewrange) > pars$zoomLevel[1]){
-  ## FIXME: make it flexible
-    ## message("Scanning bam files ...")
-    ## bam <- scanBam(file, param = ScanBamParam(which = GRanges(seqnames = seqname,
-    ##                                             IRanges(1,   seqlengths(viewrange)[seqname])),
-    ##                        what = c("pos", "qwidth")))
-    ## bam <- bam[[1]]
-    ## message("Parsing coverage")  
-    ## ir <- GRanges(seqnames=seqname,
-    ##               ranges=IRanges(start=bam$pos, width=bam$qwidth))
-    ## covg <- coverage(ir)[[1]]
-    ## ir.v <- slice(covg, lower = 10)
-    ## xpos <- viewWhichMaxs(ir.v)
-    ## ypos <- viewMaxs(ir.v)
   
   cur.gr <- cachedCoverage[seqnames(cachedCoverage) == seqname]
   xpos <- (start(cur.gr) + end(cur.gr))/2
@@ -129,27 +115,8 @@ CoverageView.gen$methods(createView = function(){
   idx <- order(xpos)
   xpos <- xpos[idx]
   ypos <- ypos[idx]
-  ## ypos <- log2(ypos + 1)
   res <<-  data.frame(xpos = xpos, ypos = ypos)  
   ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
-##      scene <- qscene()
-##      layer <- qlayer(scene, function(layer, painter) {
-##        qdrawPolygon(painter, c(0, 1:10, 11), c(0, 1:10, 0), "black", "black")
-##      }, limits = qrect(0, 0, 11, 11))
-##      view <- qplotView(scene)
-##      view$show()
-## ?qdrawLine  
-  ## }else{
-  ##   print("FALSE")
-  ##   .diff <- width(viewrange)
-  ##   sts <- seq(start(viewrange)-.diff, end(viewrange) + .diff, length.out = pars$binNum)
-  ##   gr.v <<- GRanges(viewrange$seqnames@values,
-  ##                    IRanges(start = sts, width = diff(sts)[1]))
-  ##   res <<- countBam(file, param = ScanBamParam(which = gr.v))
-  ##   ylim <<- expand_range(c(0, log(max(res$record +1))), mul = 0.05)
-  ## }
-  ## ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
-  ## ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
 
   gr.v <<- GRanges(seqnames(viewrange)@values, IRanges(start = 1, width = 1)  )
   pfunCov <- function(layer,painter,exposed){
@@ -173,6 +140,16 @@ CoverageView.gen$methods(createView = function(){
     if(pars$geom == "total"){
       ## level 1
       if(diff(xlimZoom)>pars$zoomLevel[1]){
+        if(pars$zoomLevel.cur != 1){
+          cur.gr <- cachedCoverage[seqnames(cachedCoverage) == seqname]
+          xpos <- (start(cur.gr) + end(cur.gr))/2
+          ypos <- cur.gr$score
+          idx <- order(xpos)
+          xpos <- xpos[idx]
+          ypos <- ypos[idx]
+          res <<-  data.frame(xpos = xpos, ypos = ypos)  
+          ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
+        }
         .self$paintCovSeg(painter, res)
          pars$zoomLevel.cur <<- 1                
       }
@@ -180,31 +157,51 @@ CoverageView.gen$methods(createView = function(){
       if(diff(xlimZoom)<=pars$zoomLevel[1] &
          diff(xlimZoom)>pars$zoomLevel[2]){
         if(pars$zoomLevel.cur != 2){
-          .diff <- diff(xlimZoom)
-            message("computing bam count...")
-            sts <- seq(xlimZoom[1]-0.2* .diff, xlimZoom[2] + 0.2 * .diff,
-                       length.out = pars$binNum)
-          gr.v <<- GRanges(seqnames(viewrange)@values,
-                           IRanges(start = sts, width = diff(sts)[1]))
-            res <<- countBam(file, param = ScanBamParam(which = gr.v))
-        }else{
-          .diff <- diff(xlimZoom)
-          if(xlimZoom[2] >= max(end(gr.v)) | xlimZoom[1] <= min(start(gr.v))){
-            message("clear cache... recomputing bam count...")
-            sts <- seq(xlimZoom[1]- 0.2*.diff, xlimZoom[2] + 0.2*.diff,
-                       length.out = pars$binNum)
-            gr.v <<- GRanges(seqnames(viewrange)@values,
-                                           IRanges(start = sts, width = diff(sts)[1]))
-            res <<- countBam(file, param = ScanBamParam(which = gr.v))
-          }
-      }
-        .self$paintCovRect(painter, res)
-         pars$zoomLevel.cur <<- 2        
+          cur.gr <- cachedCoverage[seqnames(cachedCoverage) == seqname]
+          xpos <- (start(cur.gr) + end(cur.gr))/2
+          ypos <- cur.gr$score
+          idx <- order(xpos)
+          xpos <- xpos[idx]
+          ypos <- ypos[idx]
+          res <<-  data.frame(xpos = xpos, ypos = ypos)  
+          ylim <<- expand_range(c(0, max(ypos)), mul = 0.05)
+        }
+        .self$paintCovHist(painter, res, bin = 1e4)
+         pars$zoomLevel.cur <<- 2                
       }
       ## level 3
-      if(diff(xlimZoom)<=pars$zoomLevel[2] &
-         diff(xlimZoom)>pars$zoomLevel[3]){
-        if(pars$zoomLevel.cur != 3){
+      ## if(diff(xlimZoom)<=pars$zoomLevel[2] &
+      ##    diff(xlimZoom)>pars$zoomLevel[3]){
+      ##   if(pars$zoomLevel.cur != 3){
+      ##     .diff <- diff(xlimZoom)
+      ##       message("computing bam count...")
+      ##       ## nbin <- (end(range(gr.v)) - start(range(gr.v)))/
+      ##       ##   (diff(xlimZoom)/pars$binNum)
+      ##       nbin <- 100
+      ##       sts <- seq(xlimZoom[1]-0.25 * .diff, xlimZoom[2] + 0.25 * .diff,
+      ##                  length.out = nbin)
+      ##       gr.v <<- GRanges(seqnames(viewrange)@values,
+      ##                        IRanges(start = sts, width = diff(sts)[1]))
+      ##       res <<- countBam(file, param = ScanBamParam(which = gr.v))
+      ##   }else{
+      ##     .diff <- diff(xlimZoom)
+      ##     if(xlimZoom[2] >= max(end(gr.v)) | xlimZoom[1] <= min(start(gr.v))){
+      ##       message("clear cache... recomputing bam count...")
+      ##       nbin <- 100
+      ##       sts <- seq(xlimZoom[1]- 0.25*.diff, xlimZoom[2] + 0.25*.diff,
+      ##                  length.out = nbin)
+      ##       gr.v <<- GRanges(seqnames(viewrange)@values,
+      ##                                      IRanges(start = sts, width = diff(sts)[1]))
+      ##       res <<- countBam(file, param = ScanBamParam(which = gr.v))
+      ##     }
+      ## }
+      ##   .self$paintCovRect(painter, res)
+      ##    pars$zoomLevel.cur <<- 3        
+      ## }
+      ## level 4
+      if(diff(xlimZoom)<=pars$zoomLevel[3] &
+         diff(xlimZoom)>pars$zoomLevel[4]){
+        if(pars$zoomLevel.cur != 4){
           .diff <- diff(xlimZoom)
           ir <- ranges(viewrange)
           gr.v <<- GRanges(seqnames(viewrange),
@@ -232,12 +229,12 @@ CoverageView.gen$methods(createView = function(){
           }
       }
         .self$paintCovHist(painter, res)
-         pars$zoomLevel.cur <<- 3       
+         pars$zoomLevel.cur <<- 4       
       }
-      ## level 4
-      if(diff(xlimZoom)<=pars$zoomLevel[3] &
-         diff(xlimZoom)>pars$zoomLevel[4]){
-        if(pars$zoomLevel.cur != 4){
+      ## level 5
+      if(diff(xlimZoom)<=pars$zoomLevel[4] &
+         diff(xlimZoom)>pars$zoomLevel[5]){
+        if(pars$zoomLevel.cur != 5){
           .diff <- diff(xlimZoom)
           message("computing bam stepping...")
           ir <- ranges(viewrange)
@@ -263,7 +260,7 @@ CoverageView.gen$methods(createView = function(){
           }
         }
         .self$paintStep(painter, res)
-         pars$zoomLevel.cur <<- 4        
+         pars$zoomLevel.cur <<- 5        
       }
     }
     ##======================================================================
