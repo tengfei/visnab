@@ -182,7 +182,8 @@ CoverageView.gen$methods(createView = function(){
         if(pars$zoomLevel.cur != 2){
           .diff <- diff(xlimZoom)
             message("computing bam count...")
-            sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
+            sts <- seq(xlimZoom[1]-0.2* .diff, xlimZoom[2] + 0.2 * .diff,
+                       length.out = pars$binNum)
           gr.v <<- GRanges(seqnames(viewrange)@values,
                            IRanges(start = sts, width = diff(sts)[1]))
             res <<- countBam(file, param = ScanBamParam(which = gr.v))
@@ -190,7 +191,8 @@ CoverageView.gen$methods(createView = function(){
           .diff <- diff(xlimZoom)
           if(xlimZoom[2] >= max(end(gr.v)) | xlimZoom[1] <= min(start(gr.v))){
             message("clear cache... recomputing bam count...")
-            sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
+            sts <- seq(xlimZoom[1]- 0.2*.diff, xlimZoom[2] + 0.2*.diff,
+                       length.out = pars$binNum)
             gr.v <<- GRanges(seqnames(viewrange)@values,
                                            IRanges(start = sts, width = diff(sts)[1]))
             res <<- countBam(file, param = ScanBamParam(which = gr.v))
@@ -208,8 +210,7 @@ CoverageView.gen$methods(createView = function(){
           gr.v <<- GRanges(seqnames(viewrange),
                         IRanges(start(ir) - .diff, end(ir) + .diff))
           suppressMessages(temp <- biovizBase:::fetch(BamFile(file), which = gr.v, type = "raw"))
-          temp <- GenomicRanges::keepSeqlevels(temp,
-                                               as.character(unique(seqnames(temp))))
+          temp <- keepSeqlevels(temp, as.character(unique(seqnames(temp))))
           seqlengths(temp) <- end(gr.v)
           covs <- coverage(temp)[[1]]
           ypos <- as.numeric(covs[start(gr.v):end(gr.v)])

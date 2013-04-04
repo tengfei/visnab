@@ -727,8 +727,8 @@ setRefClass("QtVisnabView",
                     sx <- sy <- 1
                   ## pos.s <- as.numeric(event$scenePos())
                   ## pos <- as.numeric(event$pos())
-                  ## if (event$delta() < 0)
-                  ##   sx <- 1/sx
+                  if (event$delta() < 0)
+                    sx <- 1/sx
                   ## mid <- c(mean(.self$xlimZoom),mean(.self$ylim))
                   ## mid.cur <- pos[1]- (pos[1]-mid[1])*(1/sx)
                   ## ## centerOn <- as.numeric(rootLayer[3, 2]$mapToScene(mid.cur, mid[2]))
