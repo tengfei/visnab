@@ -47,7 +47,7 @@ importClassesFrom(IRanges, Annotated, List, Vector, SimpleList,
 ## ## GenomicRanges
 ############################################################
 importFrom(GenomicRanges, "seqnames<-","strand<-", GRanges, GRangesList, Seqinfo,
-           seqlengths, "seqlengths<-")
+           seqlengths, "seqlengths<-", keepSeqlevels)
 importMethodsFrom(GenomicRanges, ranges, "ranges<-",
                   start, end, width, "start<-", "end<-", "width<-",
                   seqnames, strand, seqinfo, show, seqlevels,

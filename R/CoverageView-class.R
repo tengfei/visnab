@@ -24,6 +24,7 @@ CoverageView.gen <- setRefClass("CoverageView",
                                   gr.v = "GRanges",
                                   res = "data.frame",
                                   cached = "logical",
+                                  cachedYlim = "numeric", 
                                   cachedSeqnames = "character",
                                   cachedCoverage = "GRanges"
                                   ))
@@ -178,24 +179,24 @@ CoverageView.gen$methods(createView = function(){
       ## level 2
       if(diff(xlimZoom)<=pars$zoomLevel[1] &
          diff(xlimZoom)>pars$zoomLevel[2]){
-      ##   if(pars$zoomLevel.cur != 2){
-      ##     .diff <- diff(xlimZoom)
-      ##       message("computing bam count...")
-      ##       sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
-      ##     gr.v <<- GRanges(seqnames(viewrange)@values,
-      ##                      IRanges(start = sts, width = diff(sts)[1]))
-      ##       res <<- countBam(file, param = ScanBamParam(which = gr.v))
-      ##   }else{
-      ##     .diff <- diff(xlimZoom)
-      ##     if(xlimZoom[2] >= max(end(gr.v)) | xlimZoom[1] <= min(start(gr.v))){
-      ##       message("clear cache... recomputing bam count...")
-      ##       sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
-      ##       gr.v <<- GRanges(seqnames(viewrange)@values,
-      ##                                      IRanges(start = sts, width = diff(sts)[1]))
-      ##       res <<- countBam(file, param = ScanBamParam(which = gr.v))
-      ##     }
-      ## }
-        .self$paintCovHist(painter, res, bin = 1e3)
+        if(pars$zoomLevel.cur != 2){
+          .diff <- diff(xlimZoom)
+            message("computing bam count...")
+            sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
+          gr.v <<- GRanges(seqnames(viewrange)@values,
+                           IRanges(start = sts, width = diff(sts)[1]))
+            res <<- countBam(file, param = ScanBamParam(which = gr.v))
+        }else{
+          .diff <- diff(xlimZoom)
+          if(xlimZoom[2] >= max(end(gr.v)) | xlimZoom[1] <= min(start(gr.v))){
+            message("clear cache... recomputing bam count...")
+            sts <- seq(xlimZoom[1]-.diff, xlimZoom[2] + .diff, length.out = pars$binNum)
+            gr.v <<- GRanges(seqnames(viewrange)@values,
+                                           IRanges(start = sts, width = diff(sts)[1]))
+            res <<- countBam(file, param = ScanBamParam(which = gr.v))
+          }
+      }
+        .self$paintCovRect(painter, res)
          pars$zoomLevel.cur <<- 2        
       }
       ## level 3
@@ -371,11 +372,12 @@ CoverageView.gen$methods(regSignal = function(){
 
 CoverageView.gen$methods(paintCovSeg = function(painter, res){
   qdrawSegment(painter,res$xpos,0, res$xpos, res$ypos,stroke="gray40")
-  ## ylim <<- expand_range(c(0, max(res$ypos)), mul = 0.05)    
+  ylim <<- expand_range(c(0, max(res$ypos)), mul = 0.05)    
 })
 
 CoverageView.gen$methods(paintCovHist = function(painter, res, bin = 1){
-  qdrawRect(painter,res$xpos, 0, res$xpos + bin, res$ypos,stroke="gray40", fill = "gray40")
+  qdrawRect(painter,res$xpos, 0, res$xpos + bin,
+            res$ypos,stroke="gray40", fill = "gray40")
   ylim <<- expand_range(c(0, max(res$ypos)), mul = 0.05)  
 })
 
@@ -392,11 +394,11 @@ CoverageView.gen$methods(paintCovHist = function(painter, res, bin = 1){
 
 ## })
 
-## CoverageView.gen$methods(paintCovRect = function(painter, res){
-##     qdrawRect(painter, res$start, 0, res$end,
-##               log(res$records + 1),fill="gray40", stroke = "white")
-##     ylim <<- expand_range(c(0, max(log(res$records + 1)), mul = 0.05)      
-## })
+CoverageView.gen$methods(paintCovRect = function(painter, res){
+    qdrawRect(painter, res$start, 0, res$end,
+              res$records, fill="gray40", stroke = "white")
+    ylim <<- expand_range(c(0, max(res$records)), mul = 0.05)      
+})
 
 CoverageView.gen$methods(paintStep = function(painter, res){
     qdrawRect(painter, res$start, res$stepping -0.4, res$end,

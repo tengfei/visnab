@@ -709,12 +709,14 @@ setRefClass("QtVisnabView",
                       view$scale(sx, sy)
                     if(event$key() == Qt$Qt$Key_Minus)
                       view$scale(1/sx, 1/sy)
-                    if(event$key() == Qt$Qt$Key_0)
+                    if(event$key() == Qt$Qt$Key_0){
                       view$resetTransform()
+                      .self$createView()
+                    }
                   }
                 }
               },
-              wheelEventZoom = function(sx = 1.5, sy = 1.5){
+              wheelEventZoom = function(sx = 1.1, sy = 1.1){
                 function(layer, event){
                   zoommode <- mode$items$scaleMode$pars$zoomMode
                   if(zoommode == "Vertical")
@@ -723,17 +725,18 @@ setRefClass("QtVisnabView",
                     sy <- 1
                   if(zoommode == "Off")
                     sx <- sy <- 1
-                  pos.s <- as.numeric(event$scenePos())
-                  pos <- as.numeric(event$pos())
-                  if (event$delta() < 0)
-                    sx <- 1/sx
-                  mid <- c(mean(pars$xlimZoom),mean(pars$ylim))
-                  mid.cur <- pos[1]- (pos[1]-mid[1])*(1/sx)
-                  centerOn <- as.numeric(rootLayer[3, 2]$mapToScene(mid.cur, mid[2]))
+                  ## pos.s <- as.numeric(event$scenePos())
+                  ## pos <- as.numeric(event$pos())
+                  ## if (event$delta() < 0)
+                  ##   sx <- 1/sx
+                  ## mid <- c(mean(.self$xlimZoom),mean(.self$ylim))
+                  ## mid.cur <- pos[1]- (pos[1]-mid[1])*(1/sx)
+                  ## ## centerOn <- as.numeric(rootLayer[3, 2]$mapToScene(mid.cur, mid[2]))
+                  ## centerOn <- as.numeric(rootLayer$mapToScene(mid.cur, mid[2]))
                   view$scale(sx, sy)
                   ## mid.s.old <- rootLayer[3, 2]$mapToScene(mid[1], mid[2])
                   ## mid.s.cur <- pos.s-(pos.s-mid.s.old)*sx
-                  view$centerOn(centerOn[1], centerOn[2])
+                  ## view$centerOn(centerOn[1], centerOn[2])
                 }
               },
 

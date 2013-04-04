@@ -1,6 +1,11 @@
 ## demo start
 bamfile <- "~/Datas/seqs/ENCODE/caltech/single/wgEncodeCaltechRnaSeqGm12878R1x75dAlignsRep1V2.bam"
 library(visnab)
+## library(Rsamtools)
+## library(MutableRanges)
+## library(biovizBase)
+## library(qtpaint)
+## library(scales)
 data("genesymbol", package = "biovizBase")
 ## started with estiamted coverage
 obj <- CoverageView(bamfile)
@@ -15,8 +20,7 @@ obj$widget(genesymbol)
 ## 2. level 2: change from segemnt to histogram
 ## 3  level 3: accurate coverage
 ## 4. level 4: short reads
-
-
+obj$ylim
 
 
 
