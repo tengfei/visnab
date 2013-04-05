@@ -80,8 +80,9 @@ setReplaceMethod("range", "VisnabView", function(x, value){
     end(x$viewrange) <- seqlengths(x$viewrange)[value]
   }
   if(extends(class(value),"GenomicRanges")){
-    if(length(value)>1)
+    if(length(value)>1){
       value <- value[1]
+    }
       ## stop("Viewed range can only be of length 1")
     seqname <- as.character(seqnames(value))
     .back <- x$viewrange

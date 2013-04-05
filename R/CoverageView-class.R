@@ -243,6 +243,8 @@ CoverageView.gen$methods(createView = function(){
           suppressMessages(temp <-
                            biovizBase:::fetch(BamFile(file), which = gr.v, type = "raw"))
           temp$stepping <- disjointBins(ranges(temp))
+          strs <- as.character(strand(temp))
+          temp$.color <- as.character(biovizBase::getBioColor("STRAND")[strs])
           res <<- as.data.frame(temp)
           message("done")
         }else{
@@ -254,6 +256,8 @@ CoverageView.gen$methods(createView = function(){
                           IRanges(start(ir) - .diff, end(ir) + .diff))
             suppressMessages(temp <-
                              biovizBase:::fetch(BamFile(file), which = gr.v, type = "raw"))
+            strs <- as.character(strand(temp))
+            temp$.color <- as.character(biovizBase::getBioColor("STRAND")[strs])
             temp$stepping <- disjointBins(ranges(temp))
             res <<- as.data.frame(temp)
             message("done")            
@@ -400,8 +404,10 @@ CoverageView.gen$methods(paintCovRect = function(painter, res){
 })
 
 CoverageView.gen$methods(paintStep = function(painter, res){
+    ## print(head(res$.color))
     qdrawRect(painter, res$start, res$stepping -0.4, res$end,
-              res$stepping + 0.4, fill="gray40", stroke = "gray40")
+              res$stepping + 0.4, fill= as.character(res$.color),
+              stroke = as.character(res$.color))
     ylim <<- expand_range(c(0, max(res$stepping)), mul = 0.05)
 })
 
