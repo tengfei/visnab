@@ -297,7 +297,8 @@ CoverageView.gen$methods(createView = function(){
     eventTrace$focusin <<- TRUE
   }
   hoverLeaveFun <- function(layer, event){
-    eventTrace$focusin <<- FALSE
+    ## eventTrace$focusin <<- FALSE
+     eventTrace$focusin <<- TRUE
   }
   
   rootLayer[0,0] <<- qlayer(scene, paintFun=pfunCov,

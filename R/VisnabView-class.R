@@ -58,8 +58,11 @@ setMethod("show","VisnabView",function(object){
 
 setReplaceMethod("range", "VisnabView", function(x, value){
   if(is(value, "IRanges")){
-    if(length(value)>1)
-      stop("Viewed range can only be of length 1")
+    if(length(value)>1){
+      value <- value[1]
+      message("fist one used with multiple ranges.")
+    }
+      ## stop("Viewed range can only be of length 1")
     x$xlimZoom <- c(start(value), end(value))
   }
   if(is(value, "numeric")){
@@ -78,14 +81,16 @@ setReplaceMethod("range", "VisnabView", function(x, value){
   }
   if(extends(class(value),"GenomicRanges")){
     if(length(value)>1)
-      stop("Viewed range can only be of length 1")
+      value <- value[1]
+      ## stop("Viewed range can only be of length 1")
     seqname <- as.character(seqnames(value))
     .back <- x$viewrange
     signal(x$viewrange)$block()
     seqnames(x$viewrange) <- factor(seqname, levels = levels(seqnames(.back)))
-    start(x$viewrange) <- start(value)
-    signal(x$viewrange)$unblock()    
-    end(x$viewrange) <- end(value)
+    ## start(x$viewrange) <- start(value)
+    signal(x$viewrange)$unblock()
+    ranges(x$viewrange) <- ranges(value)    
+    ## end(x$viewrange) <- end(value)
     x$xlimZoom <- c(start(value), end(value))
   }
   x
